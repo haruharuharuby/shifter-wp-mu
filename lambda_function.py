@@ -38,7 +38,7 @@ class DockerCtr:
         return 'static'
 
     def __getEndpoint(self):
-        return 'http://docker-rc1-custom1-elb-15225947.us-east-1.elb.amazonaws.com:8080/'
+        return 'http://app.sp.opsrockin.com:8080/'
 
     def __getImage(self):
         return '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-wordpressadmin001:latest'
@@ -77,7 +77,10 @@ class DockerCtr:
                             }
                         }
                         }]
-                    }
+                    },
+                    "Placement": {
+                        "Constraints": ["node.role == worker"]
+                    },
                 },
                 "EndpointSpec": {
                     "Ports": [
