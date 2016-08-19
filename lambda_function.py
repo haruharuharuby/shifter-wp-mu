@@ -22,7 +22,7 @@ def lambda_handler(event, context):
         if ( event["action"] == "getTheService" ):
             result = ctr.getTheService(event['siteId'])
         elif ( event["action"] == "deleteTheService" ):
-            result = ctr.deleteTheService( event )
+            result = ctr.deleteTheService(event['siteId'])
         elif ( event["action"] == "createNewService" ):
             if not 'fsId' in event:
                 raise Exception( "params 'fsId' not found.")
@@ -37,6 +37,19 @@ class DynamoDB:
 
     def __getSiteTableName(self):
         return 'Site'
+
+    def deleteWpadminUrl(self, serviceName ):
+        res = self.client.update_item(
+            TableName=self.__getSiteTableName(),
+            Key={
+                'ID': { 'S': serviceName}
+            },
+            UpdateExpression='SET wpadmin=:wpadmin',
+            ExpressionAttributeValues={
+                ':wpadmin': { 'NULL': True }
+            }
+        )
+        return res
 
     def updateItem(self, wpadmin, serviceName ):
         res = self.client.update_item(
@@ -149,8 +162,8 @@ class DockerCtr:
         res = self.__connect( url )
         return res
 
-    def getTheService( self,service_name ):
-        res = self.__getTheService( service_name )
+    def getTheService( self,siteId ):
+        res = self.__getTheService( siteId )
         read = json.loads( res.read() )
         return read
 
@@ -205,6 +218,7 @@ class DockerCtr:
 
     def __deleteTheService( self, siteId ):
         endpoint = self.__getEndpoint()
+        logger.debug( siteId )
         url = endpoint + 'services/' + siteId
         res = self.__connect( url, 'DELETE' )
         return res
@@ -212,4 +226,6 @@ class DockerCtr:
     def deleteTheService( self, siteId ):
         res = self.__deleteTheService( siteId )
         read = res.read()
+        dynamo = DynamoDB()
+        dynamo.deleteWpadminUrl( siteId )
         return read
