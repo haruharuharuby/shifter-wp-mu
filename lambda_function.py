@@ -8,28 +8,26 @@ logger.setLevel(logging.DEBUG)
 
 print('Loading function')
 def lambda_handler(event, context):
+    if not 'action' in event:
+        raise Exception( "params 'action' not found." )
+
     ctr = DockerCtr()
     if ( event["action"] == "getAllServices" ):
         result = ctr.getServices()
     else:
-        print("value1 = " + event['siteId'])
-        print("value2 = " + event['pubPort'])
-        has_vars( event )
+        if not 'siteId' in event:
+            raise Exception( "params 'siteId' not found." )
         if ( event["action"] == "getTheService" ):
             result = ctr.getTheService(event['siteId'])
         elif ( event["action"] == "createNewService" ):
-            result = ctr.createNewService( event['siteId'], event['pubPort'] )
+            if not 'pubPort' in event:
+                raise Exception( "params 'pubPort' not found." )
+            if not 'fsId' in event:
+                raise Exception( "params 'fsId' not found.")
+            result = ctr.createNewService( event )
         else:
             raise Exception( event["action"] + 'is unregistered action type' )
     return result
-
-def has_vars( params ):
-    if not 'siteId' in params:
-        raise Exception( "params 'siteId' not found." )
-    if not 'pubPort' in params:
-        raise Exception( "params 'pubPort' not found." )
-    if not 'action' in params:
-        raise Exception( "params 'action' not found." )
 
 class DockerCtr:
 
@@ -43,10 +41,7 @@ class DockerCtr:
         return 'http://docker-rc1-custom1-elb-15225947.us-east-1.elb.amazonaws.com:8080/'
 
     def __getImage(self):
-        return '905740997296.dkr.ecr.us-west-2.amazonaws.com/docker-wordpressadmin001:latest'
-
-    def __getFsId(self):
-        return 'fs-7a66a533'
+        return '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-wordpressadmin001:latest'
 
     def __convertToJson( self, param ):
         return json.dumps( param )
@@ -57,11 +52,8 @@ class DockerCtr:
         handler = urllib2.HTTPBasicAuthHandler( password_mgr )
         opener = urllib2.build_opener( handler )
         urllib2.install_opener( opener )
-
         try:
             if body != None :
-                logger.debug( body )
-                logger.debug( url )
                 res = urllib2.urlopen( url, body )
             else:
                 res = urllib2.urlopen( url )
@@ -69,16 +61,16 @@ class DockerCtr:
         except urllib2.URLError, e:
             return e
 
-    def __getCreateImageBody( self,siteId, pubPort ):
+    def __getCreateImageBody( self, query ):
         body = {
-                "Name": siteId,
+                "Name": query['siteId'],
                 "TaskTemplate": {
                     "ContainerSpec": {
                         "Image": self.__getImage(),
                         "Mounts": [{
                         "Type": "volume",
                         "Target": "/mnt/userdata",
-                        "Source": self.__getFsId() + "/" + siteId,
+                        "Source": query['fsId'] + "/" + query['siteId'],
                         "VolumeOptions": {
                             "DriverConfig": {
                             "Name": "efs"
@@ -91,7 +83,7 @@ class DockerCtr:
                     "Ports": [
                         {
                             "Protocol": "tcp",
-                            "PublishedPort": int( pubPort ),
+                            "PublishedPort": int( query['pubPort'] ),
                             "TargetPort": 8080
                         }
                     ]
@@ -113,10 +105,10 @@ class DockerCtr:
         read = json.loads( res.read() )
         return read
 
-    def createNewService( self,siteId, pubPort ):
+    def createNewService( self, query ):
         endpoint = self.__getEndpoint()
         url = endpoint + 'services/create'
-        body = self.__getCreateImageBody( siteId, pubPort )
+        body = self.__getCreateImageBody( query )
         body_json = self.__convertToJson( body )
         res = self.__connect( url, 'POST', body_json )
         read = res.read()
