@@ -5,8 +5,6 @@ import json
 import random
 import logging
 import boto3
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
 
 print('Loading function')
 def lambda_handler(event, context):
@@ -44,22 +42,22 @@ class DynamoDB:
             Key={
                 'ID': { 'S': serviceName}
             },
-            UpdateExpression='SET wpadmin=:wpadmin',
+            UpdateExpression='SET docker_url=:docker_url',
             ExpressionAttributeValues={
-                ':wpadmin': { 'NULL': True }
+                ':docker_url ': { 'NULL': True }
             }
         )
         return res
 
-    def updateItem(self, wpadmin, serviceName ):
+    def updateItem(self, docker_url, serviceName ):
         res = self.client.update_item(
             TableName=self.__getSiteTableName(),
             Key={
                 'ID': { 'S': serviceName}
             },
-            UpdateExpression='SET wpadmin=:wpadmin',
+            UpdateExpression='SET docker_url=:docker_url',
             ExpressionAttributeValues={
-                ':wpadmin': { 'S': wpadmin }
+                ':docker_url': { 'S': docker_url }
             }
         )
         return res
@@ -181,14 +179,14 @@ class DockerCtr:
     def __createNewServiceInfo( self, query ):
         endpoint = self.__getEndpoint()
         message = {
-            'wpadmin': endpoint[:-5] + str( query['pubPort'] ),
+            'docker_url': endpoint[:-5] + str( query['pubPort'] ),
             'serviceName': query['siteId']
         }
         return message
 
     def __saveToDynamoDB( self, message ):
         dynamo = DynamoDB()
-        dynamo.updateItem( message['wpadmin'], message['serviceName'] )
+        dynamo.updateItem( message['docker_url'], message['serviceName'] )
 
     def __createNewService( self, query ):
         endpoint = self.__getEndpoint()
@@ -218,7 +216,6 @@ class DockerCtr:
 
     def __deleteTheService( self, siteId ):
         endpoint = self.__getEndpoint()
-        logger.debug( siteId )
         url = endpoint + 'services/' + siteId
         res = self.__connect( url, 'DELETE' )
         return res
