@@ -3,6 +3,7 @@ import urllib
 import urllib2
 import json
 import logging
+import random
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
@@ -50,6 +51,10 @@ class DockerCtr:
 
     def __convertToJson( self, param ):
         return json.dumps( param )
+
+    def __getPortNum( self ):
+        num = random.randint( 10000,30000 )
+        return num
 
     def __connect( self, url, method = 'GET', body = None ):
         password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
@@ -141,19 +146,34 @@ class DockerCtr:
         read = json.loads( res.read() )
         return read
 
+    def __createNewServiceInfo( self, query ):
+        endpoint = self.__getEndpoint()
+        message = {
+            'wpadmin': endpoint[:-5] + str( query['pubPort'] ),
+            'serviceName': query['siteId']
+        }
+        return message
+
     def __createNewService( self, query ):
         endpoint = self.__getEndpoint()
         url = endpoint + 'services/create'
+        query['pubPort'] = self.__getPortNum()
         body = self.__getCreateImageBody( query )
         body_json = self.__convertToJson( body )
         res = self.__connect( url, 'POST', body_json )
-        return res
+        if isinstance( res, urllib2.URLError) :
+            return res
+        else:
+            return self.__createNewServiceInfo( query )
 
     def createNewService( self, query ):
         if ( self.__isAvailablePortNum() ):
             res = self.__createNewService( query )
-            read = res.read()
-            return json.loads( read )
+            if isinstance( res, urllib2.URLError) :
+                read = res.read()
+                return json.loads( read )
+            else:
+                return res
         else :
             error = { 'message': 'available port not found.'}
             return error
