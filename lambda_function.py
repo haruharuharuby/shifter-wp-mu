@@ -19,6 +19,8 @@ def lambda_handler(event, context):
             raise Exception( "params 'siteId' not found." )
         if ( event["action"] == "getTheService" ):
             result = ctr.getTheService(event['siteId'])
+        elif ( event["action"] == "deleteTheService" ):
+            result = ctr.deleteTheService( event )
         elif ( event["action"] == "createNewService" ):
             if not 'pubPort' in event:
                 raise Exception( "params 'pubPort' not found." )
@@ -52,11 +54,18 @@ class DockerCtr:
         handler = urllib2.HTTPBasicAuthHandler( password_mgr )
         opener = urllib2.build_opener( handler )
         urllib2.install_opener( opener )
+
+        if body == None :
+            request = urllib2.Request( url )
+        else :
+            request = urllib2.Request( url, body )
+        request.add_header('Content-Type', 'application/json')
+
+        if method != 'GET' :
+            request.get_method = lambda: method
+
         try:
-            if body != None :
-                res = urllib2.urlopen( url, body )
-            else:
-                res = urllib2.urlopen( url )
+            res = urllib2.urlopen( request )
             return res
         except urllib2.URLError, e:
             return e
@@ -94,9 +103,9 @@ class DockerCtr:
             }
         return body
 
-    def getTheService( self,service_name ):
+    def getTheService( self, param ):
         endpoint = self.__getEndpoint()
-        url = endpoint + 'services/' + service_name
+        url = endpoint + 'services/' + param['siteId']
         res = self.__connect( url )
         read = json.loads( res.read() )
         return read
@@ -117,9 +126,9 @@ class DockerCtr:
         read = res.read()
         return json.loads( read )
 
-    def deleteTheService( self, siteId ):
+    def deleteTheService( self, param ):
         endpoint = self.__getEndpoint()
-        url = endpoint + 'services'
+        url = endpoint + 'services/' + param['siteId']
         res = self.__connect( url, 'DELETE' )
-        read = json.loads( res.read() )
+        read = res.read()
         return read
