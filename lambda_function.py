@@ -123,6 +123,9 @@ class DockerCtr:
     def __getCreateImageBody( self, query ):
         body = {
                 "Name": query['siteId'],
+                "Labels": {
+                    "Name": "wordpress-worker"
+                },
                 "TaskTemplate": {
                     "ContainerSpec": {
                         "Image": self.__getImage(),
