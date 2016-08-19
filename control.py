@@ -6,6 +6,9 @@ import json
 
 class DockerCtr:
 
+    def __getPortLimit(self):
+        return 95
+
     def __getBasicAuthPass(self):
         return 'presspress'
 
@@ -43,6 +46,18 @@ class DockerCtr:
         except urllib2.URLError, e:
             return e
 
+    def __countRunningService( self ):
+        services = self.getServices()
+        return len(services)
+
+    def __isAvailablePortNum( self ):
+        portNum = self.__countRunningService()
+        portLimit = self.__getPortLimit()
+        if ( portNum > portLimit ):
+            return False
+        else :
+            return True
+
     def __getCreateImageBody( self, query ):
         body = {
                 "Name": query['siteId'],
@@ -76,49 +91,69 @@ class DockerCtr:
             }
         return body
 
-    def getTheService( self,service_name ):
+
+    def __getTheService( self,service_name ):
         endpoint = self.__getEndpoint()
         url = endpoint + 'services/' + service_name
         res = self.__connect( url )
+        return res
+
+    def getTheService( self,service_name ):
+        res = self.__getTheService( service_name )
         read = json.loads( res.read() )
         return read
 
-    def getServices( self ):
+    def __getServices( self ):
         endpoint = self.__getEndpoint()
         url = endpoint + 'services'
         res = self.__connect( url )
+        return res
+
+    def getServices( self ):
+        res = self.__getServices()
         read = json.loads( res.read() )
         return read
 
-    def createNewService( self, query ):
+    def __createNewService( self, query ):
         endpoint = self.__getEndpoint()
         url = endpoint + 'services/create'
         body = self.__getCreateImageBody( query )
         body_json = self.__convertToJson( body )
         res = self.__connect( url, 'POST', body_json )
-        read = res.read()
-        return json.loads( read )
+        return res
 
-    def deleteTheService( self, siteId ):
+    def createNewService( self, query ):
+        if ( self.__isAvailablePortNum() ):
+            res = self.__createNewService( query )
+            read = res.read()
+            return json.loads( read )
+        else :
+            error = { 'message': 'available port not found.'}
+            return error
+
+    def __deleteTheService( self, siteId ):
         endpoint = self.__getEndpoint()
         url = endpoint + 'services/' + siteId
         res = self.__connect( url, 'DELETE' )
+        return res
+
+    def deleteTheService( self, siteId ):
+        res = self.__deleteTheService( siteId )
         read = res.read()
         return read
 
 
-
-siteId = 'site00010'
+siteId = 'site0021'
 param = {
   'siteId': siteId,
-  'pubPort': '30020',
+  'pubPort': '30021',
   'fsId': "fs-88d311c1"
 }
 print param
 ctr = DockerCtr()
 #print ctr.getServices()
 #print ctr.getTheService('global-dd-agent')
-ctr.createNewService( param )
+print ctr.createNewService( param )
 #print ctr.getTheService(siteId)
-print ctr.deleteTheService(siteId)
+#print ctr.deleteTheService(siteId)
 #print ctr.getTheService(siteId)
