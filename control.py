@@ -5,7 +5,6 @@ import urllib2
 import json
 
 class DockerCtr:
-    #def __init__(self):
 
     def __getBasicAuthPass(self):
         return 'presspress'
@@ -14,13 +13,10 @@ class DockerCtr:
         return 'static'
 
     def __getEndpoint(self):
-        return 'http://docker-rc1-custom1-elb-15225947.us-east-1.elb.amazonaws.com:8080/'
+        return 'http://app.sp.opsrockin.com:8080/'
 
     def __getImage(self):
-        return '905740997296.dkr.ecr.us-west-2.amazonaws.com/docker-wordpressadmin001:latest'
-
-    def __getFsId(self):
-        return 'fs-7a66a533'
+        return '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-wordpressadmin001:latest'
 
     def __convertToJson( self, param ):
         return json.dumps( param )
@@ -31,45 +27,48 @@ class DockerCtr:
         handler = urllib2.HTTPBasicAuthHandler( password_mgr )
         opener = urllib2.build_opener( handler )
         urllib2.install_opener( opener )
-        req = urllib2.Request( url )
-        print method
-        req.get__method = lambda: method
+
+        if body == None :
+            request = urllib2.Request( url )
+        else :
+            request = urllib2.Request( url, body )
+        request.add_header('Content-Type', 'application/json')
+
+        if method != 'GET' :
+            request.get_method = lambda: method
 
         try:
-            if body != None :
-                print body
-                print url
-                res = urllib2.urlopen( req, body )
-            else:
-                res = urllib2.urlopen( req )
+            res = urllib2.urlopen( request )
             return res
         except urllib2.URLError, e:
             return e
 
-    def __getCreateImageBody( self,siteId, pubPort ):
+    def __getCreateImageBody( self, query ):
         body = {
-                "Name": siteId,
+                "Name": query['siteId'],
                 "TaskTemplate": {
                     "ContainerSpec": {
                         "Image": self.__getImage(),
-                        "Args": ["--with-registry-auth"],
                         "Mounts": [{
                         "Type": "volume",
                         "Target": "/mnt/userdata",
-                        "Source": self.__getFsId() + "/" + siteId,
+                        "Source": query['fsId'] + "/" + query['siteId'],
                         "VolumeOptions": {
                             "DriverConfig": {
                             "Name": "efs"
                             }
                         }
                         }]
-                    }
+                    },
+                    "Placement": {
+                        "Constraints": ["node.role == worker"]
+                    },
                 },
                 "EndpointSpec": {
                     "Ports": [
                         {
                             "Protocol": "tcp",
-                            "PublishedPort": pubPort,
+                            "PublishedPort": int( query['pubPort'] ),
                             "TargetPort": 8080
                         }
                     ]
@@ -91,28 +90,35 @@ class DockerCtr:
         read = json.loads( res.read() )
         return read
 
-    def createNewService( self,siteId, pubPort ):
+    def createNewService( self, query ):
         endpoint = self.__getEndpoint()
         url = endpoint + 'services/create'
-        body = self.__getCreateImageBody( siteId, pubPort )
+        body = self.__getCreateImageBody( query )
         body_json = self.__convertToJson( body )
         res = self.__connect( url, 'POST', body_json )
-        return json.loads( res.read() )
+        read = res.read()
+        return json.loads( read )
 
     def deleteTheService( self, siteId ):
         endpoint = self.__getEndpoint()
-        url = endpoint + 'services'
+        url = endpoint + 'services/' + siteId
         res = self.__connect( url, 'DELETE' )
-        read = json.loads( res.read() )
+        read = res.read()
         return read
 
 
 
-siteId = 'site0009'
-pubPort = 30020
+siteId = 'site00010'
+param = {
+  'siteId': siteId,
+  'pubPort': '30020',
+  'fsId': "fs-88d311c1"
+}
+print param
 ctr = DockerCtr()
 #print ctr.getServices()
 #print ctr.getTheService('global-dd-agent')
-print ctr.createNewService( siteId, pubPort )
-#print ctr.deleteTheService(siteId)
+ctr.createNewService( param )
+#print ctr.getTheService(siteId)
+print ctr.deleteTheService(siteId)
 #print ctr.getTheService(siteId)
