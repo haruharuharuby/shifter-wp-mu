@@ -2,8 +2,9 @@ from __future__ import print_function
 import urllib
 import urllib2
 import json
-import logging
 import random
+import logging
+import boto3
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
@@ -23,14 +24,32 @@ def lambda_handler(event, context):
         elif ( event["action"] == "deleteTheService" ):
             result = ctr.deleteTheService( event )
         elif ( event["action"] == "createNewService" ):
-            if not 'pubPort' in event:
-                raise Exception( "params 'pubPort' not found." )
             if not 'fsId' in event:
                 raise Exception( "params 'fsId' not found.")
             result = ctr.createNewService( event )
         else:
             raise Exception( event["action"] + 'is unregistered action type' )
     return result
+
+class DynamoDB:
+    def __init__(self):
+        self.client = boto3.client('dynamodb')
+
+    def __getSiteTableName(self):
+        return 'Site'
+
+    def updateItem(self, wpadmin, serviceName ):
+        res = self.client.update_item(
+            TableName=self.__getSiteTableName(),
+            Key={
+                'ID': { 'S': serviceName}
+            },
+            UpdateExpression='SET wpadmin=:wpadmin',
+            ExpressionAttributeValues={
+                ':wpadmin': { 'S': wpadmin }
+            }
+        )
+        return res
 
 class DockerCtr:
 
@@ -154,6 +173,10 @@ class DockerCtr:
         }
         return message
 
+    def __saveToDynamoDB( self, message ):
+        dynamo = DynamoDB()
+        dynamo.updateItem( message['wpadmin'], message['serviceName'] )
+
     def __createNewService( self, query ):
         endpoint = self.__getEndpoint()
         url = endpoint + 'services/create'
@@ -164,7 +187,9 @@ class DockerCtr:
         if isinstance( res, urllib2.URLError) :
             return res
         else:
-            return self.__createNewServiceInfo( query )
+            message = self.__createNewServiceInfo( query )
+            self.__saveToDynamoDB( message )
+            return message
 
     def createNewService( self, query ):
         if ( self.__isAvailablePortNum() ):
