@@ -2,10 +2,11 @@ from __future__ import print_function
 import urllib
 import urllib2
 import json
+import base64
 import random
 import logging
-#logger = logging.getLogger()
-#logger.setLevel(logging.DEBUG)
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
 import boto3
 
 
@@ -47,7 +48,7 @@ class DynamoDB:
             },
             UpdateExpression='SET docker_url=:docker_url',
             ExpressionAttributeValues={
-                ':docker_url ': { 'NULL': True }
+                ':docker_url': { 'NULL': True }
             }
         )
         return res
@@ -71,7 +72,19 @@ class DockerCtr:
         return 95
 
     def __getXRegistryAuth(self):
-        return "IHsKICJ1c2VybmFtZSI6ICJBV1MiLAogInBhc3N3b3JkIjogIkFRRUNBSGh3bTBZYUlTSmVSdEptNW4xRzZ1cWVla1h1b1hYUGU1VUZjZTlScTgvMTR3QUFBdkV3Z2dMdEJna3Foa2lHOXcwQkJ3YWdnZ0xlTUlJQzJnSUJBRENDQXRNR0NTcUdTSWIzRFFFSEFUQWVCZ2xnaGtnQlpRTUVBUzR3RVFRTWZ3eEhSSTVHQ1I3OHZNZmNBZ0VRZ0lJQ3BGaERuTWpLRzg0UXVmY2NmNmlQa09UZW9pd1VieE9UU1FqMEF1NDJRVjlINDYzZmlCWkppMExxTUcrUUt4dGQyMy9rTzExM1FTRXRwOFpIR2xKQ2M1UE1raUNTR0ZBUkxUa0VTU292cTNOVDNVRm8ranBZUDAzUEZ2NFVwQ2FXOGVvK3dKOU0yaENMckxYQkJNUFNuYU1jc2pkYUpPMVNmYU12OTlKaWp1RmVtOHFpaWp2bTE1ZjR2VDJveFExQjAvVUhmTDBoK21sSHphM1V3OFpVT2R3K00za2xidXBUVkV2dFhuZzd2UlNHZnozMHZuakVnVFRkWHBoOFhqV1pMK2pJK2F4WTRmNVVOOE5Ha2RQaUtFVVd6bmtwSVJWSWlLdVltNHJiRDlPMEZ0V0NMNXhrNk1WcThVQlZDQU1UL21iRDlWWjJjbXZHeGgwSDJzSG5wb0NuSXdMRUQ0U0o1MDgwWVUra1JQN1drS2E2SW55dE92aG5NN2Nock5uTExsS2JHSkYxWk1HTUJCOGZySFhoeVJIUjZGbDRDNEhKU0tDZkRBQ3FEYWhKOUp6QjcxN1FnTmU1RTdnT1RhcVJXNDVvbGtVZ2xRMmdZV2dnVG51YXdMRnpOcGo5Qkk5aElQcnl3VXFydlQreGYwOTNReWV1ZWxnT1I0WmhLMy9GYS92QUR4cHEzVU9lU2FyQ3hTWFVsdUdIb0hLT2FrZEpCTFJtOTQ1T2VhV1RIcUFlT3ZXY2VMWVRKT0JDcjM2ckNkQndQWFhVMHRvRkRaQWVFbmIyellIVS9iMVJFZjgxQ2xRV3pPNjlzWVhrSlNBaG1JVVFqdWdCczdxRDJrSWxWZ0krVlcyWnpwSks1QWVwR1JKYjlOOENKM3VnNnRLY2hyemdseERQclFQVXpHUVI5NUpqQnBFUzRQQXFISHd3dUUydTNucWpQakRCZDlaUUNlMHRNdEhObnlqcFJIb2pCSC9OZjdDYkJuVlhnK2p0TFlRaDNTTzFyb0thbFJsdDlTNmo2UEVzYkxneVNDU0dxeCs5TWhNaVZBMk02UFdkd0NjVHVCeHJ0czFueC94b0dIMVl1ZWdmaE5jQ3FiOXhuSlh1amtsME5wQit4aG1kYkk0dk80dFZmUjVjMnArRlh2MDR1c2FDdm9nU3NRcW5aNC9FV01pSDZRNTVmN2M2dHJ5UzNKSSIsCiAiZW1haWwiOiAibm9uZSIsCn0K"
+        try:
+            ecr = boto3.client('ecr')
+            res = ecr.get_authorization_token()
+            raw_token = res['authorizationData'][0]['authorizationToken']
+            usertoken = base64.b64decode( raw_token ).split(':')
+            jsondata = {}
+            jsondata['username'] = usertoken[0]
+            jsondata['password'] = usertoken[1]
+            jsondata['email'] = 'none'
+            auth_string = base64.b64encode(json.dumps(jsondata))
+        except:
+            auth_string = 'failed_to_get_token'
+        return auth_string
 
     def __getBasicAuthPass(self):
         return 'presspress'
