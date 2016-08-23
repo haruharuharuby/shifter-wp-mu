@@ -154,14 +154,14 @@ class DockerCtr:
                             "SITE_ID=" + query['siteId']
                         ],
                         "Mounts": [{
-                        "Type": "volume",
-                        "Target": "/mnt/userdata",
-                        "Source": query['fsId'] + "/" + query['siteId'],
-                        "VolumeOptions": {
-                            "DriverConfig": {
-                            "Name": "efs"
+                            "Type": "volume",
+                            "Target": "/mnt/userdata",
+                            "Source": query['fsId'] + "/" + query['siteId'],
+                            "VolumeOptions": {
+                                "DriverConfig": {
+                                "Name": "efs"
+                                }
                             }
-                        }
                         }]
                     },
                     "Placement": {
