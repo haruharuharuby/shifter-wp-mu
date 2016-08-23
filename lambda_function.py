@@ -152,6 +152,10 @@ class DockerCtr:
                         "Mounts": [{
                         "Type": "volume",
                         "Target": "/mnt/userdata",
+                        "Env": [
+                            "SERVICE_PORT=" + str( query['pubPort'] ),
+                            "SITE_ID=" + query['siteId']
+                        ],
                         "Source": query['fsId'] + "/" + query['siteId'],
                         "VolumeOptions": {
                             "DriverConfig": {
