@@ -159,8 +159,18 @@ class DockerCtr:
                         ],
                         "Mounts": [{
                             "Type": "volume",
-                            "Target": "/mnt/userdata",
-                            "Source": query['fsId'] + "/" + query['siteId'],
+                            "Target": "/var/www/html",
+                            "Source": query['fsId'] + "/" + query['siteId'] + "/web",
+                            "VolumeOptions": {
+                                "DriverConfig": {
+                                "Name": "efs"
+                                }
+                            }
+                        },
+                        {
+                            "Type": "volume",
+                            "Target": "/var/lib/mysql",
+                            "Source": query['fsId'] + "/" + query['siteId'] + "/db",
                             "VolumeOptions": {
                                 "DriverConfig": {
                                 "Name": "efs"
