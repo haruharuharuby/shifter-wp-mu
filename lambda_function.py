@@ -68,6 +68,9 @@ class DynamoDB:
 
 class DockerCtr:
 
+    def __getServiceDomain(self):
+        return 'app.sp.opsrockin.com';
+
     def __getPortLimit(self):
         return 95
 
@@ -151,7 +154,8 @@ class DockerCtr:
                         "Image": self.__getImage(),
                         "Env": [
                             "SERVICE_PORT=" + str( query['pubPort'] ),
-                            "SITE_ID=" + query['siteId']
+                            "SITE_ID=" + query['siteId'],
+                            "SERVICE_DOMAIN=" + self.__getServiceDomain()
                         ],
                         "Mounts": [{
                             "Type": "volume",
