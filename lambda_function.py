@@ -179,7 +179,7 @@ class DockerCtr:
                         }]
                     },
                     "Placement": {
-                        "Constraints": ["node.role == worker"]
+                        "Constraints": ["node.labels.type == efs-worker"]
                     },
                 },
                 "EndpointSpec": {
