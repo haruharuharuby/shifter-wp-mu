@@ -46,10 +46,9 @@ class DynamoDB:
             Key={
                 'ID': { 'S': serviceName}
             },
-            UpdateExpression='SET docker_url=:docker_url,stock_state=:stock_state',
+            UpdateExpression='SET docker_url=:docker_url',
             ExpressionAttributeValues={
-                ':docker_url': { 'NULL': True },
-                ':stock_state': { 'S': 'delete' }
+                ':docker_url': { 'NULL': True }
             }
         )
         return res
