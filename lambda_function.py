@@ -5,8 +5,8 @@ import json
 import base64
 import random
 import logging
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+#logger = logging.getLogger()
+#logger.setLevel(logging.DEBUG)
 import boto3
 
 
@@ -155,7 +155,8 @@ class DockerCtr:
                         "Env": [
                             "SERVICE_PORT=" + str( query['pubPort'] ),
                             "SITE_ID=" + query['siteId'],
-                            "SERVICE_DOMAIN=" + self.__getServiceDomain()
+                            "SERVICE_DOMAIN=" + self.__getServiceDomain(),
+                            "EFS_ID=" + query['fsId']
                         ],
                         "Mounts": [{
                             "Type": "volume",
@@ -179,7 +180,7 @@ class DockerCtr:
                         }]
                     },
                     "Placement": {
-                        "Constraints": ["node.role == worker"]
+                        "Constraints": ["node.labels.type == efs-worker"]
                     },
                 },
                 "EndpointSpec": {
