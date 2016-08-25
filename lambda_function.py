@@ -181,8 +181,8 @@ class DockerCtr:
                 "TaskTemplate": {
                     "RestartPolicy": {
                         "Condition": "on-failure",
-                        "Delay": 5,
-                        "Attempts": 3,
+                        "Delay": 5000,
+                        "MaxAttempts": 3,
                     },
                     "ContainerSpec": {
                         "Image": self.__getImage('sync-efs-to-s3'),
