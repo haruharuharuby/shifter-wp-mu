@@ -4,6 +4,7 @@ import urllib2
 import json
 import base64
 import random
+import uuid
 import logging
 #logger = logging.getLogger()
 #logger.setLevel(logging.DEBUG)
@@ -73,6 +74,9 @@ class DynamoDB:
 
 class DockerCtr:
 
+    def __init__(self):
+        self.uuid = ''
+
     def __getServiceDomain(self):
         return 'app.sp.opsrockin.com';
 
@@ -103,10 +107,19 @@ class DockerCtr:
     def __getEndpoint(self):
         return 'http://app.sp.opsrockin.com:8080/'
 
+    def __getAwsSecret4S3(self):
+        return 'HpKRfy361drDQ9n7zf1/PL9HDRf424LGB6Rs34/8'
+
+    def __getAwsAccess4S3(self):
+        return 'AKIAIXELICZZAPYVYELA'
+
+    def __getS3BucketNameForSync(self):
+        return 'generator-s3-sync'
+
     def __getImage(self,imageType ):
-        if mageType == 'wordpress-worker':
+        if imageType == 'wordpress-worker':
             return '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-wordpressadmin001:latest'
-        elif mageType == 'sync-efs-to-s3':
+        elif imageType == 'sync-efs-to-s3':
             return '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync:latest'
 
     def __convertToJson( self, param ):
@@ -159,19 +172,25 @@ class DockerCtr:
         return body
 
     def __getSyncEfsToS3ImageBody( self, query ):
+        self.uuid = uuid.uuid4().hex
         body = {
-                "Name": query['siteId'],
+                "Name": self.uuid,
                 "Labels": {
                     "Name": "sync-efs-to-s3"
                 },
                 "TaskTemplate": {
+                    "RestartPolicy": {
+                        "Condition": "on-failure",
+                        "Delay": 5,
+                        "Attempts": 3,
+                    },
                     "ContainerSpec": {
                         "Image": self.__getImage('sync-efs-to-s3'),
                         "Env": [
-                            "SERVICE_PORT=" + str( query['pubPort'] ),
+                            "AWS_ACCESS_KEY_ID=" + self.__getAwsAccess4S3(),
+                            "AWS_SECRET_ACCESS_KEY=" + self.__getAwsSecret4S3(),
                             "SITE_ID=" + query['siteId'],
-                            "SERVICE_DOMAIN=" + self.__getServiceDomain(),
-                            "EFS_ID=" + query['fsId']
+                            "SERVICE_NAME=" + self.uuid
                         ],
                         "Mounts": [{
                             "Type": "volume",
@@ -187,15 +206,6 @@ class DockerCtr:
                     "Placement": {
                         "Constraints": ["node.labels.type == efs-worker"]
                     },
-                },
-                "EndpointSpec": {
-                    "Ports": [
-                        {
-                            "Protocol": "tcp",
-                            "PublishedPort": int( query['pubPort'] ),
-                            "TargetPort": 8080
-                        }
-                    ]
                 }
             }
         return body
@@ -296,9 +306,12 @@ class DockerCtr:
         res = self.__connect( url, 'POST', body_json )
         if isinstance( res, urllib2.URLError) :
             return res
-        else:
+        elif ( query["action"] == 'createNewService' ):
             message = self.__createNewServiceInfo( query )
             self.__saveToDynamoDB( message )
+            return message
+        elif ( query["action"] == 'syncEfsToS3' ):
+            message = self.uuid
             return message
 
     def createNewService( self, query ):
