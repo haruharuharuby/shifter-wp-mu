@@ -311,7 +311,7 @@ class DockerCtr:
             self.__saveToDynamoDB( message )
             return message
         elif ( query["action"] == 'syncEfsToS3' ):
-            message = self.uuid
+            message = { 'serviceName': self.uuid }
             return message
 
     def createNewService( self, query ):
