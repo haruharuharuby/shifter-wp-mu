@@ -29,6 +29,10 @@ def lambda_handler(event, context):
             if not 'fsId' in event:
                 raise Exception( "params 'fsId' not found.")
             result = ctr.createNewService( event )
+        elif ( event["action"] == 'syncEfsToS3' ):
+            if not 'fsId' in event:
+                raise Exception( "params 'fsId' not found.")
+            result = ctr.createNewService( event )
         else:
             raise Exception( event["action"] + 'is unregistered action type' )
     return result
@@ -99,8 +103,11 @@ class DockerCtr:
     def __getEndpoint(self):
         return 'http://app.sp.opsrockin.com:8080/'
 
-    def __getImage(self):
-        return '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-wordpressadmin001:latest'
+    def __getImage(self,imageType ):
+        if mageType == 'wordpress-worker':
+            return '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-wordpressadmin001:latest'
+        elif mageType == 'sync-efs-to-s3':
+            return '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync:latest'
 
     def __convertToJson( self, param ):
         return json.dumps( param )
@@ -145,6 +152,13 @@ class DockerCtr:
             return True
 
     def __getCreateImageBody( self, query ):
+        if ( query["action"] == 'syncEfsToS3' ):
+            body = self.__getSyncEfsToS3ImageBody( query )
+        elif ( query["action"] == 'createNewService' ):
+            body = self.__getWpServiceImageBody( query )
+        return body
+
+    def __getSyncEfsToS3ImageBody( self, query ):
         body = {
                 "Name": query['siteId'],
                 "Labels": {
@@ -152,7 +166,59 @@ class DockerCtr:
                 },
                 "TaskTemplate": {
                     "ContainerSpec": {
-                        "Image": self.__getImage(),
+                        "Image": self.__getImage('sync-efs-to-s3'),
+                        "Env": [
+                            "SERVICE_PORT=" + str( query['pubPort'] ),
+                            "SITE_ID=" + query['siteId'],
+                            "SERVICE_DOMAIN=" + self.__getServiceDomain(),
+                            "EFS_ID=" + query['fsId']
+                        ],
+                        "Mounts": [{
+                            "Type": "volume",
+                            "Target": "/var/www/html",
+                            "Source": query['fsId'] + "/" + query['siteId'] + "/web",
+                            "VolumeOptions": {
+                                "DriverConfig": {
+                                "Name": "efs"
+                                }
+                            }
+                        },
+                        {
+                            "Type": "volume",
+                            "Target": "/var/lib/mysql",
+                            "Source": query['fsId'] + "/" + query['siteId'] + "/db",
+                            "VolumeOptions": {
+                                "DriverConfig": {
+                                "Name": "efs"
+                                }
+                            }
+                        }]
+                    },
+                    "Placement": {
+                        "Constraints": ["node.labels.type == efs-worker"]
+                    },
+                },
+                "EndpointSpec": {
+                    "Ports": [
+                        {
+                            "Protocol": "tcp",
+                            "PublishedPort": int( query['pubPort'] ),
+                            "TargetPort": 8080
+                        }
+                    ]
+                }
+            }
+        return body
+
+    def __getWpServiceImageBody( self, query ):
+        body = {
+                "Name": query['siteId'],
+                "Labels": {
+                    "Name": "wordpress-worker"
+                },
+                "TaskTemplate": {
+                    "ContainerSpec": {
+                        "Image": self.__getImage('wordpress-worker'),
                         "Env": [
                             "SERVICE_PORT=" + str( query['pubPort'] ),
                             "SITE_ID=" + query['siteId'],
