@@ -162,7 +162,7 @@ class DockerCtr:
         body = {
                 "Name": query['siteId'],
                 "Labels": {
-                    "Name": "wordpress-worker"
+                    "Name": "sync-efs-to-s3"
                 },
                 "TaskTemplate": {
                     "ContainerSpec": {
@@ -175,18 +175,8 @@ class DockerCtr:
                         ],
                         "Mounts": [{
                             "Type": "volume",
-                            "Target": "/var/www/html",
+                            "Target": "/opt/efs/",
                             "Source": query['fsId'] + "/" + query['siteId'] + "/web",
-                            "VolumeOptions": {
-                                "DriverConfig": {
-                                "Name": "efs"
-                                }
-                            }
-                        },
-                        {
-                            "Type": "volume",
-                            "Target": "/var/lib/mysql",
-                            "Source": query['fsId'] + "/" + query['siteId'] + "/db",
                             "VolumeOptions": {
                                 "DriverConfig": {
                                 "Name": "efs"
