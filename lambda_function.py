@@ -7,6 +7,7 @@ import random
 import uuid
 import logging
 #logger = logging.getLogger()
+#logger.setLevel(logging.INFO)
 #logger.setLevel(logging.DEBUG)
 import boto3
 
@@ -44,6 +45,16 @@ class DynamoDB:
 
     def __getSiteTableName(self):
         return 'Site'
+
+    def getServiceById(self,serviceName):
+        res = self.client.scan(
+            TableName=self.__getSiteTableName(),
+            FilterExpression="ID = :id",
+            ExpressionAttributeValues={
+                ':id': { 'S': serviceName }
+            }
+         )
+        return res
 
     def deleteWpadminUrl(self, serviceName ):
         res = self.client.update_item(
@@ -173,6 +184,16 @@ class DockerCtr:
 
     def __getSyncEfsToS3ImageBody( self, query ):
         self.uuid = uuid.uuid4().hex
+        dynamodb = DynamoDB()
+        dbData = dynamodb.getServiceById( query['siteId'] )
+        if 'Items' in dbData:
+            dbItem = dbData['Items'][0]
+        else:
+            dbItem = {
+                's3_bucket': {'S': ''},
+                's3_region': {'S': ''},
+            }
+
         body = {
                 "Name": self.uuid,
                 "Labels": {
@@ -189,6 +210,8 @@ class DockerCtr:
                         "Env": [
                             "AWS_ACCESS_KEY_ID=" + self.__getAwsAccess4S3(),
                             "AWS_SECRET_ACCESS_KEY=" + self.__getAwsSecret4S3(),
+                            "S3_REGION=" + dbItem['s3_bucket']['S'],
+                            "S3_BUCKET=" + dbItem['s3_region']['S'],
                             "SITE_ID=" + query['siteId'],
                             "SERVICE_NAME=" + self.uuid
                         ],
