@@ -1,18 +1,13 @@
-profile: null
-region: us-east-1
+profile: {{ env['AWS_PROFILE'] }}
+region: {{ env['AWS_REGION'] }}
 versioning: false
 default_alias: null
 clean_build: false
 configuration:
-  name: docker_swarm
+  name: docker-swarm-controller
   runtime: python2.7
-  role: arn:aws:iam::<account-number>:role/<role>
+  role: arn:aws:iam::027273742350:role/docker-swarm-controller
   handler: lambda_function.lambda_handler
-  description: This is a sample lambda function.
-  timeout: 10
+  description: Controll Docker Swarm Service for WordPress
+  timeout: 60
   memory_size: 128
-  vpc_config:
-    subnets:
-    - subnet-xxxxxxxx
-    security_groups:
-    - sg-xxxxxxxx
