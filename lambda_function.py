@@ -35,10 +35,10 @@ def lambda_handler(event, context):
             if not 'fsId' in event:
                 raise Exception( "params 'fsId' not found.")
             result = ctr.createNewService( event )
-        elif ( event["action"] == 'deleteS3SyncService' ):
+        elif ( event["action"] == 'deleteServiceByServiceId' ):
             if not 'serviceId' in event:
                 raise Exception( "params 'serviceId' not found.")
-            result = ctr.deleteS3SyncService( event )
+            result = ctr.deleteServiceByServiceId( event )
         else:
             raise Exception( event["action"] + 'is unregistered action type' )
     return result
@@ -190,9 +190,11 @@ class DockerCtr:
         self.uuid = uuid.uuid4().hex
         dynamodb = DynamoDB()
         dbData = dynamodb.getServiceById( query['siteId'] )
+        dbItem = False
         if 'Items' in dbData:
-            dbItem = dbData['Items'][0]
-        else:
+            if ( dbData['Count'] > 0 ):
+                dbItem = dbData['Items'][0]
+        if ( dbItem == False ):
             dbItem = {
                 's3_bucket': {'S': ''},
                 's3_region': {'S': ''},
@@ -366,9 +368,22 @@ class DockerCtr:
         dynamo.deleteWpadminUrl( siteId )
         return read
 
-    def deleteS3SyncService( self, query ):
+    def deleteServiceByServiceId( self, query ):
         endpoint = self.__getEndpoint()
         url = endpoint + 'services/' + query['serviceId']
         res = self.__connect( url, 'DELETE' )
         read = res.read()
-        return read
+        if ( read == "" ):
+            result = {
+                "serviceId": query['serviceId'],
+                "status": 200,
+                "message": "service: " + query['serviceId'] + "is deleted."
+            }
+        else:
+            read = json.loads( read )
+            result = {
+                "serviceId": query['serviceId'],
+                "status": 400,
+                "message": read['message']
+            }
+        return result
