@@ -68,23 +68,24 @@ class DynamoDB:
             Key={
                 'ID': { 'S': serviceName}
             },
-            UpdateExpression='SET docker_url=:docker_url',
+            UpdateExpression='SET docker_url=:docker_url,stock_state=:stock_state',
             ExpressionAttributeValues={
-                ':docker_url': { 'NULL': True }
+                ':docker_url': { 'NULL': True },
+                ':stock_state': { 'S': 'inuse' }
             }
         )
         return res
 
-    def updateItem(self, docker_url, serviceName ):
+    def updateItem(self, message ):
         res = self.client.update_item(
             TableName=self.__getSiteTableName(),
             Key={
-                'ID': { 'S': serviceName}
+                'ID': { 'S': message['serviceName']}
             },
             UpdateExpression='SET docker_url=:docker_url,stock_state=:stock_state',
             ExpressionAttributeValues={
-                ':docker_url': { 'S': docker_url },
-                ':stock_state': { 'S': 'inuse' }
+                ':docker_url': { 'S': message['docker_url'] },
+                ':stock_state': { 'S': message['stock_state'] }
             }
         )
         return res
@@ -327,13 +328,48 @@ class DockerCtr:
             'docker_url': endpoint[:-5] + str( query['pubPort'] ),
             'serviceName': query['siteId']
         }
+        if 'serviceType' in query:
+            if ( query['serviceType'] == 'generator' ):
+                message['stock_state'] = 'ingenerate'
+            elif ( query['serviceType'] == 'edit-wordpress' ):
+                message['stock_state'] = 'inservice'
+            else :
+                message['stock_state'] = 'inuse'
         return message
 
     def __saveToDynamoDB( self, message ):
         dynamo = DynamoDB()
-        dynamo.updateItem( message['docker_url'], message['serviceName'] )
+        dynamo.updateItem( message )
+
+    def __canCreateNewService( self, dbData, query ):
+        if ( dbData['Count'] > 0 ):
+            if ( dbData['Items'][0]['stock_state']['S'] == 'ingenerate' ):
+                message = {
+                    "status": 500,
+                    "name": "website now generating",
+                    "message": "site id:" + query['siteId'] + " is now generating.Please wait finished it."
+                }
+                return message
+            elif ( dbData['Items'][0]['stock_state']['S'] == 'inservice' ):
+                message = {
+                    "status": 500,
+                    "name": "website already running",
+                    "message": "site id:" + query['siteId'] + " is already running"
+                }
+                return message
+        message = {
+            "status": 200
+        }
+        return message
 
     def __createNewService( self, query ):
+        dbData = False
+        if ( query["action"] == 'createNewService' ):
+            dynamodb = DynamoDB()
+            dbData = dynamodb.getServiceById( query['siteId'] )
+            result = self.__canCreateNewService( dbData, query )
+            if ( result['status'] > 400 ):
+                return result
         endpoint = self.__getEndpoint()
         url = endpoint + 'services/create'
         query['pubPort'] = self.__getPortNum()
