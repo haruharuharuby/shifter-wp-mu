@@ -216,8 +216,8 @@ class DockerCtr:
                         "Env": [
                             "AWS_ACCESS_KEY_ID=" + self.__getAwsAccess4S3(),
                             "AWS_SECRET_ACCESS_KEY=" + self.__getAwsSecret4S3(),
-                            "S3_REGION=" + dbItem['s3_bucket']['S'],
-                            "S3_BUCKET=" + dbItem['s3_region']['S'],
+                            "S3_REGION=" + dbItem['s3_region']['S'],
+                            "S3_BUCKET=" + dbItem['s3_bucket']['S'],
                             "SITE_ID=" + query['siteId'],
                             "SERVICE_NAME=" + self.uuid
                         ],
