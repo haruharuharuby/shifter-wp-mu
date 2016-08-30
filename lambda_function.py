@@ -35,6 +35,10 @@ def lambda_handler(event, context):
             if not 'fsId' in event:
                 raise Exception( "params 'fsId' not found.")
             result = ctr.createNewService( event )
+        elif ( event["action"] == 'deleteS3SyncService' ):
+            if not 'serviceId' in event:
+                raise Exception( "params 'serviceId' not found.")
+            result = ctr.deleteS3SyncService( event )
         else:
             raise Exception( event["action"] + 'is unregistered action type' )
     return result
@@ -360,4 +364,11 @@ class DockerCtr:
         read = res.read()
         dynamo = DynamoDB()
         dynamo.deleteWpadminUrl( siteId )
+        return read
+
+    def deleteS3SyncService( self, query ):
+        endpoint = self.__getEndpoint()
+        url = endpoint + 'services/' + query['serviceId']
+        res = self.__connect( url, 'DELETE' )
+        read = res.read()
         return read
