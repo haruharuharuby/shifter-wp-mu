@@ -383,7 +383,7 @@ class DockerCtr:
             read = json.loads( read )
             result = {
                 "serviceId": query['serviceId'],
-                "status": 400,
+                "status": 500,
                 "message": read['message']
             }
         return result
