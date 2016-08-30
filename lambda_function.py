@@ -30,6 +30,8 @@ def lambda_handler(event, context):
         elif ( event["action"] == "createNewService" ):
             if not 'fsId' in event:
                 raise Exception( "params 'fsId' not found.")
+            #if not 'serviceType' in event:
+                #raise Exception( "params 'serviceType' not found.")
             result = ctr.createNewService( event )
         elif ( event["action"] == 'syncEfsToS3' ):
             if not 'fsId' in event:
@@ -184,6 +186,11 @@ class DockerCtr:
             body = self.__getSyncEfsToS3ImageBody( query )
         elif ( query["action"] == 'createNewService' ):
             body = self.__getWpServiceImageBody( query )
+            if 'serviceType' in query:
+                body['Labels']['Service'] = query['serviceType']
+                #if ( query['serviceType'] == 'generator' ):
+            else:
+                body['Labels']['Service'] = 'edit-wordpress'
         return body
 
     def __getSyncEfsToS3ImageBody( self, query ):
