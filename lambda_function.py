@@ -10,6 +10,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 #logger.setLevel(logging.DEBUG)
 import boto3
+import botocore
 
 
 print('Loading function')
@@ -18,8 +19,9 @@ def lambda_handler(event, context):
         return createBadRequestMessage( event, "params 'action' not found." )
 
     ctr = DockerCtr()
-    if ( event['action'] == 'test' ):
-       result = test( event )
+    if ( event["action"] == "test" ):
+       return test( event )
+
     if ( event["action"] == "getAllServices" ):
         result = ctr.getServices()
     else:
@@ -48,10 +50,7 @@ def lambda_handler(event, context):
     return result
 
 def test( event ):
-    return event
-    #s3 = S3()
-    #archive = s3.createWpArchiceUrl( 'sample' )
-    #return archive
+    return 'this is test'
 
 def createBadRequestMessage( event, error_text ):
     message = {
@@ -275,9 +274,11 @@ class DockerCtr:
             "SERVICE_DOMAIN=" + self.__getServiceDomain(),
             "EFS_ID=" + query['fsId']
         ]
-        #if 'wpArchiveId' in query:
-        #    s3 = S3()
-        #    env['ARCIHVE_URL'] = s3.createWpArchiceUrl( query['wpArchiveId'] )
+        if 'wpArchiveId' in query:
+            s3 = S3()
+            archiveUrl = s3.createWpArchiceUrl( query['wpArchiveId'] )
+            if ( archiveUrl != False ):
+                env.append( 'ARCIHVE_URL=' + base64.b64encode( archiveUrl ) )
         body = {
                 "Name": query['siteId'],
                 "Labels": {
@@ -500,3 +501,37 @@ class DockerCtr:
                 "message": read['message']
             }
         return result
+
+
+class S3:
+    def __init__(self):
+        self.client = boto3.client('s3')
+
+    def __getWpArchiveBucketName(self):
+        return 'wp-archives-files'
+
+    def __hasObject( self, key ):
+        try:
+            self.client.get_object(
+                Bucket = self.__getWpArchiveBucketName(),
+                Key = key
+            )
+            return True
+        except botocore.exceptions.ClientError as e:
+            logger.info(e)
+            return False
+
+    def createWpArchiceUrl( self, wpArchiveId ):
+        if ( self.__hasObject( wpArchiveId + '/wordpress.zip' ) ):
+            result = self.client.generate_presigned_url(
+                ClientMethod = 'get_object',
+                Params = {
+                    'Bucket': self.__getWpArchiveBucketName(),
+                    'Key': wpArchiveId + '/wordpress.zip'
+                },
+                ExpiresIn = 3600,
+                HttpMethod = 'GET'
+            )
+            return result
+        else:
+            return False
