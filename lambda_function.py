@@ -6,8 +6,8 @@ import base64
 import random
 import uuid
 import logging
-#logger = logging.getLogger()
-#logger.setLevel(logging.INFO)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 #logger.setLevel(logging.DEBUG)
 import boto3
 
@@ -307,9 +307,21 @@ class DockerCtr:
         return res
 
     def getTheService( self,siteId ):
+        endpoint = self.__getEndpoint()
         res = self.__getTheService( siteId )
         read = json.loads( res.read() )
+        if ( self.__hasDockerPublishedPort( read ) ):
+            port = str( read['Endpoint']['Spec']['Ports'][0]['PublishedPort'] )
+            read['DockerUrl'] = endpoint + port
         return read
+
+    def __hasDockerPublishedPort( self, docker ):
+        if 'Endpoint' in docker:
+            if 'Spec' in docker['Endpoint']:
+                if 'Ports' in docker['Endpoint']['Spec']:
+                    if 'PublishedPort' in docker['Endpoint']['Spec']['Ports'][0]:
+                        return True
+        return False
 
     def __getServices( self ):
         endpoint = self.__getEndpoint()
@@ -339,6 +351,7 @@ class DockerCtr:
 
     def __saveToDynamoDB( self, message ):
         dynamo = DynamoDB()
+        logger.info(message)
         dynamo.updateItem( message )
 
     def __canCreateNewService( self, dbData, query ):
@@ -395,11 +408,18 @@ class DockerCtr:
             res = self.__createNewService( query )
             if isinstance( res, urllib2.URLError) :
                 read = res.read()
-                return json.loads( read )
+                result = json.loads( read )
+                result['status'] = 500
+                result['siteId'] = query['siteId']
+                return result
             else:
                 return res
         else :
-            error = { 'message': 'available port not found.'}
+            error = {
+                'status': 500,
+                'message': 'available port not found.',
+                'siteId': query['siteId']
+            }
             return error
 
     def __deleteTheService( self, siteId ):
