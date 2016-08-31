@@ -310,6 +310,10 @@ class DockerCtr:
         endpoint = self.__getEndpoint()
         res = self.__getTheService( siteId )
         read = json.loads( res.read() )
+        if 'message' in read:
+            read['status'] = 500
+        else:
+            read['status'] = 200
         if ( self.__hasDockerPublishedPort( read ) ):
             port = str( read['Endpoint']['Spec']['Ports'][0]['PublishedPort'] )
             read['DockerUrl'] = endpoint + port
@@ -437,7 +441,7 @@ class DockerCtr:
             result = {
                 "serviceId": siteId,
                 "status": 200,
-                "message": "service: " + siteId + "is deleted."
+                "message": "service: " + siteId + " is deleted."
             }
         else:
             read = json.loads( read )
