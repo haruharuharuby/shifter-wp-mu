@@ -6,8 +6,8 @@ import base64
 import random
 import uuid
 import logging
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+#logger = logging.getLogger()
+#logger.setLevel(logging.INFO)
 #logger.setLevel(logging.DEBUG)
 import boto3
 
@@ -192,6 +192,7 @@ class DockerCtr:
                 #if ( query['serviceType'] == 'generator' ):
             else:
                 body['Labels']['Service'] = 'edit-wordpress'
+                query['serviceType'] = 'edit-wordpress'
         return body
 
     def __getSyncEfsToS3ImageBody( self, query ):
@@ -341,6 +342,7 @@ class DockerCtr:
     def __createNewServiceInfo( self, query ):
         endpoint = self.__getEndpoint()
         message = {
+            'status': 200,
             'docker_url': endpoint[:-5] + str( query['pubPort'] ),
             'serviceName': query['siteId']
         }
@@ -351,11 +353,12 @@ class DockerCtr:
                 message['stock_state'] = 'inservice'
             else :
                 message['stock_state'] = 'inuse'
+        else :
+            message['stock_state'] = 'inuse'
         return message
 
     def __saveToDynamoDB( self, message ):
         dynamo = DynamoDB()
-        logger.info(message)
         dynamo.updateItem( message )
 
     def __canCreateNewService( self, dbData, query ):
