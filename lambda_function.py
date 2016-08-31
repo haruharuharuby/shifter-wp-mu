@@ -6,7 +6,7 @@ import base64
 import random
 import uuid
 import logging
-#logger = logging.getLogger()
+logger = logging.getLogger()
 #logger.setLevel(logging.INFO)
 #logger.setLevel(logging.DEBUG)
 import boto3
@@ -15,35 +15,44 @@ import boto3
 print('Loading function')
 def lambda_handler(event, context):
     if not 'action' in event:
-        raise Exception( "params 'action' not found." )
+        return createBadRequestMessage( event, "params 'action' not found." )
 
     ctr = DockerCtr()
     if ( event["action"] == "getAllServices" ):
         result = ctr.getServices()
     else:
         if not 'siteId' in event:
-            raise Exception( "params 'siteId' not found." )
+            return createBadRequestMessage( event, "params 'siteId' not found." )
         if ( event["action"] == "getTheService" ):
             result = ctr.getTheService(event['siteId'])
         elif ( event["action"] == "deleteTheService" ):
             result = ctr.deleteTheService(event['siteId'])
         elif ( event["action"] == "createNewService" ):
             if not 'fsId' in event:
-                raise Exception( "params 'fsId' not found.")
+                return createBadRequestMessage( event, "params 'fsId' not found.")
             #if not 'serviceType' in event:
                 #raise Exception( "params 'serviceType' not found.")
             result = ctr.createNewService( event )
         elif ( event["action"] == 'syncEfsToS3' ):
             if not 'fsId' in event:
-                raise Exception( "params 'fsId' not found.")
+                return createBadRequestMessage( event, "params 'fsId' not found.")
             result = ctr.createNewService( event )
         elif ( event["action"] == 'deleteServiceByServiceId' ):
             if not 'serviceId' in event:
-                raise Exception( "params 'serviceId' not found.")
+                return createBadRequestMessage( event, "params 'serviceId' not found.")
             result = ctr.deleteServiceByServiceId( event )
         else:
-            raise Exception( event["action"] + 'is unregistered action type' )
+            return createBadRequestMessage( event, event["action"] + 'is unregistered action type' )
     return result
+
+def createBadRequestMessage( event, error_text ):
+    message = {
+        "status": 400,
+        "message": error_text,
+        "request": event
+    }
+    logger.warning( message )
+    return message
 
 class DynamoDB:
     def __init__(self):
