@@ -383,7 +383,11 @@ class DockerCtr:
             self.__saveToDynamoDB( message )
             return message
         elif ( query["action"] == 'syncEfsToS3' ):
-            message = { 'serviceName': self.uuid }
+            message = {
+                'status': 200,
+                'message': "service " + self.uuid + ' started',
+                'serviceName': self.uuid
+            }
             return message
 
     def createNewService( self, query ):
@@ -409,7 +413,20 @@ class DockerCtr:
         read = res.read()
         dynamo = DynamoDB()
         dynamo.deleteWpadminUrl( siteId )
-        return read
+        if ( read == "" ):
+            result = {
+                "serviceId": siteId,
+                "status": 200,
+                "message": "service: " + siteId + "is deleted."
+            }
+        else:
+            read = json.loads( read )
+            result = {
+                "serviceId": siteId,
+                "status": 500,
+                "message": read['message']
+            }
+        return result
 
     def deleteServiceByServiceId( self, query ):
         endpoint = self.__getEndpoint()
