@@ -7,7 +7,7 @@ import random
 import uuid
 import logging
 logger = logging.getLogger()
-#logger.setLevel(logging.INFO)
+logger.setLevel(logging.INFO)
 #logger.setLevel(logging.DEBUG)
 import boto3
 
@@ -18,6 +18,8 @@ def lambda_handler(event, context):
         return createBadRequestMessage( event, "params 'action' not found." )
 
     ctr = DockerCtr()
+    if ( event['action'] == 'test' ):
+       result = test( event )
     if ( event["action"] == "getAllServices" ):
         result = ctr.getServices()
     else:
@@ -44,6 +46,12 @@ def lambda_handler(event, context):
         else:
             return createBadRequestMessage( event, event["action"] + 'is unregistered action type' )
     return result
+
+def test( event ):
+    return event
+    #s3 = S3()
+    #archive = s3.createWpArchiceUrl( 'sample' )
+    #return archive
 
 def createBadRequestMessage( event, error_text ):
     message = {
@@ -143,9 +151,10 @@ class DockerCtr:
     def __getS3BucketNameForSync(self):
         return 'generator-s3-sync'
 
-    def __getImage(self,imageType ):
+    def __getImage( self, imageType, phpVersion = '7.0' ):
         if imageType == 'wordpress-worker':
-            return '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-wordpressadmin001:latest'
+            #return '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-wordpressadmin001:latest'
+            return '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-php-with-mysql:' + phpVersion
         elif imageType == 'sync-efs-to-s3':
             return '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync:latest'
 
@@ -258,6 +267,17 @@ class DockerCtr:
         return body
 
     def __getWpServiceImageBody( self, query ):
+        if not 'phpVersion' in query:
+            query['phpVersion'] = '7.0'
+        env = [
+            "SERVICE_PORT=" + str( query['pubPort'] ),
+            "SITE_ID=" + query['siteId'],
+            "SERVICE_DOMAIN=" + self.__getServiceDomain(),
+            "EFS_ID=" + query['fsId']
+        ]
+        #if 'wpArchiveId' in query:
+        #    s3 = S3()
+        #    env['ARCIHVE_URL'] = s3.createWpArchiceUrl( query['wpArchiveId'] )
         body = {
                 "Name": query['siteId'],
                 "Labels": {
@@ -265,13 +285,8 @@ class DockerCtr:
                 },
                 "TaskTemplate": {
                     "ContainerSpec": {
-                        "Image": self.__getImage('wordpress-worker'),
-                        "Env": [
-                            "SERVICE_PORT=" + str( query['pubPort'] ),
-                            "SITE_ID=" + query['siteId'],
-                            "SERVICE_DOMAIN=" + self.__getServiceDomain(),
-                            "EFS_ID=" + query['fsId']
-                        ],
+                        "Image": self.__getImage('wordpress-worker', query['phpVersion'] ),
+                        "Env": env,
                         "Mounts": [{
                             "Type": "volume",
                             "Target": "/var/www/html",
@@ -469,6 +484,8 @@ class DockerCtr:
         url = endpoint + 'services/' + query['serviceId']
         res = self.__connect( url, 'DELETE' )
         read = res.read()
+        dynamo = DynamoDB()
+        dynamo.deleteWpadminUrl( query['siteId'] )
         if ( read == "" ):
             result = {
                 "serviceId": query['serviceId'],
