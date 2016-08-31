@@ -346,7 +346,6 @@ class DockerCtr:
     def getServices( self ):
         res = self.__getServices()
         read = json.loads( res.read() )
-        read['status'] = 200
         return read
 
     def __createNewServiceInfo( self, query ):
