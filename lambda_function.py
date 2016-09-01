@@ -441,6 +441,10 @@ class DockerCtr:
                 'message': "service " + self.uuid + ' started',
                 'serviceName': self.uuid
             }
+            read = res.read()
+            result = json.loads( read )
+            if 'ID' in result:
+                message['serviceId'] = result['ID']
             return message
 
     def createNewService( self, query ):
