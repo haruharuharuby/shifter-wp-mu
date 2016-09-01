@@ -398,14 +398,14 @@ class DockerCtr:
         if ( dbData['Count'] > 0 ):
             if ( dbData['Items'][0]['stock_state']['S'] == 'ingenerate' ):
                 message = {
-                    "status": 500,
+                    "status": 409,
                     "name": "website now generating",
                     "message": "site id:" + query['siteId'] + " is now generating.Please wait finished it."
                 }
                 return message
             elif ( dbData['Items'][0]['stock_state']['S'] == 'inservice' ):
                 message = {
-                    "status": 500,
+                    "status": 409,
                     "name": "website already running",
                     "message": "site id:" + query['siteId'] + " is already running"
                 }
@@ -456,7 +456,7 @@ class DockerCtr:
                 return res
         else :
             error = {
-                'status': 500,
+                'status': 400,
                 'message': 'available port not found.',
                 'siteId': query['siteId']
             }
