@@ -110,6 +110,7 @@ class DockerCtr:
 
     def __init__(self):
         self.uuid = ''
+        self.notificationId = uuid.uuid4().hex
 
     def __getServiceDomain(self):
         return 'app.sp.opsrockin.com';
@@ -268,14 +269,16 @@ class DockerCtr:
     def __getWpServiceImageBody( self, query ):
         if not 'phpVersion' in query:
             query['phpVersion'] = '7.0'
+        s3 = S3()
+        notification_url = s3.createNotificationUrl( self.notificationId )
         env = [
             "SERVICE_PORT=" + str( query['pubPort'] ),
             "SITE_ID=" + query['siteId'],
             "SERVICE_DOMAIN=" + self.__getServiceDomain(),
-            "EFS_ID=" + query['fsId']
+            "EFS_ID=" + query['fsId'],
+            "NOTIFICATION_URL=" + base64.b64encode( notification_url )
         ]
         if 'wpArchiveId' in query:
-            s3 = S3()
             archiveUrl = s3.createWpArchiceUrl( query['wpArchiveId'] )
             if ( archiveUrl != False ):
                 env.append( 'ARCIHVE_URL=' + base64.b64encode( archiveUrl ) )
@@ -364,13 +367,18 @@ class DockerCtr:
         read = json.loads( res.read() )
         return read
 
-    def __createNewServiceInfo( self, query ):
+    def __createNewServiceInfo( self, query, res ):
         endpoint = self.__getEndpoint()
         message = {
             'status': 200,
             'docker_url': endpoint[:-5] + str( query['pubPort'] ),
-            'serviceName': query['siteId']
+            'serviceName': query['siteId'],
+            'notificationId': self.notificationId
         }
+        read = res.read()
+        result = json.loads( read )
+        if 'ID' in result:
+            message['serviceId'] = result['ID']
         if 'serviceType' in query:
             if ( query['serviceType'] == 'generator' ):
                 message['stock_state'] = 'ingenerate'
@@ -424,7 +432,7 @@ class DockerCtr:
         if isinstance( res, urllib2.URLError) :
             return res
         elif ( query["action"] == 'createNewService' ):
-            message = self.__createNewServiceInfo( query )
+            message = self.__createNewServiceInfo( query, res )
             self.__saveToDynamoDB( message )
             return message
         elif ( query["action"] == 'syncEfsToS3' ):
@@ -510,6 +518,9 @@ class S3:
     def __getWpArchiveBucketName(self):
         return 'wp-archives-files'
 
+    def __getNotificationBucketname(self):
+        return 'sys.status.getshifter'
+
     def __hasObject( self, key ):
         try:
             self.client.get_object(
@@ -520,6 +531,18 @@ class S3:
         except botocore.exceptions.ClientError as e:
             logger.info(e)
             return False
+
+    def createNotificationUrl( self, notificationId ):
+        result = self.client.generate_presigned_url(
+            ClientMethod = 'put_object',
+            Params = {
+                'Bucket': self.__getNotificationBucketname(),
+                'Key': notificationId
+            },
+            ExpiresIn = 3600,
+            HttpMethod = 'PUT'
+        )
+        return result
 
     def createWpArchiceUrl( self, wpArchiveId ):
         if ( self.__hasObject( wpArchiveId + '/wordpress.zip' ) ):
