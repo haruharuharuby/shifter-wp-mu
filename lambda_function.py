@@ -251,7 +251,7 @@ class DockerCtr:
                         "Mounts": [{
                             "Type": "volume",
                             "Target": "/opt/efs/",
-                            "Source": query['fsId'] + "/" + query['siteId'] + "/web",
+                            "Source": query['fsId'] + "/" + query['siteId'],
                             "VolumeOptions": {
                                 "DriverConfig": {
                                 "Name": "efs"
