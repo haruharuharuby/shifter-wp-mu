@@ -281,7 +281,7 @@ class DockerCtr:
         if 'wpArchiveId' in query:
             archiveUrl = s3.createWpArchiceUrl( query['wpArchiveId'] )
             if ( archiveUrl != False ):
-                env.append( 'ARCIHVE_URL=' + base64.b64encode( archiveUrl ) )
+                env.append( 'ARCHIVE_URL=' + base64.b64encode( archiveUrl ) )
         body = {
                 "Name": query['siteId'],
                 "Labels": {
