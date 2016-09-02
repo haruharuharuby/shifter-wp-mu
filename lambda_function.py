@@ -113,7 +113,7 @@ class DockerCtr:
         self.notificationId = uuid.uuid4().hex
 
     def __getServiceDomain(self):
-        return 'app.sp.opsrockin.com';
+        return 'app.getshifter.io';
 
     def __getPortLimit(self):
         return 95
@@ -140,7 +140,7 @@ class DockerCtr:
         return 'static'
 
     def __getEndpoint(self):
-        return 'http://app.sp.opsrockin.com:8080/'
+        return 'http://app.getshifter.io:8080/'
 
     def __getAwsSecret4S3(self):
         return 'HpKRfy361drDQ9n7zf1/PL9HDRf424LGB6Rs34/8'
