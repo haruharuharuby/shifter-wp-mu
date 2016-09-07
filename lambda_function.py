@@ -142,6 +142,9 @@ class DockerCtr:
     def __getEndpoint(self):
         return 'http://app.getshifter.io:8080/'
 
+    def __getTLSEndpoint(self):
+        return 'https://app.getshifter.io:8443/'
+
     def __getAwsSecret4S3(self):
         return 'HpKRfy361drDQ9n7zf1/PL9HDRf424LGB6Rs34/8'
 
@@ -368,7 +371,7 @@ class DockerCtr:
         return read
 
     def __createNewServiceInfo( self, query, res ):
-        endpoint = self.__getEndpoint()
+        endpoint = self.__getTLSEndpoint()
         message = {
             'status': 200,
             'docker_url': endpoint[:-5] + str( query['pubPort'] ),
