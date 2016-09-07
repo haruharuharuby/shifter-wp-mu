@@ -321,7 +321,7 @@ class DockerCtr:
                         {
                             "Protocol": "tcp",
                             "PublishedPort": int( query['pubPort'] ),
-                            "TargetPort": 8080
+                            "TargetPort": 443
                         }
                     ]
                 }
