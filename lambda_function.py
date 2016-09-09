@@ -291,6 +291,14 @@ class DockerCtr:
                     "Name": "wordpress-worker"
                 },
                 "TaskTemplate": {
+                    "LogDriver": {
+                        "Name": "awslogs",
+                        "Options": {
+                            "awslogs-region": "us-east-1",
+                            "awslogs-group": "dockerlog-services",
+                            "awslogs-stream": query['siteId']
+                            }
+                        },
                     "ContainerSpec": {
                         "Image": self.__getImage('wordpress-worker', query['phpVersion'] ),
                         "Env": env,
