@@ -295,10 +295,10 @@ class DockerCtr:
         return read
 
     def __createNewServiceInfo(self, query, res):
-        endpoint = self.__getTLSEndpoint()
+        endpoint = self.__getServiceDomain()
         message = {
             'status': 200,
-            'docker_url': endpoint[:-5] + str(query['pubPort']),
+            'docker_url': 'https://' + endpoint + ':' + str(query['pubPort']),
             'serviceName': query['siteId'],
             'notificationId': self.notificationId
         }
