@@ -21,7 +21,7 @@ class DockerCtr:
         self.notificationId = uuid.uuid4().hex
 
     def __getServiceDomain(self):
-        return 'dockerapi.sys.getshifter.io'
+        return 'app.getshifter.io'
 
     def __getPortLimit(self):
         return 95
@@ -48,10 +48,10 @@ class DockerCtr:
         return 'static'
 
     def __getEndpoint(self):
-        return 'http://app.getshifter.io:8080/'
+        return 'http://dockerapi.sys.getshifter.io:8080/'
 
     def __getTLSEndpoint(self):
-        return 'https://app.getshifter.io:8443/'
+        return 'https://dockerapi.sys.getshifter.io:8443/'
 
     def __getAwsSecret4S3(self):
         return 'HpKRfy361drDQ9n7zf1/PL9HDRf424LGB6Rs34/8'
@@ -64,7 +64,6 @@ class DockerCtr:
 
     def __getImage(self, imageType, phpVersion='7.0'):
         if imageType == 'wordpress-worker':
-            # return '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-wordpressadmin001:latest'
             return '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-php-with-mysql:' + phpVersion
         elif imageType == 'sync-efs-to-s3':
             return '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync:latest'
