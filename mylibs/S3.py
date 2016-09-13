@@ -11,7 +11,9 @@ import uuid
 import logging
 import boto3
 import botocore
-import logger
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 class S3:
