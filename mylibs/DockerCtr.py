@@ -12,6 +12,10 @@ import logging
 import boto3
 import botocore
 from DynamoDB import *
+from S3 import *
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 class DockerCtr:
@@ -255,7 +259,13 @@ class DockerCtr:
     def getTheService(self, siteId):
         endpoint = self.__getEndpoint()
         res = self.__getTheService(siteId)
-        read = json.loads(res.read())
+        try:
+            body = res.read()
+            read = json.loads(body)
+        except:
+            logger.error("JSON ValueError " + body)
+            return createBadRequestMessage(event, event["action"] + 'is unregistered action type')
+
         if 'message' in read:
             read['status'] = 500
         else:
