@@ -30,7 +30,7 @@ class DockerCtr:
 
     def buildDockerSession(self):
         session = requests.Session()
-        session.auth = (dockerapi_config['authuser'], dockerapi_config['authpass'])
+        session.auth = (self.dockerapi_config['authuser'], self.dockerapi_config['authpass'])
         return session
 
     def __getXRegistryAuth(self):
@@ -234,7 +234,7 @@ class DockerCtr:
 
     def getTheService(self, siteId):
         try:
-            res = docker_session.get(dockerapi_config['endpoint'] + 'services/' + siteId)
+            res = docker_session.get(self.dockerapi_config['endpoint'] + 'services/' + siteId)
             result = res.json()
             result['status'] = res.status_code
         except:
@@ -243,7 +243,7 @@ class DockerCtr:
 
         if (self.__hasDockerPublishedPort(result)):
             port = str(read['Endpoint']['Spec']['Ports'][0]['PublishedPort'])
-            result['DockerUrl'] = 'https://' + app_config['service_domain'] + ':' + port
+            result['DockerUrl'] = 'https://' + self.app_config['service_domain'] + ':' + port
         return result
 
     def __hasDockerPublishedPort(self, docker):
@@ -387,7 +387,7 @@ class DockerCtr:
         return result
 
     def deleteServiceByServiceId(self, query):
-        url = dockerapi_config['endpoint'] + 'services/' + query['serviceId']
+        url = self.dockerapi_config['endpoint'] + 'services/' + query['serviceId']
         res = self.__connect(url, 'DELETE')
         read = res.read()
         dynamo = DynamoDB()
