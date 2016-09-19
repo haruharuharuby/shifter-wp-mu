@@ -25,7 +25,7 @@ class DockerCtr:
         self.app_config = app_config
         self.dockerapi_config = app_config['dockerapi']
         self.uuid = ''
-        self.docker_session = buildDockerSession()
+        self.docker_session = self.buildDockerSession()
         self.notificationId = uuid.uuid4().hex
 
     def buildDockerSession(self):
