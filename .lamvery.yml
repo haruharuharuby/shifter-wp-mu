@@ -2,7 +2,7 @@ profile: {{ env['AWS_PROFILE'] }}
 region: {{ env['AWS_REGION'] }}
 versioning: false
 default_alias: null
-clean_build: false
+clean_build: true
 configuration:
   name: docker-swarm-controller
   runtime: python2.7

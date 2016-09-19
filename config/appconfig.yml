@@ -1,0 +1,22 @@
+---
+default: &default
+  dockerapi:
+    endpoint: http://dockerapi.sys.getshifter.io:8080/
+    endpoint_tls: https://dockerapi.sys.getshifter.io:8443/
+    authuser: static
+    authpass: presspress
+  service_domain: app.getshifter.io
+  awscreds:
+    access_key: AKIAIXELICZZAPYVYELA
+    secret_access_key: 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
+  limits:
+    max_ports: 95
+  s3_settings:
+    archives_bucket: wp-archives-files
+    notification_bucket: sys.status.getshifter
+
+development:
+  <<: *default
+
+production:
+  <<: *default

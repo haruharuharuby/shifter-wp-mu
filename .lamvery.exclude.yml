@@ -4,3 +4,8 @@
 - ^\.lamvery\.event\.yml$
 - ^\.lamvery\.secret\.yml$
 - ^\.lamvery\.exclude\.yml$
+- ^\.envrc$
+- ^\.DS_Store$
+- ^\.editorconfig$
+- ^tmp
+- ^venv
