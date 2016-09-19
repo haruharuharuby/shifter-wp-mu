@@ -11,20 +11,34 @@ import uuid
 import logging
 import boto3
 import botocore
+import requests
+import traceback
 from DynamoDB import *
 from S3 import *
+from common_helper import *
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
+if __name__ == '__main__':
+    print('module')
+
+
 class DockerCtr:
 
-    def __init__(self, app_config):
+    def __init__(self, app_config, event):
+        self.event = event
         self.app_config = app_config
         self.dockerapi_config = app_config['dockerapi']
         self.uuid = ''
+        self.docker_session = self.buildDockerSession()
         self.notificationId = uuid.uuid4().hex
+
+    def buildDockerSession(self):
+        session = requests.Session()
+        session.auth = (self.dockerapi_config['authuser'], self.dockerapi_config['authpass'])
+        return session
 
     def __getXRegistryAuth(self):
         try:
@@ -41,11 +55,10 @@ class DockerCtr:
             auth_string = 'failed_to_get_token'
         return auth_string
 
-    def __getImage(self, imageType, phpVersion='7.0'):
-        if imageType == 'wordpress-worker':
-            return '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-php-with-mysql:' + phpVersion
-        elif imageType == 'sync-efs-to-s3':
-            return '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync:latest'
+    def __getImage(self, imageType, image_tag='latest'):
+        image_map = self.app_config['docker_images']
+        image_str = ':'.join([image_map[imageType], image_tag])
+        return image_str
 
     def __convertToJson(self, param):
         return json.dumps(param)
@@ -53,29 +66,6 @@ class DockerCtr:
     def __getPortNum(self):
         num = random.randint(10000, 30000)
         return num
-
-    def __connect(self, url, method='GET', body=None):
-        password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        password_mgr.add_password(None, url, self.dockerapi_config['authuser'], self.dockerapi_config['authpass'])
-        handler = urllib2.HTTPBasicAuthHandler(password_mgr)
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
-
-        if body is None:
-            request = urllib2.Request(url)
-        else:
-            request = urllib2.Request(url, body)
-            request.add_header('X-Registry-Auth', self.__getXRegistryAuth())
-        request.add_header('Content-Type', 'application/json')
-
-        if method != 'GET':
-            request.get_method = lambda: method
-
-        try:
-            res = urllib2.urlopen(request)
-            return res
-        except urllib2.URLError, e:
-            return e
 
     def __countRunningService(self):
         services = self.getServices()
@@ -101,6 +91,180 @@ class DockerCtr:
                 body['Labels']['Service'] = 'edit-wordpress'
                 query['serviceType'] = 'edit-wordpress'
         return body
+
+    def getTheService(self, siteId):
+        logger.info("invoke getTheServices")
+        try:
+            res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services/' + siteId)
+            logger.info(res.status_code)
+            result = res.json()
+            result['status'] = res.status_code
+        except Exception as e:
+            logger.error("Error occurred during calls Docker API: " + str(type(e)))
+            logger.error(traceback.format_exc())
+            return createBadRequestMessage(self.event, "Error occurred during calls Backend Service.")
+
+        if (self.__hasDockerPublishedPort(result)):
+            port = str(read['Endpoint']['Spec']['Ports'][0]['PublishedPort'])
+            result['DockerUrl'] = 'https://' + self.app_config['service_domain'] + ':' + port
+        return result
+
+    def __hasDockerPublishedPort(self, docker):
+        if 'Endpoint' in docker:
+            if 'Spec' in docker['Endpoint']:
+                if 'Ports' in docker['Endpoint']['Spec']:
+                    if 'PublishedPort' in docker['Endpoint']['Spec']['Ports'][0]:
+                        return True
+        return False
+
+    def getServices(self):
+        logger.info("invoke getServices")
+        try:
+            res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services')
+            logger.info(res.status_code)
+            result = res.json()
+        except Exception as e:
+            logger.error("Error occurred during calls Docker API: " + str(type(e)))
+            logger.error(traceback.format_exc())
+            return createBadRequestMessage(self.event, "Error occurred during calls Backend Service.")
+
+        return result
+
+    def __createNewServiceInfo(self, query, result):
+        message = {
+            'status': 200,
+            'docker_url': 'https://' + self.app_config['service_domain'] + ':' + str(query['pubPort']),
+            'serviceName': query['siteId'],
+            'notificationId': self.notificationId
+        }
+        if 'ID' in result:
+            message['serviceId'] = result['ID']
+        if 'serviceType' in query:
+            if (query['serviceType'] == 'generator'):
+                message['stock_state'] = 'ingenerate'
+            elif (query['serviceType'] == 'edit-wordpress'):
+                message['stock_state'] = 'inservice'
+            else:
+                message['stock_state'] = 'inuse'
+        else:
+            message['stock_state'] = 'inuse'
+        return message
+
+    def __saveToDynamoDB(self, message):
+        dynamo = DynamoDB()
+        dynamo.updateItem(message)
+
+    def __canCreateNewService(self, dbData, query):
+        if (dbData['Count'] > 0):
+            if (dbData['Items'][0]['stock_state']['S'] == 'ingenerate'):
+                message = {
+                    "status": 409,
+                    "name": "website now generating",
+                    "message": "site id:" + query['siteId'] + " is now generating.Please wait finished it."
+                }
+                return message
+            elif (dbData['Items'][0]['stock_state']['S'] == 'inservice'):
+                message = {
+                    "status": 409,
+                    "name": "website already running",
+                    "message": "site id:" + query['siteId'] + " is already running"
+                }
+                return message
+        message = {
+            "status": 200
+        }
+        return message
+
+    def __createNewService(self, query):
+        dbData = False
+        dynamodb = DynamoDB()
+        dbData = dynamodb.getServiceById(query['siteId'])
+        result = self.__canCreateNewService(dbData, query)
+        if (result['status'] > 400):
+            return result
+        query['pubPort'] = self.__getPortNum()
+        body = self.__getCreateImageBody(query)
+        body_json = self.__convertToJson(body)
+
+        self.docker_session.headers.update({'X-Registry-Auth': self.__getXRegistryAuth()})
+        self.docker_session.headers.update({'Content-Type': 'application/json'})
+        logger.info('invoke createTheService')
+        try:
+            res = self.docker_session.post(self.dockerapi_config['endpoint'] + 'services/create', data=body_json)
+            logger.info(res.status_code)
+            if res.ok:
+                result = res.json
+            else:
+                res.raise_for_status()
+        except Exception as e:
+            logger.error("Error occurred during calls Docker API: " + str(type(e)))
+            logger.error(traceback.format_exc())
+            return createBadRequestMessage(self.event, "Error occurred during calls Backend Service.")
+
+        if (query["action"] == 'createNewService'):
+            message = self.__createNewServiceInfo(query, result)
+            self.__saveToDynamoDB(message)
+            return message
+        elif (query["action"] == 'syncEfsToS3'):
+            message = {
+                'status': 200,
+                'message': "service " + self.uuid + ' started',
+                'serviceName': self.uuid
+            }
+            if 'ID' in result:
+                message['serviceId'] = result['ID']
+            return message
+
+    def createNewService(self, query):
+        if not (self.__isAvailablePortNum()):
+            error = {
+                'status': 400,
+                'message': 'available port not found.',
+                'siteId': query['siteId']
+            }
+            return error
+        else:
+            res = self.__createNewService(query)
+            if isinstance(res, urllib2.URLError):
+                read = res.read()
+                result = json.loads(read)
+                result['status'] = 500
+                result['siteId'] = query['siteId']
+                return result
+            else:
+                return res
+
+    def deleteTheService(self, siteId):
+        logger.info('invoke deleteTheService')
+        try:
+            res = self.docker_session.delete(self.dockerapi_config['endpoint'] + 'services/' + siteId)
+            logger.info(res.status_code)
+            if res.ok:
+                result = {'message': "service: " + siteId + " is deleted."}
+            elif res.status_code == 404:
+                result = res.json()
+            else:
+                res.raise_for_status()
+
+            result['status'] = res.status_code
+        except Exception as e:
+            logger.error("Error occurred during calls Docker API: " + str(type(e)))
+            logger.error(traceback.format_exc())
+            return createBadRequestMessage(self.event, "Error occurred during calls Backend Service.")
+
+        self.deleteServiceHookDynamo(siteId)
+
+        result["serviceId"] = siteId
+
+        return result
+
+    def deleteServiceHookDynamo(self, siteId):
+        dynamo = DynamoDB()
+        dynamo.deleteWpadminUrl(siteId)
+        return None
+
+    def deleteServiceByServiceId(self, query):
+        return deleteTheService(query['serviceId'])
 
     def __getSyncEfsToS3ImageBody(self, query):
         self.uuid = uuid.uuid4().hex
@@ -224,187 +388,3 @@ class DockerCtr:
                 }
         }
         return body
-
-    def __getTheService(self, service_name):
-        url = dockerapi_config['endpoint'] + 'services/' + service_name
-        res = self.__connect(url)
-        return res
-
-    def getTheService(self, siteId):
-        res = self.__getTheService(siteId)
-        try:
-            body = res.read()
-            read = json.loads(body)
-        except:
-            logger.error("JSON ValueError " + body)
-            return createBadRequestMessage(event, event["action"] + 'is unregistered action type')
-
-        if 'message' in read:
-            read['status'] = 500
-        else:
-            read['status'] = 200
-        if (self.__hasDockerPublishedPort(read)):
-            port = str(read['Endpoint']['Spec']['Ports'][0]['PublishedPort'])
-            read['DockerUrl'] = dockerapi_config['endpoint'] + port
-        return read
-
-    def __hasDockerPublishedPort(self, docker):
-        if 'Endpoint' in docker:
-            if 'Spec' in docker['Endpoint']:
-                if 'Ports' in docker['Endpoint']['Spec']:
-                    if 'PublishedPort' in docker['Endpoint']['Spec']['Ports'][0]:
-                        return True
-        return False
-
-    def __getServices(self):
-        url = self.dockerapi_config['endpoint'] + 'services'
-        res = self.__connect(url)
-        return res
-
-    def getServices(self):
-        res = self.__getServices()
-        read = json.loads(res.read())
-        return read
-
-    def __createNewServiceInfo(self, query, res):
-        message = {
-            'status': 200,
-            'docker_url': 'https://' + self.app_config['service_domain'] + ':' + str(query['pubPort']),
-            'serviceName': query['siteId'],
-            'notificationId': self.notificationId
-        }
-        read = res.read()
-        result = json.loads(read)
-        if 'ID' in result:
-            message['serviceId'] = result['ID']
-        if 'serviceType' in query:
-            if (query['serviceType'] == 'generator'):
-                message['stock_state'] = 'ingenerate'
-            elif (query['serviceType'] == 'edit-wordpress'):
-                message['stock_state'] = 'inservice'
-            else:
-                message['stock_state'] = 'inuse'
-        else:
-            message['stock_state'] = 'inuse'
-        return message
-
-    def __saveToDynamoDB(self, message):
-        dynamo = DynamoDB()
-        dynamo.updateItem(message)
-
-    def __canCreateNewService(self, dbData, query):
-        if (dbData['Count'] > 0):
-            if (dbData['Items'][0]['stock_state']['S'] == 'ingenerate'):
-                message = {
-                    "status": 409,
-                    "name": "website now generating",
-                    "message": "site id:" + query['siteId'] + " is now generating.Please wait finished it."
-                }
-                return message
-            elif (dbData['Items'][0]['stock_state']['S'] == 'inservice'):
-                message = {
-                    "status": 409,
-                    "name": "website already running",
-                    "message": "site id:" + query['siteId'] + " is already running"
-                }
-                return message
-        message = {
-            "status": 200
-        }
-        return message
-
-    def __createNewService(self, query):
-        dbData = False
-        if (query["action"] == 'createNewService'):
-            dynamodb = DynamoDB()
-            dbData = dynamodb.getServiceById(query['siteId'])
-            result = self.__canCreateNewService(dbData, query)
-            if (result['status'] > 400):
-                return result
-        url = self.dockerapi_config['endpoint'] + 'services/create'
-        query['pubPort'] = self.__getPortNum()
-        body = self.__getCreateImageBody(query)
-        body_json = self.__convertToJson(body)
-        res = self.__connect(url, 'POST', body_json)
-        if isinstance(res, urllib2.URLError):
-            return res
-        elif (query["action"] == 'createNewService'):
-            message = self.__createNewServiceInfo(query, res)
-            self.__saveToDynamoDB(message)
-            return message
-        elif (query["action"] == 'syncEfsToS3'):
-            message = {
-                'status': 200,
-                'message': "service " + self.uuid + ' started',
-                'serviceName': self.uuid
-            }
-            read = res.read()
-            result = json.loads(read)
-            if 'ID' in result:
-                message['serviceId'] = result['ID']
-            return message
-
-    def createNewService(self, query):
-        if (self.__isAvailablePortNum()):
-            res = self.__createNewService(query)
-            if isinstance(res, urllib2.URLError):
-                read = res.read()
-                result = json.loads(read)
-                result['status'] = 500
-                result['siteId'] = query['siteId']
-                return result
-            else:
-                return res
-        else:
-            error = {
-                'status': 400,
-                'message': 'available port not found.',
-                'siteId': query['siteId']
-            }
-            return error
-
-    def __deleteTheService(self, siteId):
-        url = self.dockerapi_config['endpoint'] + 'services/' + siteId
-        res = self.__connect(url, 'DELETE')
-        return res
-
-    def deleteTheService(self, siteId):
-        res = self.__deleteTheService(siteId)
-        read = res.read()
-        dynamo = DynamoDB()
-        dynamo.deleteWpadminUrl(siteId)
-        if (read == ""):
-            result = {
-                "serviceId": siteId,
-                "status": 200,
-                "message": "service: " + siteId + " is deleted."
-            }
-        else:
-            read = json.loads(read)
-            result = {
-                "serviceId": siteId,
-                "status": 500,
-                "message": read['message']
-            }
-        return result
-
-    def deleteServiceByServiceId(self, query):
-        url = dockerapi_config['endpoint'] + 'services/' + query['serviceId']
-        res = self.__connect(url, 'DELETE')
-        read = res.read()
-        dynamo = DynamoDB()
-        dynamo.deleteWpadminUrl(query['siteId'])
-        if (read == ""):
-            result = {
-                "serviceId": query['serviceId'],
-                "status": 200,
-                "message": "service: " + query['serviceId'] + "is deleted."
-            }
-        else:
-            read = json.loads(read)
-            result = {
-                "serviceId": query['serviceId'],
-                "status": 500,
-                "message": read['message']
-            }
-        return result

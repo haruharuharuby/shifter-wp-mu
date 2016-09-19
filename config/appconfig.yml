@@ -14,6 +14,10 @@ default: &default
   s3_settings:
     archives_bucket: wp-archives-files
     notification_bucket: sys.status.getshifter
+  docker_images:
+    wordpress-worker: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-php-with-mysql
+    sync-efs-to-s3: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync
+
 
 development:
   <<: *default

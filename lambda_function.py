@@ -35,7 +35,7 @@ def lambda_handler(event, context):
     if 'action' not in event:
         return createBadRequestMessage(event, "params 'action' not found.")
 
-    ctr = DockerCtr(app_config)
+    ctr = DockerCtr(app_config, event)
     # Dispatch Simple Events
     if (event["action"] == "test"):
         return test(event)
