@@ -93,8 +93,10 @@ class DockerCtr:
         return body
 
     def getTheService(self, siteId):
+        logger.info("invoke getTheServices")
         try:
             res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services/' + siteId)
+            logger.info(res.status_code)
             result = res.json()
             result['status'] = res.status_code
         except Exception as e:
@@ -116,8 +118,10 @@ class DockerCtr:
         return False
 
     def getServices(self):
+        logger.info("invoke getServices")
         try:
             res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services')
+            logger.info(res.status_code)
             result = res.json()
         except Exception as e:
             logger.error("Error occurred during calls Docker API: " + str(type(e)))
@@ -184,9 +188,14 @@ class DockerCtr:
 
         self.docker_session.headers.update({'X-Registry-Auth': self.__getXRegistryAuth()})
         self.docker_session.headers.update({'Content-Type': 'application/json'})
+        logger.info('invoke createTheService')
         try:
             res = self.docker_session.post(self.dockerapi_config['endpoint'] + 'services/create', data=body_json)
-            result = res.json()
+            logger.info(res.status_code)
+            if res.ok:
+                result = res.json
+            else:
+                res.raise_for_status()
         except Exception as e:
             logger.error("Error occurred during calls Docker API: " + str(type(e)))
             logger.error(traceback.format_exc())
