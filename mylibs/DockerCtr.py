@@ -249,7 +249,7 @@ class DockerCtr:
 
         return result
 
-    def deleteServiceHookDynamo(siteId):
+    def deleteServiceHookDynamo(self, siteId):
         dynamo = DynamoDB()
         dynamo.deleteWpadminUrl(siteId)
         return None
