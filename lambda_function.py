@@ -68,6 +68,7 @@ def lambda_handler(event, context):
 
     return result
 
+
 def test(event):
     return 'this is test'
 
