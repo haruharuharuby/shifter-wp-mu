@@ -14,6 +14,7 @@ import botocore
 import requests
 from DynamoDB import *
 from S3 import *
+from common_helper import *
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -21,7 +22,8 @@ logger.setLevel(logging.INFO)
 
 class DockerCtr:
 
-    def __init__(self, app_config):
+    def __init__(self, app_config, event):
+        self.event = event
         self.app_config = app_config
         self.dockerapi_config = app_config['dockerapi']
         self.uuid = ''
@@ -238,9 +240,9 @@ class DockerCtr:
             result = res.json()
             result['status'] = res.status_code
         except Exception as e:
-            logger.error("Error calling Docker API: " + str(type(e)))
+            logger.error("Error occurred during calls Docker API: " + str(type(e)))
             logger.error(e)
-            return createBadRequestMessage(event, event["action"] + 'is unregistered action type')
+            return createBadRequestMessage(self.event, "Error occurred during calls Backend Service.")
 
         if (self.__hasDockerPublishedPort(result)):
             port = str(read['Endpoint']['Spec']['Ports'][0]['PublishedPort'])
@@ -362,48 +364,28 @@ class DockerCtr:
             }
             return error
 
-    def __deleteTheService(self, siteId):
-        url = self.dockerapi_config['endpoint'] + 'services/' + siteId
-        res = self.__connect(url, 'DELETE')
-        return res
-
     def deleteTheService(self, siteId):
-        res = self.__deleteTheService(siteId)
-        read = res.read()
+        try:
+            res = self.docker_session.delete(self.dockerapi_config['endpoint'] + 'services/' + siteId)
+            result = res.json()
+            result['status'] = res.status_code
+        except Exception as e:
+            logger.error("Error occurred during calls Docker API: " + str(type(e)))
+            logger.error(e)
+            return createBadRequestMessage(self.event, "Error occurred during calls Backend Service.")
+
+        deleteHookDynamo(SiteId)
+
+        result["serviceId"] = siteId
+        if (res.status_code == 200):
+            result["message"] = "service: " + siteId + " is deleted."
+
+        return result
+
+    def deleteServiceHookDynamo(siteId):
         dynamo = DynamoDB()
         dynamo.deleteWpadminUrl(siteId)
-        if (read == ""):
-            result = {
-                "serviceId": siteId,
-                "status": 200,
-                "message": "service: " + siteId + " is deleted."
-            }
-        else:
-            read = json.loads(read)
-            result = {
-                "serviceId": siteId,
-                "status": 500,
-                "message": read['message']
-            }
-        return result
+        return None
 
     def deleteServiceByServiceId(self, query):
-        url = self.dockerapi_config['endpoint'] + 'services/' + query['serviceId']
-        res = self.__connect(url, 'DELETE')
-        read = res.read()
-        dynamo = DynamoDB()
-        dynamo.deleteWpadminUrl(query['siteId'])
-        if (read == ""):
-            result = {
-                "serviceId": query['serviceId'],
-                "status": 200,
-                "message": "service: " + query['serviceId'] + "is deleted."
-            }
-        else:
-            read = json.loads(read)
-            result = {
-                "serviceId": query['serviceId'],
-                "status": 500,
-                "message": read['message']
-            }
-        return result
+        return deleteTheService(query['serviceId'])
