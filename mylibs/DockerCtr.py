@@ -243,7 +243,7 @@ class DockerCtr:
             logger.error(traceback.format_exc())
             return createBadRequestMessage(self.event, "Error occurred during calls Backend Service.")
 
-        self.deleteServiceHookDynamo(SiteId)
+        self.deleteServiceHookDynamo(siteId)
 
         result["serviceId"] = siteId
 
