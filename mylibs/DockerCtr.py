@@ -20,6 +20,10 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
+if __name__ == '__main__':
+    print('module')
+
+
 class DockerCtr:
 
     def __init__(self, app_config, event):
@@ -257,15 +261,16 @@ class DockerCtr:
                         return True
         return False
 
-    def __getServices(self):
-        url = self.dockerapi_config['endpoint'] + 'services'
-        res = self.__connect(url)
-        return res
-
     def getServices(self):
-        res = self.__getServices()
-        read = json.loads(res.read())
-        return read
+        try:
+            res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services')
+            result = res.json()
+        except Exception as e:
+            logger.error("Error occurred during calls Docker API: " + str(type(e)))
+            logger.error(e)
+            return createBadRequestMessage(self.event, "Error occurred during calls Backend Service.")
+
+        return result
 
     def __createNewServiceInfo(self, query, res):
         message = {
