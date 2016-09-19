@@ -11,6 +11,7 @@ import uuid
 import logging
 import boto3
 import botocore
+import requests
 from DynamoDB import *
 from S3 import *
 
@@ -24,7 +25,13 @@ class DockerCtr:
         self.app_config = app_config
         self.dockerapi_config = app_config['dockerapi']
         self.uuid = ''
+        self.docker_session = buildDockerSession()
         self.notificationId = uuid.uuid4().hex
+
+    def buildDockerSession(self):
+        session = requests.Session()
+        session.auth = (dockerapi_config['authuser'], dockerapi_config['authpass'])
+        return session
 
     def __getXRegistryAuth(self):
         try:
@@ -225,28 +232,19 @@ class DockerCtr:
         }
         return body
 
-    def __getTheService(self, service_name):
-        url = dockerapi_config['endpoint'] + 'services/' + service_name
-        res = self.__connect(url)
-        return res
-
     def getTheService(self, siteId):
-        res = self.__getTheService(siteId)
         try:
-            body = res.read()
-            read = json.loads(body)
+            res = docker_session.get(dockerapi_config['endpoint'] + 'services/' + siteId)
+            result = res.json()
+            result['status'] = res.status_code
         except:
             logger.error("JSON ValueError " + body)
             return createBadRequestMessage(event, event["action"] + 'is unregistered action type')
 
-        if 'message' in read:
-            read['status'] = 500
-        else:
-            read['status'] = 200
-        if (self.__hasDockerPublishedPort(read)):
+        if (self.__hasDockerPublishedPort(result)):
             port = str(read['Endpoint']['Spec']['Ports'][0]['PublishedPort'])
-            read['DockerUrl'] = dockerapi_config['endpoint'] + port
-        return read
+            result['DockerUrl'] = 'https://' + app_config['service_domain'] + ':' + port
+        return result
 
     def __hasDockerPublishedPort(self, docker):
         if 'Endpoint' in docker:
