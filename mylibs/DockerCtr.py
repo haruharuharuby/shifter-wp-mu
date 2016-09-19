@@ -234,11 +234,12 @@ class DockerCtr:
 
     def getTheService(self, siteId):
         try:
-            res = docker_session.get(self.dockerapi_config['endpoint'] + 'services/' + siteId)
+            res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services/' + siteId)
             result = res.json()
             result['status'] = res.status_code
-        except:
-            logger.error("JSON ValueError " + body)
+        except Exception as e:
+            logger.error("Error calling Docker API: " + str(type(e)))
+            logger.error(e)
             return createBadRequestMessage(event, event["action"] + 'is unregistered action type')
 
         if (self.__hasDockerPublishedPort(result)):
