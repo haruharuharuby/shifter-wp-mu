@@ -17,19 +17,16 @@ logger.setLevel(logging.INFO)
 
 
 class S3:
-    def __init__(self):
-        self.client = boto3.client('s3')
-
-    def __getWpArchiveBucketName(self):
-        return 'wp-archives-files'
-
-    def __getNotificationBucketname(self):
-        return 'sys.status.getshifter'
+    def __init__(self, app_config):
+        self.s3client = boto3.client('s3')
+        self.archives_bucket = app_config['s3_settings']['archives_bucket']
+        self.notification_bucket = app_config['s3_settings']['notification_bucket']
+        return None
 
     def __hasObject(self, key):
         try:
             self.client.get_object(
-                Bucket=self.__getWpArchiveBucketName(),
+                Bucket=self.archives_bucket,
                 Key=key
             )
             return True
@@ -41,7 +38,7 @@ class S3:
         result = self.client.generate_presigned_url(
             ClientMethod='put_object',
             Params={
-                'Bucket': self.__getNotificationBucketname(),
+                'Bucket': self.notification_bucket,
                 'Key': notificationId
             },
             ExpiresIn=3600,
@@ -54,7 +51,7 @@ class S3:
             result = self.client.generate_presigned_url(
                 ClientMethod='get_object',
                 Params={
-                    'Bucket': self.__getWpArchiveBucketName(),
+                    'Bucket': self.archives_bucket,
                     'Key': wpArchiveId + '/wordpress.zip'
                 },
                 ExpiresIn=3600,
