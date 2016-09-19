@@ -18,7 +18,7 @@ logger.setLevel(logging.INFO)
 
 class S3:
     def __init__(self, app_config):
-        self.s3client = boto3.client('s3')
+        self.client = boto3.client('s3')
         self.archives_bucket = app_config['s3_settings']['archives_bucket']
         self.notification_bucket = app_config['s3_settings']['notification_bucket']
         return None

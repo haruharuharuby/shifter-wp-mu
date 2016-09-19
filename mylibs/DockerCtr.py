@@ -56,7 +56,7 @@ class DockerCtr:
 
     def __connect(self, url, method='GET', body=None):
         password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        password_mgr.add_password(None, url, dockerapi_config['authuser'], dockerapi_config['authpass'])
+        password_mgr.add_password(None, url, self.dockerapi_config['authuser'], self.dockerapi_config['authpass'])
         handler = urllib2.HTTPBasicAuthHandler(password_mgr)
         opener = urllib2.build_opener(handler)
         urllib2.install_opener(opener)
@@ -83,7 +83,7 @@ class DockerCtr:
 
     def __isAvailablePortNum(self):
         portNum = self.__countRunningService()
-        portLimit = app_config['limits']['max_ports']
+        portLimit = self.app_config['limits']['max_ports']
         if (portNum > portLimit):
             return False
         else:
@@ -130,8 +130,8 @@ class DockerCtr:
                     "ContainerSpec": {
                         "Image": self.__getImage('sync-efs-to-s3'),
                         "Env": [
-                            "AWS_ACCESS_KEY_ID=" + app_config['awscreds']['access_key'],
-                            "AWS_SECRET_ACCESS_KEY=" + app_config['awscreds']['secret_access_key'],
+                            "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['access_key'],
+                            "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['secret_access_key'],
                             "S3_REGION=" + dbItem['s3_region']['S'],
                             "S3_BUCKET=" + dbItem['s3_bucket']['S'],
                             "SITE_ID=" + query['siteId'],
@@ -158,12 +158,12 @@ class DockerCtr:
     def __getWpServiceImageBody(self, query):
         if 'phpVersion' not in query:
             query['phpVersion'] = '7.0'
-        s3 = S3(app_config)
+        s3 = S3(self.app_config)
         notification_url = s3.createNotificationUrl(self.notificationId)
         env = [
             "SERVICE_PORT=" + str(query['pubPort']),
             "SITE_ID=" + query['siteId'],
-            "SERVICE_DOMAIN=" + app_config['service_domain'],
+            "SERVICE_DOMAIN=" + self.app_config['service_domain'],
             "EFS_ID=" + query['fsId'],
             "NOTIFICATION_URL=" + base64.b64encode(notification_url)
         ]
@@ -257,7 +257,7 @@ class DockerCtr:
         return False
 
     def __getServices(self):
-        url = dockerapi_config['endpoint'] + 'services'
+        url = self.dockerapi_config['endpoint'] + 'services'
         res = self.__connect(url)
         return res
 
@@ -269,7 +269,7 @@ class DockerCtr:
     def __createNewServiceInfo(self, query, res):
         message = {
             'status': 200,
-            'docker_url': 'https://' + app_config['service_domain'] + ':' + str(query['pubPort']),
+            'docker_url': 'https://' + self.app_config['service_domain'] + ':' + str(query['pubPort']),
             'serviceName': query['siteId'],
             'notificationId': self.notificationId
         }
@@ -321,7 +321,7 @@ class DockerCtr:
             result = self.__canCreateNewService(dbData, query)
             if (result['status'] > 400):
                 return result
-        url = dockerapi_config['endpoint'] + 'services/create'
+        url = self.dockerapi_config['endpoint'] + 'services/create'
         query['pubPort'] = self.__getPortNum()
         body = self.__getCreateImageBody(query)
         body_json = self.__convertToJson(body)
@@ -364,7 +364,7 @@ class DockerCtr:
             return error
 
     def __deleteTheService(self, siteId):
-        url = dockerapi_config['endpoint'] + 'services/' + siteId
+        url = self.dockerapi_config['endpoint'] + 'services/' + siteId
         res = self.__connect(url, 'DELETE')
         return res
 

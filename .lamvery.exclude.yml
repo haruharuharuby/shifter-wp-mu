@@ -8,3 +8,4 @@
 - ^\.DS_Store$
 - ^\.editorconfig$
 - ^tmp
+- ^venv
