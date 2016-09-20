@@ -9,3 +9,5 @@
 - ^\.editorconfig$
 - ^tmp
 - ^venv
+- ^examples
+

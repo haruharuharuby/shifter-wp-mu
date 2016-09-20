@@ -109,7 +109,7 @@ class DockerCtr:
             return createBadRequestMessage(self.event, "Error occurred during calls Backend Service.")
 
         if (self.__hasDockerPublishedPort(result)):
-            port = str(read['Endpoint']['Spec']['Ports'][0]['PublishedPort'])
+            port = str(result['Endpoint']['Spec']['Ports'][0]['PublishedPort'])
             result['DockerUrl'] = 'https://' + self.app_config['service_domain'] + ':' + port
         return result
 
@@ -155,19 +155,19 @@ class DockerCtr:
         return message
 
     def __saveToDynamoDB(self, message):
-        dynamo = DynamoDB()
-        dynamo.updateItem(message)
+        dynamo = DynamoDB(self.app_config)
+        dynamo.updateSiteState(message)
 
     def __canCreateNewService(self, dbData, query):
         if (dbData['Count'] > 0):
-            if (dbData['Items'][0]['stock_state']['S'] == 'ingenerate'):
+            if (dbData['Items'][0]['stock_state'] == 'ingenerate'):
                 message = {
                     "status": 409,
                     "name": "website now generating",
                     "message": "site id:" + query['siteId'] + " is now generating.Please wait finished it."
                 }
                 return message
-            elif (dbData['Items'][0]['stock_state']['S'] == 'inservice'):
+            elif (dbData['Items'][0]['stock_state'] == 'inservice'):
                 message = {
                     "status": 409,
                     "name": "website already running",
@@ -181,7 +181,7 @@ class DockerCtr:
 
     def __createNewService(self, query):
         dbData = False
-        dynamodb = DynamoDB()
+        dynamodb = DynamoDB(self.app_config)
         dbData = dynamodb.getServiceById(query['siteId'])
         result = self.__canCreateNewService(dbData, query)
         if (result['status'] > 400):
@@ -263,8 +263,8 @@ class DockerCtr:
         return result
 
     def deleteServiceHookDynamo(self, siteId):
-        dynamo = DynamoDB()
-        dynamo.deleteWpadminUrl(siteId)
+        dynamo = DynamoDB(self.app_config)
+        dynamo.resetSiteItem(siteId)
         return None
 
     def deleteServiceByServiceId(self, query):
@@ -272,7 +272,7 @@ class DockerCtr:
 
     def __getSyncEfsToS3ImageBody(self, query):
         self.uuid = uuid.uuid4().hex
-        dynamodb = DynamoDB()
+        dynamodb = DynamoDB(self.app_config)
         dbData = dynamodb.getServiceById(query['siteId'])
         dbItem = False
         if 'Items' in dbData:
@@ -280,8 +280,8 @@ class DockerCtr:
                 dbItem = dbData['Items'][0]
         if dbItem is False:
             dbItem = {
-                's3_bucket': {'S': ''},
-                's3_region': {'S': ''},
+                's3_bucket': '',
+                's3_region': '',
             }
 
         body = {
@@ -300,8 +300,8 @@ class DockerCtr:
                         "Env": [
                             "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['access_key'],
                             "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['secret_access_key'],
-                            "S3_REGION=" + dbItem['s3_region']['S'],
-                            "S3_BUCKET=" + dbItem['s3_bucket']['S'],
+                            "S3_REGION=" + dbItem['s3_region'],
+                            "S3_BUCKET=" + dbItem['s3_bucket'],
                             "SITE_ID=" + query['siteId'],
                             "SERVICE_NAME=" + self.uuid
                         ],
