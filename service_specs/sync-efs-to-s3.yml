@@ -6,12 +6,12 @@ default: &default
   TaskTemplate:
     ContainerSpec:
       Env:
-        {{#envvars}}}
+        {{#envvars}}
         - "{{envvar}}"
-        {{/envvars}}}
-        {{^envvars}}}
+        {{/envvars}}
+        {{^envvars}}
         - "DUMMY_ENV=True"
-        {{/envvars}}}
+        {{/envvars}}
       Image: {{ image_string }}
       Mounts:
       - Source: {{ efs_point_root }}

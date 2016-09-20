@@ -11,24 +11,26 @@ default: &default
   TaskTemplate:
     ContainerSpec:
       Env:
-        {{#envvars}}}
+        {{#envvars}}
         - "{{envvar}}"
-        {{/envvars}}}
-        {{^envvars}}}
+        {{/envvars}}
+        {{^envvars}}
         - "DUMMY_ENV=True"
-        {{/envvars}}}
+        {{/envvars}}
       Image: {{ image_string }}
       Mounts:
       - Source: {{ efs_point_web }}
         Target: /var/www/html
         Type: volume
         VolumeOptions:
-          DriverConfig: {Name: efs}
+          DriverConfig:
+            Name: efs
       - Source: {{ efs_point_db }}
         Target: /var/lib/mysql
         Type: volume
         VolumeOptions:
-          DriverConfig: {Name: efs}
+          DriverConfig:
+            Name: efs
     LogDriver:
       Name: awslogs
       Options:

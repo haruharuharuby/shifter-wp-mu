@@ -38,7 +38,7 @@ class ServiceBuilder:
         self.s3client = S3(app_config)
         return None
 
-    def __fetchDynamoSiteItem():
+    def __fetchDynamoSiteItem(self):
         dynamodb = DynamoDB(self.app_config)
         dbData = dynamodb.getServiceById(self.query['siteId'])
         dbItem = {
@@ -52,7 +52,7 @@ class ServiceBuilder:
         return dbItem
 
     def buildServiceDef(self, image_type):
-        service_spec_source = self.__loadServiceTemplate(image_type)
+        template_base = self.__loadServiceTemplate(image_type)
 
         try:
             context = getattr(self, 'build_context_' + image_type.replace('-', '_'))()
@@ -61,7 +61,10 @@ class ServiceBuilder:
             logger.error(traceback.format_exc())
             raise StandardError("Error occurred during calls Backend Service.")
 
-        service_spec_base = pystache.render(service_spec_source, context)
+        service_spec_rendered = pystache.render(template_base, context)
+        logger.debug(service_spec_rendered)
+        service_spec_base = yaml.load(service_spec_rendered)
+        logger.debug(service_spec_base)
         if 'SHIFTER_ENV' in os.environ.keys():
             service_spec = service_spec_base[os.environ['SHIFTER_ENV']]
         else:
@@ -69,7 +72,7 @@ class ServiceBuilder:
         return service_spec
 
     def __loadServiceTemplate(self, image_type):
-        template_base = open(self.spec_path + image_type + '.yml', 'r')
+        template_base = open(self.spec_path + image_type + '.yml', 'r').read()
         return template_base
 
     def __prepare_envs_for_pystache(self, envs):
@@ -91,7 +94,7 @@ class ServiceBuilder:
         context['efs_point_db'] = self.query['fsId'] + "/" + self.query['siteId'] + "/db"
 
         # Build Env
-        notification_url = s3client.createNotificationUrl(self.notificationId)
+        notification_url = self.s3client.createNotificationUrl(self.query['notificationId'])
         env = [
             "SERVICE_PORT=" + str(self.query['pubPort']),
             "SITE_ID=" + self.query['siteId'],
@@ -100,8 +103,8 @@ class ServiceBuilder:
             "NOTIFICATION_URL=" + base64.b64encode(notification_url)
         ]
 
-        if 'wpArchiveId' in query:
-            archiveUrl = self.s3client.createWpArchiceUrl(query['wpArchiveId'])
+        if 'wpArchiveId' in self.query:
+            archiveUrl = self.s3client.createWpArchiceUrl(self.query['wpArchiveId'])
             if archiveUrl is not False:
                 env.append('ARCHIVE_URL=' + base64.b64encode(archiveUrl))
 
