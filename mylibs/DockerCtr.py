@@ -197,7 +197,7 @@ class DockerCtr:
             res = self.docker_session.post(self.dockerapi_config['endpoint'] + 'services/create', data=body_json, timeout=self.timeout_opts)
             logger.info(res.status_code)
             if res.ok:
-                result = res.json
+                result = res.json()
             else:
                 res.raise_for_status()
         except Exception as e:
