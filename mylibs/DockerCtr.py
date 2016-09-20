@@ -155,8 +155,8 @@ class DockerCtr:
         return message
 
     def __saveToDynamoDB(self, message):
-        dynamo = DynamoDB()
-        dynamo.updateItem(message)
+        dynamo = DynamoDB(self.app_config)
+        dynamo.updateSiteState(message)
 
     def __canCreateNewService(self, dbData, query):
         if (dbData['Count'] > 0):
@@ -181,7 +181,7 @@ class DockerCtr:
 
     def __createNewService(self, query):
         dbData = False
-        dynamodb = DynamoDB()
+        dynamodb = DynamoDB(self.app_config)
         dbData = dynamodb.getServiceById(query['siteId'])
         result = self.__canCreateNewService(dbData, query)
         if (result['status'] > 400):
@@ -263,8 +263,8 @@ class DockerCtr:
         return result
 
     def deleteServiceHookDynamo(self, siteId):
-        dynamo = DynamoDB()
-        dynamo.deleteWpadminUrl(siteId)
+        dynamo = DynamoDB(self.app_config)
+        dynamo.resetSiteItem(siteId)
         return None
 
     def deleteServiceByServiceId(self, query):
@@ -272,7 +272,7 @@ class DockerCtr:
 
     def __getSyncEfsToS3ImageBody(self, query):
         self.uuid = uuid.uuid4().hex
-        dynamodb = DynamoDB()
+        dynamodb = DynamoDB(self.app_config)
         dbData = dynamodb.getServiceById(query['siteId'])
         dbItem = False
         if 'Items' in dbData:

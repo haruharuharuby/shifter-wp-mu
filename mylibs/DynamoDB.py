@@ -10,50 +10,45 @@ import random
 import uuid
 import logging
 import boto3
+from boto3.dynamodb.conditions import Key, Attr
 import botocore
 
 
 class DynamoDB:
-    def __init__(self):
-        self.client = boto3.client('dynamodb')
-
-    def __getSiteTableName(self):
-        return 'Site'
+    def __init__(self, app_config):
+        client = boto3.resource('dynamodb')
+        self.sitetable = client.Table(app_config['dynamo_settings']['site_table'])
 
     def getServiceById(self, serviceName):
-        res = self.client.scan(
-            TableName=self.__getSiteTableName(),
-            FilterExpression="ID = :id",
-            ExpressionAttributeValues={
-                ':id': {'S': serviceName}
-            }
+        res = self.sitetable.query(
+            KeyConditionExpression=Key('ID').eq(serviceName)
         )
         return res
 
-    def deleteWpadminUrl(self, serviceName):
-        res = self.client.update_item(
-            TableName=self.__getSiteTableName(),
+    def resetSiteItem(self, serviceName):
+        res = self.sitetable.update_item(
             Key={
-                'ID': {'S': serviceName}
+                'ID': serviceName
             },
             UpdateExpression='SET docker_url=:docker_url,stock_state=:stock_state',
             ExpressionAttributeValues={
-                ':docker_url': {'NULL': True},
-                ':stock_state': {'S': 'inuse'}
-            }
+                ':docker_url': None,
+                ':stock_state': 'inuse'
+            },
+            ReturnValues="ALL_NEW"
         )
         return res
 
-    def updateItem(self, message):
-        res = self.client.update_item(
-            TableName=self.__getSiteTableName(),
+    def updateSiteState(self, message):
+        res = self.sitetable.update_item(
             Key={
-                'ID': {'S': message['serviceName']}
+                'ID': message['serviceName']
             },
             UpdateExpression='SET docker_url=:docker_url,stock_state=:stock_state',
             ExpressionAttributeValues={
-                ':docker_url': {'S': message['docker_url']},
-                ':stock_state': {'S': message['stock_state']}
-            }
+                ':docker_url': message['docker_url'],
+                ':stock_state': message['stock_state']
+            },
+            ReturnValues="ALL_NEW"
         )
         return res
