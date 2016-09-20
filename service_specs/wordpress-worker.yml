@@ -1,47 +1,43 @@
 ---
 default: &default
-  image_name: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync
-  default_tag: latest
-  requires:
-    ENV:
-      - SERVICE_PORT
-      - SITE_ID
-      - SERVICE_DOMAIN
-      - EFS_ID
-      - NOTIFICATION_URL
-  template:
-    EndpointSpec:
-      Ports:
-      - Protocol: tcp
-        PublishedPort: "REPLACE:INT:PORT"
-        TargetPort: 443
-    Labels:
-      Name: wordpress-worker
-    Name: id
-    TaskTemplate:
-      ContainerSpec:
-        Env: []
-        Image: "REPLACE:STR:IMAGEandTAG"
-        Mounts:
-        - Source: "REPLACE:STR:efs_id/web"
-          Target: /var/www/html
-          Type: volume
-          VolumeOptions:
-            DriverConfig: {Name: efs}
-        - Source: "REPLACE:STR:efs_id/db"
-          Target: /var/lib/mysql
-          Type: volume
-          VolumeOptions:
-            DriverConfig: {Name: efs}
-      LogDriver:
-        Name: awslogs
-        Options:
-          awslogs-group: dockerlog-services
-          awslogs-region: "REPLACE:STR:aws_region"
-          awslogs-stream: "REPLACE:STR:site_id"
-      Placement:
-        Constraints:
-          - "node.labels.type == efs-worker"
+  EndpointSpec:
+    Ports:
+    - Protocol: tcp
+      PublishedPort: {{ publish_port1 }}
+      TargetPort: 443
+  Labels:
+    Name: wordpress-worker
+  Name: {{ service_name }}
+  TaskTemplate:
+    ContainerSpec:
+      Env:
+        {{#envvars}}}
+        - "{{envvar}}"
+        {{/envvars}}}
+        {{^envvars}}}
+        - "DUMMY_ENV=True"
+        {{/envvars}}}
+      Image: {{ image_string }}
+      Mounts:
+      - Source: {{ efs_point_web }}
+        Target: /var/www/html
+        Type: volume
+        VolumeOptions:
+          DriverConfig: {Name: efs}
+      - Source: {{ efs_point_db }}
+        Target: /var/lib/mysql
+        Type: volume
+        VolumeOptions:
+          DriverConfig: {Name: efs}
+    LogDriver:
+      Name: awslogs
+      Options:
+        awslogs-group: dockerlog-services
+        awslogs-region: us-east-1
+        awslogs-stream: {{ service_name }}
+    Placement:
+      Constraints:
+        - "node.labels.type == efs-worker"
 
 development:
   <<: *default

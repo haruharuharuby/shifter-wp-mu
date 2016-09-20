@@ -13,6 +13,7 @@ import logging
 import boto3
 import botocore
 import requests
+import pystache
 import traceback
 from DynamoDB import *
 from S3 import *
@@ -34,6 +35,7 @@ class ServiceBuilder:
         self.query = query
         self.uuid = uuid.uuid4().hex
         self.table_item = self.__fetchDynamoSiteItem()
+        self.s3client = S3(app_config)
         return None
 
     def __fetchDynamoSiteItem():
@@ -50,158 +52,86 @@ class ServiceBuilder:
         return dbItem
 
     def buildServiceDef(self, image_type):
-        service_spec = self.__loadServiceTemplate(image_type)
+        service_spec_source = self.__loadServiceTemplate(image_type)
 
         try:
-            service_def = getattr(self, 'build_' + image_type.replace('-', '_'))(service_spec)
+            context = getattr(self, 'build_context_' + image_type.replace('-', '_'))()
         except Exception as e:
             logger.error("Error occurred during builds Service definition: " + str(type(e)))
             logger.error(traceback.format_exc())
             raise StandardError("Error occurred during calls Backend Service.")
 
-        return service_def
+        service_spec_base = pystache.render(service_spec_source, context)
+        if 'SHIFTER_ENV' in os.environ.keys():
+            service_spec = service_spec_base[os.environ['SHIFTER_ENV']]
+        else:
+            service_spec = service_spec_base['development']
+        return service_spec
 
     def __loadServiceTemplate(self, image_type):
-        template_base = yaml.load(open(self.spec_path + image_type + '.yml', 'r'))
+        template_base = open(self.spec_path + image_type + '.yml', 'r')
+        return template_base
 
-        if 'SHIFTER_ENV' in os.environ.keys():
-            template = template_base[os.environ['SHIFTER_ENV']]
+    def __prepare_envs_for_pystache(self, envs):
+        new_array = []
+        map(lambda ev: new_array.append({"envvar": ev}), envs)
+        return new_array
+
+    def build_context_wordpress_worker(self):
+        context = {}
+        context['service_name'] = self.query['siteId']
+        if 'phpVersion' in self.query:
+            tag = self.query['phpVersion']
         else:
-            template = template_base['development']
+            tag = 'latest'
+        context['image_string'] = ':'.join([self.app_config['docker_images']['wordpress-worker'], tag])
 
-        return template
+        context['publish_port1'] = int(self.query['pubPort'])
+        context['efs_point_web'] = self.query['fsId'] + "/" + self.query['siteId'] + "/web"
+        context['efs_point_db'] = self.query['fsId'] + "/" + self.query['siteId'] + "/db"
 
-    def build_wordpress_worker(self, spec):
-        service_def = spec['template']
-
-        logger.info(service_def)
-        return service_def
-
-    def build_sync_efs_to_s3(self, spec):
-        service_def = spec['template']
-
-        logger.info(service_def)
-        return service_def
-
-    def tSyncEfsToS3ImageBody(self, query):
-        self.uuid = uuid.uuid4().hex
-        dynamodb = DynamoDB()
-        dbData = dynamodb.getServiceById(query['siteId'])
-        dbItem = False
-        if 'Items' in dbData:
-            if (dbData['Count'] > 0):
-                dbItem = dbData['Items'][0]
-        if dbItem is False:
-            dbItem = {
-                's3_bucket': {'S': ''},
-                's3_region': {'S': ''},
-            }
-
-        body = {
-                "Name": self.uuid,
-                "Labels": {
-                    "Name": "sync-efs-to-s3"
-                },
-                "TaskTemplate": {
-                    "RestartPolicy": {
-                        "Condition": "on-failure",
-                        "Delay": 5000,
-                        "MaxAttempts": 3,
-                    },
-                    "ContainerSpec": {
-                        "Image": self.__getImage('sync-efs-to-s3'),
-                        "Env": [
-                            "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['access_key'],
-                            "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['secret_access_key'],
-                            "S3_REGION=" + dbItem['s3_region']['S'],
-                            "S3_BUCKET=" + dbItem['s3_bucket']['S'],
-                            "SITE_ID=" + query['siteId'],
-                            "SERVICE_NAME=" + self.uuid
-                        ],
-                        "Mounts": [{
-                            "Type": "volume",
-                            "Target": "/opt/efs/",
-                            "Source": query['fsId'] + "/" + query['siteId'],
-                            "VolumeOptions": {
-                                "DriverConfig": {
-                                    "Name": "efs"
-                                }
-                            }
-                        }]
-                    },
-                    "Placement": {
-                        "Constraints": ["node.labels.type == efs-worker"]
-                    },
-                }
-            }
-        return body
-
-    def __getWpServiceImageBody(self, query):
-        if 'phpVersion' not in query:
-            query['phpVersion'] = '7.0'
-        s3 = S3(self.app_config)
-        notification_url = s3.createNotificationUrl(self.notificationId)
+        # Build Env
+        notification_url = s3client.createNotificationUrl(self.notificationId)
         env = [
-            "SERVICE_PORT=" + str(query['pubPort']),
-            "SITE_ID=" + query['siteId'],
+            "SERVICE_PORT=" + str(self.query['pubPort']),
+            "SITE_ID=" + self.query['siteId'],
             "SERVICE_DOMAIN=" + self.app_config['service_domain'],
-            "EFS_ID=" + query['fsId'],
+            "EFS_ID=" + self.query['fsId'],
             "NOTIFICATION_URL=" + base64.b64encode(notification_url)
         ]
+
         if 'wpArchiveId' in query:
-            archiveUrl = s3.createWpArchiceUrl(query['wpArchiveId'])
+            archiveUrl = self.s3client.createWpArchiceUrl(query['wpArchiveId'])
             if archiveUrl is not False:
                 env.append('ARCHIVE_URL=' + base64.b64encode(archiveUrl))
-        body = {
-                "Name": query['siteId'],
-                "Labels": {
-                    "Name": "wordpress-worker"
-                },
-                "TaskTemplate": {
-                    "LogDriver": {
-                        "Name": "awslogs",
-                        "Options": {
-                            "awslogs-region": "us-east-1",
-                            "awslogs-group": "dockerlog-services",
-                            "awslogs-stream": query['siteId']
-                        }
-                    },
-                    "ContainerSpec": {
-                        "Image": self.__getImage('wordpress-worker', query['phpVersion']),
-                        "Env": env,
-                        "Mounts": [{
-                            "Type": "volume",
-                            "Target": "/var/www/html",
-                            "Source": query['fsId'] + "/" + query['siteId'] + "/web",
-                            "VolumeOptions": {
-                                "DriverConfig": {
-                                    "Name": "efs"
-                                }
-                            }
-                        },
-                        {
-                            "Type": "volume",
-                            "Target": "/var/lib/mysql",
-                            "Source": query['fsId'] + "/" + query['siteId'] + "/db",
-                            "VolumeOptions": {
-                                "DriverConfig": {
-                                    "Name": "efs"
-                                }
-                            }
-                        }]
-                    },
-                    "Placement": {
-                        "Constraints": ["node.labels.type == efs-worker"]
-                    },
-                },
-                "EndpointSpec": {
-                    "Ports": [
-                        {
-                            "Protocol": "tcp",
-                            "PublishedPort": int(query['pubPort']),
-                            "TargetPort": 443
-                        }
-                    ]
-                }
-        }
-        return body
+
+        context['envvars'] = self.__prepare_envs_for_pystache(env)
+
+        logger.info(context)
+        return context
+
+    def build_context_sync_efs_to_s3(self):
+        context = {}
+        context['service_name'] = self.uuid
+        if 'image_tag' in self.query:
+            tag = self.query['image_tag']
+        else:
+            tag = 'latest'
+        context['image_string'] = ':'.join([self.app_config['docker_images']['sync-efs-to-s3'], tag])
+
+        context['efs_point_root'] = self.query['fsId'] + "/" + self.query['siteId']
+
+        # Build Env
+        env = [
+                "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['access_key'],
+                "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['secret_access_key'],
+                "S3_REGION=" + self.table_item['s3_region'],
+                "S3_BUCKET=" + self.table_item['s3_bucket'],
+                "SITE_ID=" + self.query['siteId'],
+                "SERVICE_NAME=" + self.uuid
+        ]
+
+        context['envvars'] = self.__prepare_envs_for_pystache(env)
+
+        logger.info(context)
+        return context
