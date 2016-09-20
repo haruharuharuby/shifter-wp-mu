@@ -109,7 +109,7 @@ class DockerCtr:
             return createBadRequestMessage(self.event, "Error occurred during calls Backend Service.")
 
         if (self.__hasDockerPublishedPort(result)):
-            port = str(read['Endpoint']['Spec']['Ports'][0]['PublishedPort'])
+            port = str(result['Endpoint']['Spec']['Ports'][0]['PublishedPort'])
             result['DockerUrl'] = 'https://' + self.app_config['service_domain'] + ':' + port
         return result
 
