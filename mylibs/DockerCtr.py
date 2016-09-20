@@ -33,11 +33,15 @@ class DockerCtr:
         self.dockerapi_config = app_config['dockerapi']
         self.uuid = ''
         self.docker_session = self.buildDockerSession()
+        # http://docs.python-requests.org/en/master/user/advanced/#timeouts
+        self.timeout_opts = (5.0, 15.0)
         self.notificationId = uuid.uuid4().hex
 
     def buildDockerSession(self):
         session = requests.Session()
         session.auth = (self.dockerapi_config['authuser'], self.dockerapi_config['authpass'])
+        session.mount("http://", requests.adapters.HTTPAdapter(max_retries=3))
+        session.mount("https://", requests.adapters.HTTPAdapter(max_retries=3))
         return session
 
     def __getXRegistryAuth(self):
@@ -95,7 +99,7 @@ class DockerCtr:
     def getTheService(self, siteId):
         logger.info("invoke getTheServices")
         try:
-            res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services/' + siteId)
+            res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services/' + siteId, timeout=timeout_opts)
             logger.info(res.status_code)
             result = res.json()
             result['status'] = res.status_code
@@ -120,7 +124,7 @@ class DockerCtr:
     def getServices(self):
         logger.info("invoke getServices")
         try:
-            res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services')
+            res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services', timeout=timeout_opts)
             logger.info(res.status_code)
             result = res.json()
         except Exception as e:
@@ -190,7 +194,7 @@ class DockerCtr:
         self.docker_session.headers.update({'Content-Type': 'application/json'})
         logger.info('invoke createTheService')
         try:
-            res = self.docker_session.post(self.dockerapi_config['endpoint'] + 'services/create', data=body_json)
+            res = self.docker_session.post(self.dockerapi_config['endpoint'] + 'services/create', data=body_json, timeout=timeout_opts)
             logger.info(res.status_code)
             if res.ok:
                 result = res.json
@@ -237,7 +241,7 @@ class DockerCtr:
     def deleteTheService(self, siteId):
         logger.info('invoke deleteTheService')
         try:
-            res = self.docker_session.delete(self.dockerapi_config['endpoint'] + 'services/' + siteId)
+            res = self.docker_session.delete(self.dockerapi_config['endpoint'] + 'services/' + siteId, timeout=timeout_opts)
             logger.info(res.status_code)
             if res.ok:
                 result = {'message': "service: " + siteId + " is deleted."}
