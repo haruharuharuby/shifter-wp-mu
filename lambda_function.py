@@ -47,24 +47,30 @@ def lambda_handler(event, context):
         return createBadRequestMessage(event, "params 'siteId' not found.")
 
     # Dispatch Various Events which depends on SiteId
-    if (event["action"] == "getTheService"):
-            result = ctr.getTheService(event['siteId'])
-    elif (event["action"] == "deleteTheService"):
-        result = ctr.deleteTheService(event['siteId'])
-    elif (event["action"] == "createNewService"):
-        if 'fsId' not in event:
-            return createBadRequestMessage(event, "params 'fsId' not found.")
-        result = ctr.createNewService(event)
-    elif (event["action"] == 'syncEfsToS3'):
-        if 'fsId' not in event:
-            return createBadRequestMessage(event, "params 'fsId' not found.")
-        result = ctr.createNewService(event)
-    elif (event["action"] == 'deleteServiceByServiceId'):
-        if 'serviceId' not in event:
-            return createBadRequestMessage(event, "params 'serviceId' not found.")
-        result = ctr.deleteServiceByServiceId(event)
-    else:
-        return createBadRequestMessage(event, event["action"] + 'is unregistered action type')
+    try:
+        if (event["action"] == "getTheService"):
+                result = ctr.getTheService(event['siteId'])
+        elif (event["action"] == "deleteTheService"):
+            result = ctr.deleteTheService(event['siteId'])
+        elif (event["action"] == "createNewService"):
+            if 'fsId' not in event:
+                return createBadRequestMessage(event, "params 'fsId' not found.")
+            result = ctr.createNewService(event)
+        elif (event["action"] == 'syncEfsToS3'):
+            if 'fsId' not in event:
+                return createBadRequestMessage(event, "params 'fsId' not found.")
+            result = ctr.createNewService(event)
+        elif (event["action"] == 'deleteServiceByServiceId'):
+            if 'serviceId' not in event:
+                return createBadRequestMessage(event, "params 'serviceId' not found.")
+            result = ctr.deleteServiceByServiceId(event)
+        else:
+            return createBadRequestMessage(event, event["action"] + 'is unregistered action type')
+
+    except Exception as e:
+        logger.error("Error occurred during calls Docker API: " + str(type(e)))
+        logger.error(traceback.format_exc())
+        return createBadRequestMessage(event, "Error occurred during calls Backend Service.")
 
     return result
 
