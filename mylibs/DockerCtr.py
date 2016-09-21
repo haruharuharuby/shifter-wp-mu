@@ -289,7 +289,11 @@ class DockerCtr:
                 "Labels": {
                     "Name": "sync-efs-to-s3"
                 },
-                "Networks": ["shifter_net_user"],
+                "Networks": [
+                    {
+                      "Target": "shifter_net_user"
+                    }
+                ],
                 "TaskTemplate": {
                     "RestartPolicy": {
                         "Condition": "on-failure",
@@ -347,7 +351,11 @@ class DockerCtr:
                 "Labels": {
                     "Name": "wordpress-worker"
                 },
-                "Networks": ["shifter_net_user"],
+                "Networks": [
+                    {
+                      "Target": "shifter_net_user"
+                    }
+                ],
                 "TaskTemplate": {
                     "LogDriver": {
                         "Name": "awslogs",
