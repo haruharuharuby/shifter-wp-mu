@@ -95,12 +95,14 @@ class ServiceBuilder:
 
         # Build Env
         notification_url = self.s3client.createNotificationUrl(self.query['notificationId'])
+        notification_error_url = self.s3client.createNotificationErrorUrl(self.query['notificationId'])
         env = [
             "SERVICE_PORT=" + str(self.query['pubPort']),
             "SITE_ID=" + self.query['siteId'],
             "SERVICE_DOMAIN=" + self.app_config['service_domain'],
             "EFS_ID=" + self.query['fsId'],
-            "NOTIFICATION_URL=" + base64.b64encode(notification_url)
+            "NOTIFICATION_URL=" + base64.b64encode(notification_url),
+            "NOTIFICATION_ERROR_URL=" + base64.b64encode(notification_error_url)
         ]
 
         if 'wpArchiveId' in self.query:
