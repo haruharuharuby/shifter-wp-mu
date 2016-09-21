@@ -328,12 +328,14 @@ class DockerCtr:
             query['phpVersion'] = '7.0'
         s3 = S3(self.app_config)
         notification_url = s3.createNotificationUrl(self.notificationId)
+        notification_error_url = s3.createNotificationErrorUrl(self.notificationId)
         env = [
             "SERVICE_PORT=" + str(query['pubPort']),
             "SITE_ID=" + query['siteId'],
             "SERVICE_DOMAIN=" + self.app_config['service_domain'],
             "EFS_ID=" + query['fsId'],
-            "NOTIFICATION_URL=" + base64.b64encode(notification_url)
+            "NOTIFICATION_URL=" + base64.b64encode(notification_url),
+            "NOTIFICATION_ERROR_URL=" + base64.b64encode(notification_error_url)
         ]
         if 'wpArchiveId' in query:
             archiveUrl = s3.createWpArchiceUrl(query['wpArchiveId'])

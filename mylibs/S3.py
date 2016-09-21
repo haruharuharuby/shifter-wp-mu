@@ -46,6 +46,10 @@ class S3:
         )
         return result
 
+    def createNotificationErrorUrl(self, notificationId):
+        result = self.createNotificationUrl(notificationId + '/errors')
+        return result
+
     def createWpArchiceUrl(self, wpArchiveId):
         if (self.__hasObject(wpArchiveId + '/wordpress.zip')):
             result = self.client.generate_presigned_url(
