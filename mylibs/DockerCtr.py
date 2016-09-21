@@ -32,11 +32,12 @@ class DockerCtr:
         self.event = event
         self.app_config = app_config
         self.dockerapi_config = app_config['dockerapi']
-        self.uuid = ''
+        self.sessionid = uuid.uuid4().hex
+        self.event['sessionid'] = self.sessionid
         self.docker_session = self.buildDockerSession()
         # http://docs.python-requests.org/en/master/user/advanced/#timeouts
         self.timeout_opts = (5.0, 15.0)
-        self.notificationId = uuid.uuid4().hex
+        self.notificationId = self.sessionid
 
     def buildDockerSession(self):
         session = requests.Session()
@@ -209,14 +210,15 @@ class DockerCtr:
         elif (query["action"] == 'syncEfsToS3'):
             message = {
                 'status': 200,
-                'message': "service " + self.uuid + ' started',
-                'serviceName': self.uuid
+                'message': "service " + self.sessionid + ' started',
+                'serviceName': self.sessionid
             }
             if 'ID' in result:
                 message['serviceId'] = result['ID']
             return message
 
-    def createNewService(self, query):
+    def createNewService(self):
+        query = self.event
         if not (self.__isAvailablePortNum()):
             error = {
                 'status': 400,

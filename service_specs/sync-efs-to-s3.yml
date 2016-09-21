@@ -27,7 +27,7 @@ default: &default
       Options:
         awslogs-group: dockerlog-services
         awslogs-region: us-east-1
-        awslogs-stream: s3sync-{{ service_name }}
+        awslogs-stream: {{ service_id }}-s3sync
     Placement:
       Constraints:
         - "node.labels.type == efs-worker"

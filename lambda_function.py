@@ -55,11 +55,11 @@ def lambda_handler(event, context):
         elif (event["action"] == "createNewService"):
             if 'fsId' not in event:
                 return createBadRequestMessage(event, "params 'fsId' not found.")
-            result = ctr.createNewService(event)
+            result = ctr.createNewService()
         elif (event["action"] == 'syncEfsToS3'):
             if 'fsId' not in event:
                 return createBadRequestMessage(event, "params 'fsId' not found.")
-            result = ctr.createNewService(event)
+            result = ctr.createNewService()
         elif (event["action"] == 'deleteServiceByServiceId'):
             if 'serviceId' not in event:
                 return createBadRequestMessage(event, "params 'serviceId' not found.")

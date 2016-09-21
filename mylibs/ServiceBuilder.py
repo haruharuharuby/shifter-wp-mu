@@ -8,7 +8,6 @@ import json
 import yaml
 import base64
 import random
-import uuid
 import logging
 import boto3
 import botocore
@@ -33,7 +32,6 @@ class ServiceBuilder:
         self.app_config = app_config
         self.spec_path = './service_specs/'
         self.query = query
-        self.uuid = uuid.uuid4().hex
         self.table_item = self.__fetchDynamoSiteItem()
         self.s3client = S3(app_config)
         return None
@@ -117,7 +115,8 @@ class ServiceBuilder:
 
     def build_context_sync_efs_to_s3(self):
         context = {}
-        context['service_name'] = self.uuid
+        context['service_name'] = self.query['sessionid']
+        context['service_id'] = self.query['siteId']
         if 'image_tag' in self.query:
             tag = self.query['image_tag']
         else:
@@ -133,7 +132,7 @@ class ServiceBuilder:
                 "S3_REGION=" + self.table_item['s3_region'],
                 "S3_BUCKET=" + self.table_item['s3_bucket'],
                 "SITE_ID=" + self.query['siteId'],
-                "SERVICE_NAME=" + self.uuid
+                "SERVICE_NAME=" + self.query['sessionid']
         ]
 
         context['envvars'] = self.__prepare_envs_for_pystache(env)
