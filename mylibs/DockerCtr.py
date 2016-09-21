@@ -14,6 +14,7 @@ import botocore
 import requests
 import traceback
 from DynamoDB import *
+from ServiceBuilder import *
 from S3 import *
 from common_helper import *
 
@@ -31,11 +32,12 @@ class DockerCtr:
         self.event = event
         self.app_config = app_config
         self.dockerapi_config = app_config['dockerapi']
-        self.uuid = ''
+        self.sessionid = uuid.uuid4().hex
+        self.event['sessionid'] = self.sessionid
         self.docker_session = self.buildDockerSession()
         # http://docs.python-requests.org/en/master/user/advanced/#timeouts
         self.timeout_opts = (5.0, 15.0)
-        self.notificationId = uuid.uuid4().hex
+        self.notificationId = self.sessionid
 
     def buildDockerSession(self):
         session = requests.Session()
@@ -59,11 +61,6 @@ class DockerCtr:
             auth_string = 'failed_to_get_token'
         return auth_string
 
-    def __getImage(self, imageType, image_tag='latest'):
-        image_map = self.app_config['docker_images']
-        image_str = ':'.join([image_map[imageType], image_tag])
-        return image_str
-
     def __convertToJson(self, param):
         return json.dumps(param)
 
@@ -84,6 +81,7 @@ class DockerCtr:
             return True
 
     def __getCreateImageBody(self, query):
+        query['notificationId'] = self.notificationId
         if (query["action"] == 'syncEfsToS3'):
             body = self.__getSyncEfsToS3ImageBody(query)
         elif (query["action"] == 'createNewService'):
@@ -212,14 +210,15 @@ class DockerCtr:
         elif (query["action"] == 'syncEfsToS3'):
             message = {
                 'status': 200,
-                'message': "service " + self.uuid + ' started',
-                'serviceName': self.uuid
+                'message': "service " + self.sessionid + ' started',
+                'serviceName': self.sessionid
             }
             if 'ID' in result:
                 message['serviceId'] = result['ID']
             return message
 
-    def createNewService(self, query):
+    def createNewService(self):
+        query = self.event
         if not (self.__isAvailablePortNum()):
             error = {
                 'status': 400,
@@ -271,136 +270,11 @@ class DockerCtr:
         return deleteTheService(query['serviceId'])
 
     def __getSyncEfsToS3ImageBody(self, query):
-        self.uuid = uuid.uuid4().hex
-        dynamodb = DynamoDB(self.app_config)
-        dbData = dynamodb.getServiceById(query['siteId'])
-        dbItem = False
-        if 'Items' in dbData:
-            if (dbData['Count'] > 0):
-                dbItem = dbData['Items'][0]
-        if dbItem is False:
-            dbItem = {
-                's3_bucket': '',
-                's3_region': '',
-            }
-
-        body = {
-                "Name": self.uuid,
-                "Labels": {
-                    "Name": "sync-efs-to-s3"
-                },
-                "Networks": [
-                    {
-                      "Target": "shifter_net_user"
-                    }
-                ],
-                "TaskTemplate": {
-                    "RestartPolicy": {
-                        "Condition": "on-failure",
-                        "Delay": 5000,
-                        "MaxAttempts": 3,
-                    },
-                    "ContainerSpec": {
-                        "Image": self.__getImage('sync-efs-to-s3'),
-                        "Env": [
-                            "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['access_key'],
-                            "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['secret_access_key'],
-                            "S3_REGION=" + dbItem['s3_region'],
-                            "S3_BUCKET=" + dbItem['s3_bucket'],
-                            "SITE_ID=" + query['siteId'],
-                            "SERVICE_NAME=" + self.uuid
-                        ],
-                        "Mounts": [{
-                            "Type": "volume",
-                            "Target": "/opt/efs/",
-                            "Source": query['fsId'] + "/" + query['siteId'],
-                            "VolumeOptions": {
-                                "DriverConfig": {
-                                    "Name": "efs"
-                                }
-                            }
-                        }]
-                    },
-                    "Placement": {
-                        "Constraints": ["node.labels.type == efs-worker"]
-                    },
-                }
-            }
-        return body
+        builder = ServiceBuilder(self.app_config, query)
+        service_spec = builder.buildServiceDef('sync-efs-to-s3')
+        return service_spec
 
     def __getWpServiceImageBody(self, query):
-        if 'phpVersion' not in query:
-            query['phpVersion'] = '7.0'
-        s3 = S3(self.app_config)
-        notification_url = s3.createNotificationUrl(self.notificationId)
-        notification_error_url = s3.createNotificationErrorUrl(self.notificationId)
-        env = [
-            "SERVICE_PORT=" + str(query['pubPort']),
-            "SITE_ID=" + query['siteId'],
-            "SERVICE_DOMAIN=" + self.app_config['service_domain'],
-            "EFS_ID=" + query['fsId'],
-            "NOTIFICATION_URL=" + base64.b64encode(notification_url),
-            "NOTIFICATION_ERROR_URL=" + base64.b64encode(notification_error_url)
-        ]
-        if 'wpArchiveId' in query:
-            archiveUrl = s3.createWpArchiceUrl(query['wpArchiveId'])
-            if archiveUrl is not False:
-                env.append('ARCHIVE_URL=' + base64.b64encode(archiveUrl))
-        body = {
-                "Name": query['siteId'],
-                "Labels": {
-                    "Name": "wordpress-worker"
-                },
-                "Networks": [
-                    {
-                      "Target": "shifter_net_user"
-                    }
-                ],
-                "TaskTemplate": {
-                    "LogDriver": {
-                        "Name": "awslogs",
-                        "Options": {
-                            "awslogs-region": "us-east-1",
-                            "awslogs-group": "dockerlog-services",
-                            "awslogs-stream": query['siteId']
-                        }
-                    },
-                    "ContainerSpec": {
-                        "Image": self.__getImage('wordpress-worker', query['phpVersion']),
-                        "Env": env,
-                        "Mounts": [{
-                            "Type": "volume",
-                            "Target": "/var/www/html",
-                            "Source": query['fsId'] + "/" + query['siteId'] + "/web",
-                            "VolumeOptions": {
-                                "DriverConfig": {
-                                    "Name": "efs"
-                                }
-                            }
-                        },
-                        {
-                            "Type": "volume",
-                            "Target": "/var/lib/mysql",
-                            "Source": query['fsId'] + "/" + query['siteId'] + "/db",
-                            "VolumeOptions": {
-                                "DriverConfig": {
-                                    "Name": "efs"
-                                }
-                            }
-                        }]
-                    },
-                    "Placement": {
-                        "Constraints": ["node.labels.type == efs-worker"]
-                    },
-                },
-                "EndpointSpec": {
-                    "Ports": [
-                        {
-                            "Protocol": "tcp",
-                            "PublishedPort": int(query['pubPort']),
-                            "TargetPort": 443
-                        }
-                    ]
-                }
-        }
-        return body
+        builder = ServiceBuilder(self.app_config, query)
+        service_spec = builder.buildServiceDef('wordpress-worker')
+        return service_spec

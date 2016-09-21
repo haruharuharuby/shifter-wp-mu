@@ -5,8 +5,14 @@
 ```
 import json
 import yaml
+import sys
+import os
+import logging
 config_base = yaml.load(open('./config/appconfig.yml', 'r'))
 app_config = config_base['development']
+
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
 ```
 
 ライブラリ内のクラスをロードしてつかってみる。
