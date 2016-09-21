@@ -60,11 +60,6 @@ class DockerCtr:
             auth_string = 'failed_to_get_token'
         return auth_string
 
-    def __getImage(self, imageType, image_tag='latest'):
-        image_map = self.app_config['docker_images']
-        image_str = ':'.join([image_map[imageType], image_tag])
-        return image_str
-
     def __convertToJson(self, param):
         return json.dumps(param)
 
