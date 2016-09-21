@@ -16,6 +16,10 @@ default: &default
     notification_bucket: sys.status.getshifter
   dynamo_settings:
     site_table: Site
+  docker_images:
+    wordpress-worker: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-php-with-mysql
+    sync-efs-to-s3: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync
+
 
 development:
   <<: *default
