@@ -16,7 +16,6 @@ import pystache
 import traceback
 from DynamoDB import *
 from S3 import *
-from common_helper import *
 
 # logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logger = logging.getLogger()
