@@ -28,6 +28,11 @@ if __name__ == '__main__':
 
 
 class DockerCtr:
+    """
+    Docker関連のAPI
+    上の方にディスパッチャから呼ばれるメソッドを置く
+    RAWはDockerの内部情報が沢山入っているので取扱注意のAPI
+    """
 
     def __init__(self, app_config, event):
         self.event = event
@@ -47,6 +52,68 @@ class DockerCtr:
         session.mount("https://", requests.adapters.HTTPAdapter(max_retries=3))
         return session
 
+    """ RAW APIs"""
+    def getServices(self):
+        res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services', timeout=self.timeout_opts)
+        logger.info(res.status_code)
+        result = res.json()
+
+        return result
+
+    def getTheService(self, siteId):
+        res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services/' + siteId, timeout=self.timeout_opts)
+        logger.info(res.status_code)
+        result = res.json()
+        result['status'] = res.status_code
+
+        if (self.__hasDockerPublishedPort(result)):
+            port = str(result['Endpoint']['Spec']['Ports'][0]['PublishedPort'])
+            result['DockerUrl'] = 'https://' + self.app_config['service_domain'] + ':' + port
+        return result
+
+    """ Wrapped APIs"""
+    def createNewService(self):
+        query = self.event
+        if not (self.__isAvailablePortNum()):
+            error = {
+                'status': 400,
+                'message': 'available port not found.',
+                'siteId': query['siteId']
+            }
+            return error
+        else:
+            res = self.__createNewService(query)
+            if isinstance(res, urllib2.URLError):
+                read = res.read()
+                result = json.loads(read)
+                result['status'] = 500
+                result['siteId'] = query['siteId']
+                return result
+            else:
+                return res
+
+    def deleteTheService(self, siteId):
+        """ 404 のレスポンスはほぼ無加工でOKだけど一応Wrap """
+        res = self.docker_session.delete(self.dockerapi_config['endpoint'] + 'services/' + siteId, timeout=self.timeout_opts)
+        logger.info(res.status_code)
+        if res.ok:
+            message = "service: " + siteId + " is deleted."
+        elif res.status_code == 404:
+            message = str(res.json()['message'])
+        else:
+            res.raise_for_status()
+
+        return ResponseBuilder.buildResponse(
+                status=res.status_code,
+                message=message,
+                serviceId=siteId,
+                logs_to=event
+        )
+
+    def deleteServiceByServiceId(self, query):
+        return self.deleteTheService(query['serviceId'])
+
+    """ Priveate Methods"""
     def __getXRegistryAuth(self):
         try:
             ecr = boto3.client('ecr')
@@ -95,17 +162,6 @@ class DockerCtr:
                 query['serviceType'] = 'edit-wordpress'
         return body
 
-    def getTheService(self, siteId):
-        res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services/' + siteId, timeout=self.timeout_opts)
-        logger.info(res.status_code)
-        result = res.json()
-        result['status'] = res.status_code
-
-        if (self.__hasDockerPublishedPort(result)):
-            port = str(result['Endpoint']['Spec']['Ports'][0]['PublishedPort'])
-            result['DockerUrl'] = 'https://' + self.app_config['service_domain'] + ':' + port
-        return result
-
     def __hasDockerPublishedPort(self, docker):
         if 'Endpoint' in docker:
             if 'Spec' in docker['Endpoint']:
@@ -113,13 +169,6 @@ class DockerCtr:
                     if 'PublishedPort' in docker['Endpoint']['Spec']['Ports'][0]:
                         return True
         return False
-
-    def getServices(self):
-        res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services', timeout=self.timeout_opts)
-        logger.info(res.status_code)
-        result = res.json()
-
-        return result
 
     def __createNewServiceInfo(self, query, result):
         message = {
@@ -204,51 +253,10 @@ class DockerCtr:
                 message['serviceId'] = result['ID']
             return message
 
-    def createNewService(self):
-        query = self.event
-        if not (self.__isAvailablePortNum()):
-            error = {
-                'status': 400,
-                'message': 'available port not found.',
-                'siteId': query['siteId']
-            }
-            return error
-        else:
-            res = self.__createNewService(query)
-            if isinstance(res, urllib2.URLError):
-                read = res.read()
-                result = json.loads(read)
-                result['status'] = 500
-                result['siteId'] = query['siteId']
-                return result
-            else:
-                return res
-
-    def deleteTheService(self, siteId):
-        res = self.docker_session.delete(self.dockerapi_config['endpoint'] + 'services/' + siteId, timeout=self.timeout_opts)
-        logger.info(res.status_code)
-        if res.ok:
-            result = {'message': "service: " + siteId + " is deleted."}
-        elif res.status_code == 404:
-            result = res.json()
-        else:
-            res.raise_for_status()
-
-        result['status'] = res.status_code
-
-        self.deleteServiceHookDynamo(siteId)
-
-        result["serviceId"] = siteId
-
-        return result
-
-    def deleteServiceHookDynamo(self, siteId):
+    def __deleteServiceHookDynamo(self, siteId):
         dynamo = DynamoDB(self.app_config)
         dynamo.resetSiteItem(siteId)
         return None
-
-    def deleteServiceByServiceId(self, query):
-        return self.deleteTheService(query['serviceId'])
 
     def __getSyncEfsToS3ImageBody(self, query):
         builder = ServiceBuilder(self.app_config, query)

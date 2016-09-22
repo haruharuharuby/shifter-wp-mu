@@ -57,7 +57,7 @@ def lambda_handler(event, context):
 
         # Dispatch APIs for Frontend Services
         """
-        == INFO: These methods are returns `wrapped` docker response.
+        == INFO: These methods are returns `wrapped` docker response with Shifter context.
         """
         if 'siteId' not in event:
             raise ShifterRequestError(info="params 'siteId' not found.")
@@ -66,12 +66,12 @@ def lambda_handler(event, context):
             if 'fsId' not in event:
                 raise ShifterRequestError(info="params 'fsId' not found.")
             result = ctr.createNewService()
-        elif (event["action"] == "deleteTheService"):
-            result = ctr.deleteTheService(event['siteId'])
         elif (event["action"] == 'syncEfsToS3'):
             if 'fsId' not in event:
                 raise ShifterRequestError(info="params 'fsId' not found.")
             result = ctr.createNewService()
+        elif (event["action"] == "deleteTheService"):
+            result = ctr.deleteTheService(event['siteId'])
         elif (event["action"] == 'deleteServiceByServiceId'):
             if 'serviceId' not in event:
                 raise ShifterRequestError(info="params 'serviceId' not found.")
