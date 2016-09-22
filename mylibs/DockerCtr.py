@@ -191,10 +191,6 @@ class DockerCtr:
             message['stock_state'] = 'inuse'
         return message
 
-    def __saveToDynamoDB(self, message):
-        dynamo = DynamoDB(self.app_config)
-        dynamo.updateSiteState(message)
-
     def __canCreateNewService(self, Item, query):
         if (Item['stock_state'] == 'ingenerate'):
             message = {
@@ -253,6 +249,10 @@ class DockerCtr:
             if 'ID' in result:
                 message['serviceId'] = result['ID']
             return message
+
+    def __saveToDynamoDB(self, message):
+        dynamo = DynamoDB(self.app_config)
+        dynamo.updateSiteState(message)
 
     def __deleteServiceHookDynamo(self, siteId):
         dynamo = DynamoDB(self.app_config)
