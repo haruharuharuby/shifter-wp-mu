@@ -103,6 +103,7 @@ class DockerCtr:
         else:
             res.raise_for_status()
 
+        self.__deleteServiceHookDynamo(siteId)
         return ResponseBuilder.buildResponse(
                 status=res.status_code,
                 message=message,
