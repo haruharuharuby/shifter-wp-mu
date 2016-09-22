@@ -44,8 +44,7 @@ class ServiceBuilder:
             's3_region': '',
         }
 
-        if (dbData['Count'] > 0):
-            dbItem = dict(dbItem, **dbData['Items'][0])
+        dbItem = dict(dbItem, **dbData)
 
         return dbItem
 

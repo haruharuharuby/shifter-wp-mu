@@ -156,32 +156,31 @@ class DockerCtr:
         dynamo = DynamoDB(self.app_config)
         dynamo.updateSiteState(message)
 
-    def __canCreateNewService(self, dbData, query):
-        if (dbData['Count'] > 0):
-            if (dbData['Items'][0]['stock_state'] == 'ingenerate'):
-                message = {
-                    "status": 409,
-                    "name": "website now generating",
-                    "message": "site id:" + query['siteId'] + " is now generating.Please wait finished it."
-                }
-                return message
-            elif (dbData['Items'][0]['stock_state'] == 'inservice'):
-                message = {
-                    "status": 409,
-                    "name": "website already running",
-                    "message": "site id:" + query['siteId'] + " is already running"
-                }
-                return message
+    def __canCreateNewService(self, Item, query):
+        if (Item['stock_state'] == 'ingenerate'):
+            message = {
+                "status": 409,
+                "name": "website now generating",
+                "message": "site id:" + query['siteId'] + " is now generating.Please wait finished it."
+            }
+            return message
+        elif (Item['stock_state'] == 'inservice'):
+            message = {
+                "status": 409,
+                "name": "website already running",
+                "message": "site id:" + query['siteId'] + " is already running"
+            }
+            return message
         message = {
             "status": 200
         }
         return message
 
     def __createNewService(self, query):
-        dbData = False
+        SiteItem = False
         dynamodb = DynamoDB(self.app_config)
-        dbData = dynamodb.getServiceById(query['siteId'])
-        result = self.__canCreateNewService(dbData, query)
+        SiteItem = dynamodb.getServiceById(query['siteId'])
+        result = self.__canCreateNewService(SiteItem, query)
         if (result['status'] > 400):
             return result
         query['pubPort'] = self.__getPortNum()
@@ -192,7 +191,11 @@ class DockerCtr:
         self.docker_session.headers.update({'Content-Type': 'application/json'})
         logger.info('invoke createTheService')
         try:
-            res = self.docker_session.post(self.dockerapi_config['endpoint'] + 'services/create', data=body_json, timeout=self.timeout_opts)
+            res = self.docker_session.post(
+                    self.dockerapi_config['endpoint'] + 'services/create',
+                    data=body_json,
+                    timeout=self.timeout_opts
+                  )
             logger.info(res.status_code)
             if res.ok:
                 result = res.json()
