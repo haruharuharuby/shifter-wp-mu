@@ -107,7 +107,7 @@ class DockerCtr:
                 status=res.status_code,
                 message=message,
                 serviceId=siteId,
-                logs_to=event
+                logs_to=None
         )
 
     def deleteServiceByServiceId(self, query):

@@ -40,7 +40,7 @@ def lambda_handler(event, context):
         if 'action' not in event:
             raise ShifterRequestError(info="params 'action' not found.")
 
-        logger.info('invoke' + event["action"])
+        logger.info('invoke: ' + event["action"])
         ctr = DockerCtr(app_config, event)
 
         # Dispatch APIs for Backend
