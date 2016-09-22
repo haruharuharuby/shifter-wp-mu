@@ -58,18 +58,19 @@ def lambda_handler(event, context):
             result = ctr.deleteTheService(event['siteId'])
         elif (event["action"] == "createNewService"):
             if 'fsId' not in event:
-                return createBadRequestMessage(event, "params 'fsId' not found.")
+                raise ShifterRequestError(info="params 'fsId' not found.")
             result = ctr.createNewService()
         elif (event["action"] == 'syncEfsToS3'):
             if 'fsId' not in event:
-                return createBadRequestMessage(event, "params 'fsId' not found.")
+                raise ShifterRequestError(info="params 'fsId' not found.")
             result = ctr.createNewService()
         elif (event["action"] == 'deleteServiceByServiceId'):
             if 'serviceId' not in event:
-                return createBadRequestMessage(event, "params 'serviceId' not found.")
+                raise ShifterRequestError(info="params 'serviceId' not found.")
             result = ctr.deleteServiceByServiceId(event)
         else:
-            return createBadRequestMessage(event, event["action"] + 'is unregistered action type')
+            raise_message = event['action'] + ' is unregistered action type'
+            raise ShifterRequestError(info=raise_message)
 
     except ShifterRequestError as e:
         return ResponseBuilder.buildResponse(
@@ -84,20 +85,9 @@ def lambda_handler(event, context):
                 message='Error occurred during calls Backend Service.',
                 logs_to=event
         )
-        # return createBadRequestMessage(event, "Error occurred during calls Backend Service.")
 
     return result
 
 
 def test(event):
     return 'this is test'
-
-
-def createBadRequestMessage(event, error_text):
-    message = {
-        "status": 400,
-        "message": error_text,
-        "request": event
-    }
-    logger.warning(message)
-    return message
