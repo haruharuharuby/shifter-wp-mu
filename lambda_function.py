@@ -11,9 +11,9 @@ import botocore
 import os
 import lamvery
 import yaml
+from mylibs.ShifterExceptions import *
+from mylibs.ResponceBuilder import *
 from mylibs.DockerCtr import *
-from mylibs.DynamoDB import *
-from mylibs.S3 import *
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -23,6 +23,10 @@ print('Loading function')
 
 
 def lambda_handler(event, context):
+    """
+    returns JSON String.
+      - Hash of status(int), message(str), and informations for other Apps.
+    """
 
     # Load Configrations
     lamvery.env.load()
@@ -32,22 +36,22 @@ def lambda_handler(event, context):
     else:
         app_config = config_base['development']
 
-    if 'action' not in event:
-        return createBadRequestMessage(event, "params 'action' not found.")
-
-    ctr = DockerCtr(app_config, event)
-    # Dispatch Simple Events
-    if (event["action"] == "test"):
-        return test(event)
-    elif (event["action"] == "getAllServices"):
-        result = ctr.getServices()
-        return result
-
-    if 'siteId' not in event:
-        return createBadRequestMessage(event, "params 'siteId' not found.")
-
-    # Dispatch Various Events which depends on SiteId
     try:
+        if 'action' not in event:
+            raise ShifterRequestError(info="params 'action' not found.")
+
+        ctr = DockerCtr(app_config, event)
+        # Dispatch Simple Events
+        if (event["action"] == "test"):
+            return test(event)
+        elif (event["action"] == "getAllServices"):
+            result = ctr.getServices()
+            return result
+
+        if 'siteId' not in event:
+            raise ShifterRequestError(info="params 'siteId' not found.")
+
+        # Dispatch Various Events which depends on SiteId
         if (event["action"] == "getTheService"):
                 result = ctr.getTheService(event['siteId'])
         elif (event["action"] == "deleteTheService"):
@@ -67,10 +71,20 @@ def lambda_handler(event, context):
         else:
             return createBadRequestMessage(event, event["action"] + 'is unregistered action type')
 
+    except ShifterRequestError as e:
+        return ResponceBuilder.buildResponce(
+                status=400,
+                message=e.info,
+                logs_to=event
+        )
     except Exception as e:
-        logger.error("Error occurred during calls Docker API: " + str(type(e)))
-        logger.error(traceback.format_exc())
-        return createBadRequestMessage(event, "Error occurred during calls Backend Service.")
+        logger.exception("Error occurred during calls Docker API: " + str(type(e)))
+        return ResponceBuilder.buildResponce(
+                status=500,
+                message='Error occurred during calls Backend Service.',
+                logs_to=event
+        )
+        # return createBadRequestMessage(event, "Error occurred during calls Backend Service.")
 
     return result
 

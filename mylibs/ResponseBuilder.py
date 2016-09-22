@@ -32,7 +32,7 @@ class ResponceBuilder:
         }
 
         if logs_to != {}:
-            logger.info(str(logs_to))
+            logger.warning(str(logs_to))
 
         # merge opts without logs
         response = dict(default, **opts)

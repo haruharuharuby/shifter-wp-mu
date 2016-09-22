@@ -5,8 +5,14 @@ from __future__ import unicode_literals
 
 
 class ShifterErrorBase(Exception):
-    pass
+    def __init__(self, info="ShifterError"):
+        self.info = info
+        return None
 
 
 class ShifterUnknownError(ShifterErrorBase):
+    pass
+
+
+class ShifterRequestError(ShifterErrorBase):
     pass
