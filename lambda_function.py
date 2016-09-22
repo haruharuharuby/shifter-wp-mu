@@ -40,6 +40,7 @@ def lambda_handler(event, context):
         if 'action' not in event:
             raise ShifterRequestError(info="params 'action' not found.")
 
+        logger.info('invoke' + event["action"])
         ctr = DockerCtr(app_config, event)
         # Dispatch Simple Events
         if (event["action"] == "test"):
@@ -53,7 +54,7 @@ def lambda_handler(event, context):
 
         # Dispatch Various Events which depends on SiteId
         if (event["action"] == "getTheService"):
-                result = ctr.getTheService(event['siteId'])
+            result = ctr.getTheService(event['siteId'])
         elif (event["action"] == "deleteTheService"):
             result = ctr.deleteTheService(event['siteId'])
         elif (event["action"] == "createNewService"):

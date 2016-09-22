@@ -96,7 +96,6 @@ class DockerCtr:
         return body
 
     def getTheService(self, siteId):
-        logger.info("invoke getTheServices")
         res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services/' + siteId, timeout=self.timeout_opts)
         logger.info(res.status_code)
         result = res.json()
@@ -116,7 +115,6 @@ class DockerCtr:
         return False
 
     def getServices(self):
-        logger.info("invoke getServices")
         res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services', timeout=self.timeout_opts)
         logger.info(res.status_code)
         result = res.json()
@@ -180,7 +178,6 @@ class DockerCtr:
 
         self.docker_session.headers.update({'X-Registry-Auth': self.__getXRegistryAuth()})
         self.docker_session.headers.update({'Content-Type': 'application/json'})
-        logger.info('invoke createTheService')
 
         res = self.docker_session.post(
                 self.dockerapi_config['endpoint'] + 'services/create',
@@ -228,8 +225,6 @@ class DockerCtr:
                 return res
 
     def deleteTheService(self, siteId):
-        logger.info('invoke deleteTheService')
-
         res = self.docker_session.delete(self.dockerapi_config['endpoint'] + 'services/' + siteId, timeout=self.timeout_opts)
         logger.info(res.status_code)
         if res.ok:
@@ -253,7 +248,6 @@ class DockerCtr:
         return None
 
     def deleteServiceByServiceId(self, query):
-        logger.info('invoke deleteServiceByServiceId')
         return self.deleteTheService(query['serviceId'])
 
     def __getSyncEfsToS3ImageBody(self, query):
