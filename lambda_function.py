@@ -12,7 +12,7 @@ import os
 import lamvery
 import yaml
 from mylibs.ShifterExceptions import *
-from mylibs.ResponceBuilder import *
+from mylibs.ResponseBuilder import *
 from mylibs.DockerCtr import *
 
 logger = logging.getLogger()
@@ -72,14 +72,14 @@ def lambda_handler(event, context):
             return createBadRequestMessage(event, event["action"] + 'is unregistered action type')
 
     except ShifterRequestError as e:
-        return ResponceBuilder.buildResponce(
+        return ResponseBuilder.buildResponse(
                 status=400,
                 message=e.info,
                 logs_to=event
         )
     except Exception as e:
         logger.exception("Error occurred during calls Docker API: " + str(type(e)))
-        return ResponceBuilder.buildResponce(
+        return ResponseBuilder.buildResponse(
                 status=500,
                 message='Error occurred during calls Backend Service.',
                 logs_to=event

@@ -11,7 +11,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-class ResponceBuilder:
+class ResponseBuilder:
     """
     Type: Module
     Build JSON Response for Frontend and Generator
@@ -24,7 +24,7 @@ class ResponceBuilder:
         return None
 
     @classmethod
-    def buildResponce(self, status=200, message='OK', logs_to={}, **opts):
+    def buildResponse(self, status=200, message='OK', logs_to={}, **opts):
         # create default message
         default = {
             'status': status,
