@@ -42,25 +42,32 @@ def lambda_handler(event, context):
 
         logger.info('invoke' + event["action"])
         ctr = DockerCtr(app_config, event)
-        # Dispatch Simple Events
+
+        # Dispatch APIs for Backend
+        """
+        == WARNING: These methods are returns `raw` docker response.
+                    Don't use by Frontend Services
+        """
         if (event["action"] == "test"):
             return test(event)
         elif (event["action"] == "getAllServices"):
-            result = ctr.getServices()
-            return result
+            return ctr.getServices()
+        elif (event["action"] == "getTheService"):
+            result = ctr.getTheService(event['siteId'])
 
+        # Dispatch APIs for Frontend Services
+        """
+        == INFO: These methods are returns `wrapped` docker response.
+        """
         if 'siteId' not in event:
             raise ShifterRequestError(info="params 'siteId' not found.")
 
-        # Dispatch Various Events which depends on SiteId
-        if (event["action"] == "getTheService"):
-            result = ctr.getTheService(event['siteId'])
-        elif (event["action"] == "deleteTheService"):
-            result = ctr.deleteTheService(event['siteId'])
-        elif (event["action"] == "createNewService"):
+        if (event["action"] == "createNewService"):
             if 'fsId' not in event:
                 raise ShifterRequestError(info="params 'fsId' not found.")
             result = ctr.createNewService()
+        elif (event["action"] == "deleteTheService"):
+            result = ctr.deleteTheService(event['siteId'])
         elif (event["action"] == 'syncEfsToS3'):
             if 'fsId' not in event:
                 raise ShifterRequestError(info="params 'fsId' not found.")
