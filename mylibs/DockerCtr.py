@@ -75,22 +75,10 @@ class DockerCtr:
     def createNewService(self):
         query = self.event
         if not (self.__isAvailablePortNum()):
-            error = {
-                'status': 400,
-                'message': 'available port not found.',
-                'siteId': query['siteId']
-            }
-            return error
-        else:
-            res = self.__createNewService(query)
-            if isinstance(res, urllib2.URLError):
-                read = res.read()
-                result = json.loads(read)
-                result['status'] = 500
-                result['siteId'] = query['siteId']
-                return result
-            else:
-                return res
+            raise ShifterNoAvaliPorts(exit_code=400, info='available port not found.')
+
+        res = self.__createNewService(query)
+        return res
 
     def deleteTheService(self, siteId):
         """ 404 のレスポンスはほぼ無加工でOKだけど一応Wrap """
@@ -139,7 +127,17 @@ class DockerCtr:
 
     def __countRunningService(self):
         services = self.getServices()
-        return len(services)
+        return len([x for x in services if has_Published_port(x)])
+
+    def __has_Published_port(self, svc):
+        if 'Endpoint' not in svc:
+            return False
+        if 'Ports' not in svc['Endpoint']:
+            return False
+        if 'PublishedPort' in svc['Endpoint']['Ports'][0]:
+            return True
+        else:
+            return False
 
     def __isAvailablePortNum(self):
         portNum = self.__countRunningService()

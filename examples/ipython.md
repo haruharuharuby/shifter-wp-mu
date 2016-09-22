@@ -8,11 +8,20 @@ import yaml
 import sys
 import os
 import logging
+import requests
 config_base = yaml.load(open('./config/appconfig.yml', 'r'))
 app_config = config_base['development']
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
+# Dockerも呼べる状態にする。
+
+dockerapi_config = app_config['dockerapi']
+session = requests.Session()
+session.auth = (dockerapi_config['authuser'], dockerapi_config['authpass'])
+
+
+session.get(dockerapi_config['endpoint'] + 'services')
 ```
 
 ライブラリ内のクラスをロードしてつかってみる。
