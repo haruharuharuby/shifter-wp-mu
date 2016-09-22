@@ -36,6 +36,7 @@ class DockerCtr:
 
     def __init__(self, app_config, event):
         self.event = event
+        self.svcs = []
         self.app_config = app_config
         self.dockerapi_config = app_config['dockerapi']
         self.sessionid = uuid.uuid4().hex
@@ -54,9 +55,14 @@ class DockerCtr:
 
     """ RAW APIs"""
     def getServices(self):
+        # return cached list (安定してるようなら毎回とっても良い)
+        if len(self.svcs) > 0:
+            return self.svcs
+
         res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services', timeout=self.timeout_opts)
         logger.info(res.status_code)
         result = res.json()
+        self.svcs = result
 
         return result
 
@@ -122,30 +128,31 @@ class DockerCtr:
         return json.dumps(param)
 
     def __getPortNum(self):
-        num = random.randint(10000, 30000)
+        ports = self.__listUsedPorts()
+        # 10回とって、それでもポートが被ったらraise
+        for _ in range(10):
+            num = random.randint(20000, 60000)
+            if num not in ports:
+                break
+        else:
+            raise ShifterConfrictPublishPorts(exit_code=409, info='Error, can not assign published port. Please retry later.')
+
         return num
+
+    def __listUsedPorts(self):
+        services = self.getServices()
+        svcs = [x for x in services if self.__hasDockerPublishedPort(x)]
+        ports = map(lambda x: x['Endpoint']['Ports'][0]['PublishedPort'], svcs)
+        return ports
 
     def __countRunningService(self):
         services = self.getServices()
-        return len([x for x in services if has_Published_port(x)])
-
-    def __has_Published_port(self, svc):
-        if 'Endpoint' not in svc:
-            return False
-        if 'Ports' not in svc['Endpoint']:
-            return False
-        if 'PublishedPort' in svc['Endpoint']['Ports'][0]:
-            return True
-        else:
-            return False
+        return len([x for x in services if self.__hasDockerPublishedPort(x)])
 
     def __isAvailablePortNum(self):
         portNum = self.__countRunningService()
         portLimit = self.app_config['limits']['max_ports']
-        if (portNum > portLimit):
-            return False
-        else:
-            return True
+        return portNum < portLimit
 
     def __getCreateImageBody(self, query):
         query['notificationId'] = self.notificationId
@@ -189,33 +196,25 @@ class DockerCtr:
             message['stock_state'] = 'inuse'
         return message
 
-    def __canCreateNewService(self, Item, query):
+    def __checkStockStatus(self, Item, query):
         if (Item['stock_state'] == 'ingenerate'):
-            message = {
-                "status": 409,
-                "name": "website now generating",
-                "message": "site id:" + query['siteId'] + " is now generating.Please wait finished it."
-            }
-            return message
+            raise ShifterConfrictNewService(
+                      exit_code=409,
+                      info="site id:" + query['siteId'] + " is now generating.Please wait finished it."
+                  )
         elif (Item['stock_state'] == 'inservice'):
-            message = {
-                "status": 409,
-                "name": "website already running",
-                "message": "site id:" + query['siteId'] + " is already running"
-            }
-            return message
-        message = {
-            "status": 200
-        }
-        return message
+            raise ShifterConfrictNewService(
+                      exit_code=409,
+                      info="site id:" + query['siteId'] + " is already running"
+                  )
+
+        return None
 
     def __createNewService(self, query):
-        SiteItem = False
         dynamodb = DynamoDB(self.app_config)
         SiteItem = dynamodb.getServiceById(query['siteId'])
-        result = self.__canCreateNewService(SiteItem, query)
-        if (result['status'] > 400):
-            return result
+        self.__checkStockStatus(SiteItem, query)
+
         query['pubPort'] = self.__getPortNum()
         body = self.__getCreateImageBody(query)
         body_json = self.__convertToJson(body)

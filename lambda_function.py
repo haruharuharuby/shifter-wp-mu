@@ -86,7 +86,7 @@ def lambda_handler(event, context):
                 message=e.info,
                 logs_to=event
         )
-    except ShifterNoAvaliPorts as e:
+    except (ShifterNoAvaliPorts, ShifterConfrictPublishPorts) as e:
         return ResponseBuilder.buildResponse(
                 status=e.exit_code,
                 message=e.info,
