@@ -267,7 +267,8 @@ class DockerCtr:
         return None
 
     def deleteServiceByServiceId(self, query):
-        return deleteTheService(query['serviceId'])
+        logger.info('invoke deleteServiceByServiceId')
+        return self.deleteTheService(query['serviceId'])
 
     def __getSyncEfsToS3ImageBody(self, query):
         builder = ServiceBuilder(self.app_config, query)
