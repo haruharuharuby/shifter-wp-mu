@@ -1,7 +1,7 @@
 profile: {{ env['AWS_PROFILE'] }}
 region: {{ env['AWS_REGION'] }}
 versioning: false
-default_alias: null
+default_alias: development
 clean_build: true
 configuration:
   name: docker-swarm-controller
