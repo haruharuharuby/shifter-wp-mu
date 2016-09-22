@@ -13,10 +13,11 @@ import boto3
 import botocore
 import requests
 import traceback
+from ShifterExceptions import *
 from DynamoDB import *
 from ServiceBuilder import *
+from ResponseBuilder import *
 from S3 import *
-from common_helper import *
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -96,15 +97,10 @@ class DockerCtr:
 
     def getTheService(self, siteId):
         logger.info("invoke getTheServices")
-        try:
-            res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services/' + siteId, timeout=self.timeout_opts)
-            logger.info(res.status_code)
-            result = res.json()
-            result['status'] = res.status_code
-        except Exception as e:
-            logger.error("Error occurred during calls Docker API: " + str(type(e)))
-            logger.error(traceback.format_exc())
-            return createBadRequestMessage(self.event, "Error occurred during calls Backend Service.")
+        res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services/' + siteId, timeout=self.timeout_opts)
+        logger.info(res.status_code)
+        result = res.json()
+        result['status'] = res.status_code
 
         if (self.__hasDockerPublishedPort(result)):
             port = str(result['Endpoint']['Spec']['Ports'][0]['PublishedPort'])
@@ -121,14 +117,9 @@ class DockerCtr:
 
     def getServices(self):
         logger.info("invoke getServices")
-        try:
-            res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services', timeout=self.timeout_opts)
-            logger.info(res.status_code)
-            result = res.json()
-        except Exception as e:
-            logger.error("Error occurred during calls Docker API: " + str(type(e)))
-            logger.error(traceback.format_exc())
-            return createBadRequestMessage(self.event, "Error occurred during calls Backend Service.")
+        res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services', timeout=self.timeout_opts)
+        logger.info(res.status_code)
+        result = res.json()
 
         return result
 
@@ -190,21 +181,17 @@ class DockerCtr:
         self.docker_session.headers.update({'X-Registry-Auth': self.__getXRegistryAuth()})
         self.docker_session.headers.update({'Content-Type': 'application/json'})
         logger.info('invoke createTheService')
-        try:
-            res = self.docker_session.post(
-                    self.dockerapi_config['endpoint'] + 'services/create',
-                    data=body_json,
-                    timeout=self.timeout_opts
-                  )
-            logger.info(res.status_code)
-            if res.ok:
-                result = res.json()
-            else:
-                res.raise_for_status()
-        except Exception as e:
-            logger.error("Error occurred during calls Docker API: " + str(type(e)))
-            logger.error(traceback.format_exc())
-            return createBadRequestMessage(self.event, "Error occurred during calls Backend Service.")
+
+        res = self.docker_session.post(
+                self.dockerapi_config['endpoint'] + 'services/create',
+                data=body_json,
+                timeout=self.timeout_opts
+              )
+        logger.info(res.status_code)
+        if res.ok:
+            result = res.json()
+        else:
+            res.raise_for_status()
 
         if (query["action"] == 'createNewService'):
             message = self.__createNewServiceInfo(query, result)
@@ -242,21 +229,17 @@ class DockerCtr:
 
     def deleteTheService(self, siteId):
         logger.info('invoke deleteTheService')
-        try:
-            res = self.docker_session.delete(self.dockerapi_config['endpoint'] + 'services/' + siteId, timeout=self.timeout_opts)
-            logger.info(res.status_code)
-            if res.ok:
-                result = {'message': "service: " + siteId + " is deleted."}
-            elif res.status_code == 404:
-                result = res.json()
-            else:
-                res.raise_for_status()
 
-            result['status'] = res.status_code
-        except Exception as e:
-            logger.error("Error occurred during calls Docker API: " + str(type(e)))
-            logger.error(traceback.format_exc())
-            return createBadRequestMessage(self.event, "Error occurred during calls Backend Service.")
+        res = self.docker_session.delete(self.dockerapi_config['endpoint'] + 'services/' + siteId, timeout=self.timeout_opts)
+        logger.info(res.status_code)
+        if res.ok:
+            result = {'message': "service: " + siteId + " is deleted."}
+        elif res.status_code == 404:
+            result = res.json()
+        else:
+            res.raise_for_status()
+
+        result['status'] = res.status_code
 
         self.deleteServiceHookDynamo(siteId)
 
