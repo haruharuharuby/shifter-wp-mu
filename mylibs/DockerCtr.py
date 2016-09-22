@@ -16,7 +16,6 @@ import traceback
 from DynamoDB import *
 from ServiceBuilder import *
 from S3 import *
-from common_helper import *
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
