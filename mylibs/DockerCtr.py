@@ -99,11 +99,10 @@ class DockerCtr:
         )
 
     def createNewService(self):
-        query = self.event
         if not (self.__isAvailablePortNum()):
             raise ShifterNoAvaliPorts(exit_code=400, info='available port not found.')
 
-        res = self.__createNewService(query)
+        res = self.__createNewService(self.event)
         return res
 
     def deleteTheService(self, siteId):
@@ -163,69 +162,58 @@ class DockerCtr:
                 timeout=self.timeout_opts
               )
         logger.info(res.status_code)
-        if res.ok:
-            result = res.json()
-        else:
-            res.raise_for_status()
+        res.raise_for_status()
 
-        if (query["action"] == 'createNewService'):
-            message = self.__createNewServiceInfo(query, result)
-            self.__saveToDynamoDB(message)
-            return message
-        elif (query["action"] == 'syncEfsToS3'):
-            message = {
-                'status': res.status_code,
-                'message': "service " + self.sessionid + ' started',
-                'serviceName': self.sessionid
-            }
-            if 'ID' in result:
-                message['serviceId'] = result['ID']
-            return message
-        elif (query["action"] == 'deletePublicContents'):
-            message = {
-                'status': res.status_code,
-                'message': "service " + self.sessionid + ' started',
-                'serviceName': self.sessionid
-            }
-            if 'ID' in result:
-                message['serviceId'] = result['ID']
-            return message
+        info = self.__buildInfoByAction(query)
+
+        return ResponseBuilder.buildResponse(
+                status=res.status_code,
+                message=message,
+                logs_to=query,
+                **info
+        )
+
+    def __getServiceStateByType(self, sv_type):
+        if sv_type == 'generator':
+            return 'ingenerate'
+        elif sv_type == 'edit-wordpress':
+            return 'inservice'
+
+        return 'inuse'
 
     def __getCreateImageBody(self, query):
         query['notificationId'] = self.notificationId
-        if (query["action"] == 'syncEfsToS3'):
-            body = self.__getSyncEfsToS3ImageBody(query)
-        elif (query["action"] == 'deletePublicContents'):
-            body = self.__getSyncEfsToS3ImageBody(query)
-        elif (query["action"] == 'createNewService'):
-            body = self.__getWpServiceImageBody(query)
-            if 'serviceType' in query:
-                body['Labels']['Service'] = query['serviceType']
-                # if ( query['serviceType'] == 'generator' ):
-            else:
-                body['Labels']['Service'] = 'edit-wordpress'
-                query['serviceType'] = 'edit-wordpress'
-        return body
+        builder = ServiceBuilder(self.app_config, query)
 
-    def __createNewServiceInfo(self, query, result):
-        message = {
-            'status': 201,
-            'docker_url': 'https://' + self.app_config['service_domain'] + ':' + str(query['pubPort']),
-            'serviceName': query['siteId'],
-            'notificationId': self.notificationId
-        }
-        if 'ID' in result:
-            message['serviceId'] = result['ID']
-        if 'serviceType' in query:
-            if (query['serviceType'] == 'generator'):
-                message['stock_state'] = 'ingenerate'
-            elif (query['serviceType'] == 'edit-wordpress'):
-                message['stock_state'] = 'inservice'
-            else:
-                message['stock_state'] = 'inuse'
+        if query["action"] in ['syncEfsToS3', 'deletePublicContents']:
+            service_spec = builder.buildServiceDef('sync-efs-to-s3')
+        elif (query["action"] == 'createNewService'):
+            service_spec = builder.buildServiceDef('wordpress-worker')
+
+        return service_spec
+
+    def __buildInfoByAction(query):
+        if (query["action"] == 'createNewService'):
+            info = {
+                'docker_url': 'https://' + self.app_config['service_domain'] + ':' + str(query['pubPort']),
+                'serviceName': query['siteId'],
+                'notificationId': self.notificationId
+            }
+            if 'serviceType' in query:
+                stock_state = self.__getServiceStateByType(query['serviceType'])
+                info['stock_state'] = stock_state
+
+            self.__saveToDynamoDB(info)
+
+        if query["action"] in ['syncEfsToS3', 'deletePublicContents']:
+            info = {
+                message: "service " + self.sessionid + ' started',
+                serviceName: self.sessionid
+            }
         else:
-            message['stock_state'] = 'inuse'
-        return message
+            info = {}
+
+        return info
 
     def __getPortNum(self):
         ports = self.__listUsedPorts()
@@ -290,13 +278,3 @@ class DockerCtr:
         dynamo = DynamoDB(self.app_config)
         dynamo.resetSiteItem(siteId)
         return None
-
-    def __getSyncEfsToS3ImageBody(self, query):
-        builder = ServiceBuilder(self.app_config, query)
-        service_spec = builder.buildServiceDef('sync-efs-to-s3')
-        return service_spec
-
-    def __getWpServiceImageBody(self, query):
-        builder = ServiceBuilder(self.app_config, query)
-        service_spec = builder.buildServiceDef('wordpress-worker')
-        return service_spec

@@ -7,6 +7,7 @@ default: &default
       TargetPort: 443
   Labels:
     Name: wordpress-worker
+    Service: {{ service_type }}
   Networks:
   - Target: shifter_net_user
   Name: {{ service_name }}

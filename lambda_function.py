@@ -43,22 +43,19 @@ def lambda_handler(event, context):
         logger.info('invoke: ' + event["action"])
         ctr = DockerCtr(app_config, event)
 
-        # Dispatch APIs for Backend
-        """
-        == WARNING: These methods are returns `raw` docker response.
-                    Don't use by Frontend Services
-        """
-        if (event["action"] == "test"):
-            return test(event)
-        elif (event["action"] == "getAllServices"):
-            return ctr.getServices()
-        elif (event["action"] == "getTheService"):
-            return ctr.getTheService(event['siteId'])
+        # これ外部公開しなくていいので閉じよう
+        # if (event["action"] == "getAllServices"):
+        #     return ctr.getServices()
 
-        # Dispatch APIs for Frontend Services
+        # Dispatch APIs for Clients
         """
         == INFO: These methods are returns `wrapped` docker response with Shifter context.
         """
+        if (event["action"] == "test"):
+            return test(event)
+        elif (event["action"] == "getTheService"):
+            return ctr.getTheService(event['siteId'])
+
         if 'siteId' not in event:
             raise ShifterRequestError(info="params 'siteId' not found.")
 
