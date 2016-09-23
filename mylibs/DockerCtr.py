@@ -35,7 +35,8 @@ class DockerCtr:
     """
 
     PORTLESS_ACTIONS = [
-        'syncEfsToS3'
+        'syncEfsToS3',
+        'deletePublicContents'
     ]
 
     def __init__(self, app_config, event):
