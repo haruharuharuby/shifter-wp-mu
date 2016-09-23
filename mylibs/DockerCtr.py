@@ -70,18 +70,33 @@ class DockerCtr:
 
         return result
 
+    """ Wrapped APIs"""
     def getTheService(self, siteId):
         res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services/' + siteId, timeout=self.timeout_opts)
         logger.info(res.status_code)
         result = res.json()
-        result['status'] = res.status_code
 
         if (self.__hasDockerPublishedPort(result)):
             port = str(result['Endpoint']['Spec']['Ports'][0]['PublishedPort'])
             result['DockerUrl'] = 'https://' + self.app_config['service_domain'] + ':' + port
-        return result
 
-    """ Wrapped APIs"""
+        if (self.__hasDockerLabel(result)):
+            result['Labels'] = result['Spec']['Labels']
+
+        # screen Docker response
+        for x in ['Spec', 'Endpoint', 'Version', 'ID']:
+            try:
+                del result[x]
+            except KeyError:
+                continue
+
+        return ResponseBuilder.buildResponse(
+                name=siteId,
+                status=res.status_code,
+                logs_to=None,
+                **result
+        )
+
     def createNewService(self):
         query = self.event
         if not (self.__isAvailablePortNum()):
@@ -233,6 +248,12 @@ class DockerCtr:
                 if 'Ports' in docker['Endpoint']['Spec']:
                     if 'PublishedPort' in docker['Endpoint']['Spec']['Ports'][0]:
                         return True
+        return False
+
+    def __hasDockerLabel(self, docker):
+        if 'Spec' in docker:
+            if 'Labels' in docker['Spec']:
+                return True
         return False
 
     def __checkStockStatus(self, Item, query):
