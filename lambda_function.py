@@ -53,7 +53,7 @@ def lambda_handler(event, context):
         elif (event["action"] == "getAllServices"):
             return ctr.getServices()
         elif (event["action"] == "getTheService"):
-            result = ctr.getTheService(event['siteId'])
+            return ctr.getTheService(event['siteId'])
 
         # Dispatch APIs for Frontend Services
         """
