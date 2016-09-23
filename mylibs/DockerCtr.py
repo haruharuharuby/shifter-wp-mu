@@ -131,7 +131,7 @@ class DockerCtr:
     def __createNewService(self, query):
         dynamodb = DynamoDB(self.app_config)
         SiteItem = dynamodb.getServiceById(query['siteId'])
-        if query['Action'] not in DockerCtr.PORTLESS_ACTIONS:
+        if query['action'] not in DockerCtr.PORTLESS_ACTIONS:
             self.__checkStockStatus(SiteItem, query)
             query['pubPort'] = self.__getPortNum()
 
