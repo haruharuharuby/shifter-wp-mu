@@ -73,9 +73,11 @@ Actions
 
 ```
 {
-  "siteId": "001bbf96-31dd-6528-7a0f-84e3710b0738",
-  "action": "syncEfsToS3",
-  "fsId": "fs-88d311c1"
+  "siteId": "676539db-c5cf-6c90-49b7-cd9c40a9985d",
+  "action": "deletePublicContents",
+  "serviceType": "edit-wordpress",
+  "phpVersion": "7.0",
+  "fsId": "fs-4691580f"
 }
 ```
 
