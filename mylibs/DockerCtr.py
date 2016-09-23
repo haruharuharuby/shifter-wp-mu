@@ -151,6 +151,7 @@ class DockerCtr:
             query['pubPort'] = self.__getPortNum()
 
         body = self.__getCreateImageBody(query)
+        logger.info(body)
         body_json = json.dumps(body)
 
         self.docker_session.headers.update({'X-Registry-Auth': self.__getXRegistryAuth()})
@@ -168,7 +169,6 @@ class DockerCtr:
 
         return ResponseBuilder.buildResponse(
                 status=res.status_code,
-                message=message,
                 logs_to=query,
                 **info
         )
@@ -192,11 +192,12 @@ class DockerCtr:
 
         return service_spec
 
-    def __buildInfoByAction(query):
-        if (query["action"] == 'createNewService'):
+    def __buildInfoByAction(self, query):
+        if query["action"] == 'createNewService':
             info = {
                 'docker_url': 'https://' + self.app_config['service_domain'] + ':' + str(query['pubPort']),
                 'serviceName': query['siteId'],
+                'message': "service " + query['siteId'] + ' started',
                 'notificationId': self.notificationId
             }
             if 'serviceType' in query:
@@ -204,11 +205,10 @@ class DockerCtr:
                 info['stock_state'] = stock_state
 
             self.__saveToDynamoDB(info)
-
-        if query["action"] in ['syncEfsToS3', 'deletePublicContents']:
+        elif query["action"] in ['syncEfsToS3', 'deletePublicContents']:
             info = {
-                message: "service " + self.sessionid + ' started',
-                serviceName: self.sessionid
+                'message': "service " + self.sessionid + ' started',
+                'serviceName': self.sessionid
             }
         else:
             info = {}
