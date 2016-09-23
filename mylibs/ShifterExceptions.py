@@ -17,3 +17,15 @@ class ShifterUnknownError(ShifterErrorBase):
 
 class ShifterRequestError(ShifterErrorBase):
     pass
+
+
+class ShifterNoAvaliPorts(ShifterErrorBase):
+    pass
+
+
+class ShifterConfrictNewService(ShifterErrorBase):
+    pass
+
+
+class ShifterConfrictPublishPorts(ShifterErrorBase):
+    pass

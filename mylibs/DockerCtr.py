@@ -34,8 +34,13 @@ class DockerCtr:
     RAWはDockerの内部情報が沢山入っているので取扱注意のAPI
     """
 
+    PORTLESS_ACTIONS = [
+        'syncEfsToS3'
+    ]
+
     def __init__(self, app_config, event):
         self.event = event
+        self.svcs = []
         self.app_config = app_config
         self.dockerapi_config = app_config['dockerapi']
         self.sessionid = uuid.uuid4().hex
@@ -54,9 +59,14 @@ class DockerCtr:
 
     """ RAW APIs"""
     def getServices(self):
+        # return cached list (安定してるようなら毎回とっても良い)
+        if len(self.svcs) > 0:
+            return self.svcs
+
         res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services', timeout=self.timeout_opts)
         logger.info(res.status_code)
         result = res.json()
+        self.svcs = result
 
         return result
 
@@ -75,22 +85,10 @@ class DockerCtr:
     def createNewService(self):
         query = self.event
         if not (self.__isAvailablePortNum()):
-            error = {
-                'status': 400,
-                'message': 'available port not found.',
-                'siteId': query['siteId']
-            }
-            return error
-        else:
-            res = self.__createNewService(query)
-            if isinstance(res, urllib2.URLError):
-                read = res.read()
-                result = json.loads(read)
-                result['status'] = 500
-                result['siteId'] = query['siteId']
-                return result
-            else:
-                return res
+            raise ShifterNoAvaliPorts(exit_code=400, info='available port not found.')
+
+        res = self.__createNewService(query)
+        return res
 
     def deleteTheService(self, siteId):
         """ 404 のレスポンスはほぼ無加工でOKだけど一応Wrap """
@@ -130,97 +128,15 @@ class DockerCtr:
             auth_string = 'failed_to_get_token'
         return auth_string
 
-    def __convertToJson(self, param):
-        return json.dumps(param)
-
-    def __getPortNum(self):
-        num = random.randint(10000, 30000)
-        return num
-
-    def __countRunningService(self):
-        services = self.getServices()
-        return len(services)
-
-    def __isAvailablePortNum(self):
-        portNum = self.__countRunningService()
-        portLimit = self.app_config['limits']['max_ports']
-        if (portNum > portLimit):
-            return False
-        else:
-            return True
-
-    def __getCreateImageBody(self, query):
-        query['notificationId'] = self.notificationId
-        if (query["action"] == 'syncEfsToS3'):
-            body = self.__getSyncEfsToS3ImageBody(query)
-        elif (query["action"] == 'createNewService'):
-            body = self.__getWpServiceImageBody(query)
-            if 'serviceType' in query:
-                body['Labels']['Service'] = query['serviceType']
-                # if ( query['serviceType'] == 'generator' ):
-            else:
-                body['Labels']['Service'] = 'edit-wordpress'
-                query['serviceType'] = 'edit-wordpress'
-        return body
-
-    def __hasDockerPublishedPort(self, docker):
-        if 'Endpoint' in docker:
-            if 'Spec' in docker['Endpoint']:
-                if 'Ports' in docker['Endpoint']['Spec']:
-                    if 'PublishedPort' in docker['Endpoint']['Spec']['Ports'][0]:
-                        return True
-        return False
-
-    def __createNewServiceInfo(self, query, result):
-        message = {
-            'status': 200,
-            'docker_url': 'https://' + self.app_config['service_domain'] + ':' + str(query['pubPort']),
-            'serviceName': query['siteId'],
-            'notificationId': self.notificationId
-        }
-        if 'ID' in result:
-            message['serviceId'] = result['ID']
-        if 'serviceType' in query:
-            if (query['serviceType'] == 'generator'):
-                message['stock_state'] = 'ingenerate'
-            elif (query['serviceType'] == 'edit-wordpress'):
-                message['stock_state'] = 'inservice'
-            else:
-                message['stock_state'] = 'inuse'
-        else:
-            message['stock_state'] = 'inuse'
-        return message
-
-    def __canCreateNewService(self, Item, query):
-        if (Item['stock_state'] == 'ingenerate'):
-            message = {
-                "status": 409,
-                "name": "website now generating",
-                "message": "site id:" + query['siteId'] + " is now generating.Please wait finished it."
-            }
-            return message
-        elif (Item['stock_state'] == 'inservice'):
-            message = {
-                "status": 409,
-                "name": "website already running",
-                "message": "site id:" + query['siteId'] + " is already running"
-            }
-            return message
-        message = {
-            "status": 200
-        }
-        return message
-
     def __createNewService(self, query):
-        SiteItem = False
         dynamodb = DynamoDB(self.app_config)
         SiteItem = dynamodb.getServiceById(query['siteId'])
-        result = self.__canCreateNewService(SiteItem, query)
-        if (result['status'] > 400):
-            return result
-        query['pubPort'] = self.__getPortNum()
+        if query['Action'] not in DockerCtr.PORTLESS_ACTIONS:
+            self.__checkStockStatus(SiteItem, query)
+            query['pubPort'] = self.__getPortNum()
+
         body = self.__getCreateImageBody(query)
-        body_json = self.__convertToJson(body)
+        body_json = json.dumps(body)
 
         self.docker_session.headers.update({'X-Registry-Auth': self.__getXRegistryAuth()})
         self.docker_session.headers.update({'Content-Type': 'application/json'})
@@ -249,6 +165,89 @@ class DockerCtr:
             if 'ID' in result:
                 message['serviceId'] = result['ID']
             return message
+
+    def __getCreateImageBody(self, query):
+        query['notificationId'] = self.notificationId
+        if (query["action"] == 'syncEfsToS3'):
+            body = self.__getSyncEfsToS3ImageBody(query)
+        elif (query["action"] == 'createNewService'):
+            body = self.__getWpServiceImageBody(query)
+            if 'serviceType' in query:
+                body['Labels']['Service'] = query['serviceType']
+                # if ( query['serviceType'] == 'generator' ):
+            else:
+                body['Labels']['Service'] = 'edit-wordpress'
+                query['serviceType'] = 'edit-wordpress'
+        return body
+
+    def __createNewServiceInfo(self, query, result):
+        message = {
+            'status': 200,
+            'docker_url': 'https://' + self.app_config['service_domain'] + ':' + str(query['pubPort']),
+            'serviceName': query['siteId'],
+            'notificationId': self.notificationId
+        }
+        if 'ID' in result:
+            message['serviceId'] = result['ID']
+        if 'serviceType' in query:
+            if (query['serviceType'] == 'generator'):
+                message['stock_state'] = 'ingenerate'
+            elif (query['serviceType'] == 'edit-wordpress'):
+                message['stock_state'] = 'inservice'
+            else:
+                message['stock_state'] = 'inuse'
+        else:
+            message['stock_state'] = 'inuse'
+        return message
+
+    def __getPortNum(self):
+        ports = self.__listUsedPorts()
+        # 10回とって、それでもポートが被ったらraise
+        for _ in range(10):
+            num = random.randint(20000, 60000)
+            if num not in ports:
+                break
+        else:
+            raise ShifterConfrictPublishPorts(exit_code=409, info='Error, can not assign published port. Please retry later.')
+
+        return num
+
+    def __listUsedPorts(self):
+        services = self.getServices()
+        svcs = [x for x in services if self.__hasDockerPublishedPort(x)]
+        ports = map(lambda x: x['Endpoint']['Ports'][0]['PublishedPort'], svcs)
+        return ports
+
+    def __countRunningService(self):
+        services = self.getServices()
+        return len([x for x in services if self.__hasDockerPublishedPort(x)])
+
+    def __isAvailablePortNum(self):
+        portNum = self.__countRunningService()
+        portLimit = self.app_config['limits']['max_ports']
+        return portNum < portLimit
+
+    def __hasDockerPublishedPort(self, docker):
+        if 'Endpoint' in docker:
+            if 'Spec' in docker['Endpoint']:
+                if 'Ports' in docker['Endpoint']['Spec']:
+                    if 'PublishedPort' in docker['Endpoint']['Spec']['Ports'][0]:
+                        return True
+        return False
+
+    def __checkStockStatus(self, Item, query):
+        if (Item['stock_state'] == 'ingenerate'):
+            raise ShifterConfrictNewService(
+                      exit_code=409,
+                      info="site id:" + query['siteId'] + " is now generating.Please wait finished it."
+                  )
+        elif (Item['stock_state'] == 'inservice'):
+            raise ShifterConfrictNewService(
+                      exit_code=409,
+                      info="site id:" + query['siteId'] + " is already running"
+                  )
+
+        return None
 
     def __saveToDynamoDB(self, message):
         dynamo = DynamoDB(self.app_config)

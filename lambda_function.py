@@ -86,6 +86,13 @@ def lambda_handler(event, context):
                 message=e.info,
                 logs_to=event
         )
+    except (ShifterNoAvaliPorts, ShifterConfrictPublishPorts) as e:
+        return ResponseBuilder.buildResponse(
+                status=e.exit_code,
+                message=e.info,
+                siteId=event['siteId'],
+                logs_to=event
+        )
     except Exception as e:
         logger.exception("Error occurred during calls Docker API: " + str(type(e)))
         return ResponseBuilder.buildResponse(
