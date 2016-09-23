@@ -70,6 +70,8 @@ def lambda_handler(event, context):
             if 'fsId' not in event:
                 raise ShifterRequestError(info="params 'fsId' not found.")
             result = ctr.createNewService()
+        elif (event["action"] == 'deletePublicContents'):
+            result = ctr.createNewService()
         elif (event["action"] == "deleteTheService"):
             result = ctr.deleteTheService(event['siteId'])
         elif (event["action"] == 'deleteServiceByServiceId'):

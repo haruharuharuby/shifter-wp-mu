@@ -31,7 +31,7 @@ class ServiceBuilder:
         self.app_config = app_config
         self.spec_path = './service_specs/'
         self.query = query
-        self.table_item = self.__fetchDynamoSiteItem()
+        self.site_item = self.__fetchDynamoSiteItem()
         self.s3client = S3(app_config)
         return None
 
@@ -124,14 +124,26 @@ class ServiceBuilder:
         context['efs_point_root'] = self.query['fsId'] + "/" + self.query['siteId']
 
         # Build Env
-        env = [
-                "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['access_key'],
-                "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['secret_access_key'],
-                "S3_REGION=" + self.table_item['s3_region'],
-                "S3_BUCKET=" + self.table_item['s3_bucket'],
-                "SITE_ID=" + self.query['siteId'],
-                "SERVICE_NAME=" + self.query['sessionid']
-        ]
+        if self.query['action'] == 'syncEfsToS3':
+            env = [
+                    "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['access_key'],
+                    "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['secret_access_key'],
+                    "S3_REGION=" + self.site_item['s3_region'],
+                    "S3_BUCKET=" + self.site_item['s3_bucket'],
+                    "SITE_ID=" + self.query['siteId'],
+                    "SERVICE_NAME=" + self.query['sessionid']
+            ]
+        elif self.query['action'] == 'deletePublicContents':
+            env = [
+                    "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['access_key'],
+                    "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['secret_access_key'],
+                    "S3_REGION=" + self.site_item['s3_region'],
+                    "S3_BUCKET=" + self.site_item['s3_bucket'],
+                    "SITE_ID=" + self.query['siteId'],
+                    "SERVICE_NAME=" + self.query['sessionid'],
+                    "DELETE_MODE=TRUE",
+                    "CF_DIST_ID=" + self.site_item['cf_id']
+            ]
 
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
