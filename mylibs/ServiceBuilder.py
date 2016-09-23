@@ -79,6 +79,12 @@ class ServiceBuilder:
     def build_context_wordpress_worker(self):
         context = {}
         context['service_name'] = self.query['siteId']
+
+        if 'serviceType' in self.query:
+            context['service_type'] = self.query['serviceType']
+        else:
+            context['service_type'] = 'edit-wordpress'
+
         if 'phpVersion' in self.query:
             tag = self.query['phpVersion']
         else:
