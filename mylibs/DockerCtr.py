@@ -34,6 +34,10 @@ class DockerCtr:
     RAWはDockerの内部情報が沢山入っているので取扱注意のAPI
     """
 
+    PORTLESS_ACTIONS = [
+        'syncEfsToS3'
+    ]
+
     def __init__(self, app_config, event):
         self.event = event
         self.svcs = []
@@ -127,9 +131,10 @@ class DockerCtr:
     def __createNewService(self, query):
         dynamodb = DynamoDB(self.app_config)
         SiteItem = dynamodb.getServiceById(query['siteId'])
-        self.__checkStockStatus(SiteItem, query)
+        if query['Action'] not in DockerCtr.PORTLESS_ACTIONS:
+            self.__checkStockStatus(SiteItem, query)
+            query['pubPort'] = self.__getPortNum()
 
-        query['pubPort'] = self.__getPortNum()
         body = self.__getCreateImageBody(query)
         body_json = json.dumps(body)
 
