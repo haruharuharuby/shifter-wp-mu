@@ -155,3 +155,30 @@ class ServiceBuilder:
 
         logger.info(context)
         return context
+
+    def build_context_docker_efs_dig_dirs(self):
+        context = {}
+        context['service_name'] = self.query['sessionid']
+        if 'image_tag' in self.query:
+            tag = self.query['image_tag']
+        else:
+            tag = 'latest'
+        context['image_string'] = ':'.join([self.app_config['docker_images']['docker-efs-dig-dirs'], tag])
+
+        context['efs_point_root'] = self.query['fsId'] + "/" + self.query['siteId']
+
+        # Build Env
+        env = [
+                "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['stock_manage']['access_key'],
+                "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['stock_manage']['secret_access_key'],
+                "S3_REGION=" + self.site_item['s3_region'],
+                "S3_BUCKET=" + self.site_item['s3_bucket'],
+                "EFS_ID=" + self.query['fsId'],
+                "SERVICE_NAME=" + self.query['sessionid'],
+                "DYNAMO_TABLE=" + self.app_config['dynamo_settings']['site_table']
+        ]
+
+        context['envvars'] = self.__prepare_envs_for_pystache(env)
+
+        logger.info(context)
+        return context

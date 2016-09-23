@@ -75,6 +75,10 @@ def lambda_handler(event, context):
             if 'serviceId' not in event:
                 raise ShifterRequestError(info="params 'serviceId' not found.")
             result = ctr.deleteServiceByServiceId(event)
+        elif (event["action"] == 'digSiteDirs'):
+            if 'fsId' not in event:
+                raise ShifterRequestError(info="params 'fsId' not found.")
+            result = ctr.createNewService()
         else:
             raise_message = event['action'] + ' is unregistered action type'
             raise ShifterRequestError(info=raise_message)

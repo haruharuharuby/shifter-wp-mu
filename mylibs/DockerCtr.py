@@ -36,7 +36,8 @@ class DockerCtr:
 
     PORTLESS_ACTIONS = [
         'syncEfsToS3',
-        'deletePublicContents'
+        'deletePublicContents',
+        'digSiteDirs'
     ]
 
     def __init__(self, app_config, event):
@@ -189,6 +190,8 @@ class DockerCtr:
             service_spec = builder.buildServiceDef('sync-efs-to-s3')
         elif (query["action"] == 'createNewService'):
             service_spec = builder.buildServiceDef('wordpress-worker')
+        elif (query["action"] == 'digSiteDirs'):
+            service_spec = builder.buildServiceDef('docker-efs-dig-dirs')
 
         return service_spec
 
