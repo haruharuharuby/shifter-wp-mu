@@ -174,7 +174,16 @@ class DockerCtr:
             return message
         elif (query["action"] == 'syncEfsToS3'):
             message = {
-                'status': 200,
+                'status': res.status_code,
+                'message': "service " + self.sessionid + ' started',
+                'serviceName': self.sessionid
+            }
+            if 'ID' in result:
+                message['serviceId'] = result['ID']
+            return message
+        elif (query["action"] == 'deletePublicContents'):
+            message = {
+                'status': res.status_code,
                 'message': "service " + self.sessionid + ' started',
                 'serviceName': self.sessionid
             }
@@ -185,6 +194,8 @@ class DockerCtr:
     def __getCreateImageBody(self, query):
         query['notificationId'] = self.notificationId
         if (query["action"] == 'syncEfsToS3'):
+            body = self.__getSyncEfsToS3ImageBody(query)
+        elif (query["action"] == 'deletePublicContents'):
             body = self.__getSyncEfsToS3ImageBody(query)
         elif (query["action"] == 'createNewService'):
             body = self.__getWpServiceImageBody(query)
@@ -198,7 +209,7 @@ class DockerCtr:
 
     def __createNewServiceInfo(self, query, result):
         message = {
-            'status': 200,
+            'status': 201,
             'docker_url': 'https://' + self.app_config['service_domain'] + ':' + str(query['pubPort']),
             'serviceName': query['siteId'],
             'notificationId': self.notificationId
