@@ -1,6 +1,6 @@
 profile: {{ env['AWS_PROFILE'] }}
 region: {{ env['AWS_REGION'] }}
-versioning: false
+versioning: true
 default_alias: development
 clean_build: true
 configuration:
