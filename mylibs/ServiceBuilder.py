@@ -132,8 +132,8 @@ class ServiceBuilder:
         # Build Env
         if self.query['action'] == 'syncEfsToS3':
             env = [
-                    "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['access_key'],
-                    "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['secret_access_key'],
+                    "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
+                    "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
                     "S3_REGION=" + self.site_item['s3_region'],
                     "S3_BUCKET=" + self.site_item['s3_bucket'],
                     "SITE_ID=" + self.query['siteId'],
@@ -141,8 +141,8 @@ class ServiceBuilder:
             ]
         elif self.query['action'] == 'deletePublicContents':
             env = [
-                    "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['access_key'],
-                    "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['secret_access_key'],
+                    "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
+                    "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
                     "S3_REGION=" + self.site_item['s3_region'],
                     "S3_BUCKET=" + self.site_item['s3_bucket'],
                     "SITE_ID=" + self.query['siteId'],
