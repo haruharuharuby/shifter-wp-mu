@@ -128,6 +128,33 @@ class DockerCtr:
     def deleteServiceByServiceId(self, query):
         return self.deleteTheService(query['serviceId'])
 
+    def bulkDelete(self):
+        query = self.event
+        del_svcs = []
+        nf_svcs = []
+        err_svcs = []
+
+        for sId in query['serviceIds']:
+            try:
+                res = self.deleteTheService(sId)
+                if res['status'] == 200:
+                    del_svcs.append(sId)
+                elif res['status'] == 404:
+                    nf_svcs.append(sId)
+                else:
+                    err_svcs.append(sId)
+            except:
+                err_svcs.append(sId)
+                continue
+
+        return ResponseBuilder.buildResponse(
+                status=200,
+                logs_to=query['serviceIds'],
+                deleted=del_svcs,
+                notfound=nf_svcs,
+                error=err_svcs
+        )
+
     """ Priveate Methods"""
     def __getXRegistryAuth(self):
         try:

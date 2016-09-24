@@ -52,6 +52,8 @@ class DynamoDB:
         """
         Returns Attributes( updated Item)
         """
+        if len(self.getServiceById(serviceName)) == 0:
+            return {}
         res = self.sitetable.update_item(
             Key={
                 'ID': serviceName
@@ -69,6 +71,9 @@ class DynamoDB:
         """
         Returns Attributes( updated Item)
         """
+        if len(self.getServiceById(message['serviceName'])) == 0:
+            return {}
+
         res = self.sitetable.update_item(
             Key={
                 'ID': message['serviceName']
