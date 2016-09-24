@@ -128,7 +128,8 @@ class DockerCtr:
     def deleteServiceByServiceId(self, query):
         return self.deleteTheService(query['serviceId'])
 
-    def bulkDelete(self, query):
+    def bulkDelete(self):
+        query = self.event
         del_svcs = []
         nf_svcs = []
         err_svcs = []
@@ -136,9 +137,9 @@ class DockerCtr:
         for sId in query['serviceIds']:
             try:
                 res = self.deleteTheService(sId)
-                if res.status == 200:
+                if res['status'] == 200:
                     del_svcs.append(sId)
-                elif res.status == 404:
+                elif res['status'] == 404:
                     nf_svcs.append(sId)
                 else:
                     err_svcs.append(sId)

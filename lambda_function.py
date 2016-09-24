@@ -62,6 +62,8 @@ def lambda_handler(event, context):
         elif (event["action"] == 'bulkDelete'):
             if 'serviceIds' not in event:
                 raise ShifterRequestError(info="params 'serviceIds' not found.")
+            if not isinstance(event['serviceIds'], list):
+                raise ShifterRequestError(info="params 'serviceIds' must be list.")
             return ctr.bulkDelete()
 
         if 'siteId' not in event:
