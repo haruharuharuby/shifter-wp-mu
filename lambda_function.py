@@ -55,6 +55,10 @@ def lambda_handler(event, context):
             return test(event)
         elif (event["action"] == "getTheService"):
             return ctr.getTheService(event['siteId'])
+        elif (event["action"] == 'digSiteDirs'):
+            if 'fsId' not in event:
+                raise ShifterRequestError(info="params 'fsId' not found.")
+            return ctr.createNewService()
 
         if 'siteId' not in event:
             raise ShifterRequestError(info="params 'siteId' not found.")
