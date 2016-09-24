@@ -28,7 +28,7 @@ def lambda_handler(event, context):
       - Hash of status(int), message(str), and informations for other Apps.
     """
 
-    AVALI_ACTIONS = [
+    AVAIL_ACTIONS = [
         'test',
         'getTheService',
         'digSiteDirs',
@@ -52,7 +52,7 @@ def lambda_handler(event, context):
         if 'action' not in event:
             raise ShifterRequestError(info="params 'action' not found.")
 
-        if event['action'] not in AVALI_ACTIONS:
+        if event['action'] not in AVAIL_ACTIONS:
             raise_message = event['action'] + ' is unregistered action type'
             raise ShifterRequestError(info=raise_message)
 
