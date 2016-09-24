@@ -31,8 +31,11 @@ class ServiceBuilder:
         self.app_config = app_config
         self.spec_path = './service_specs/'
         self.query = query
-        self.site_item = self.__fetchDynamoSiteItem()
         self.s3client = S3(app_config)
+
+        if 'siteId' in query:
+            self.site_item = self.__fetchDynamoSiteItem()
+
         return None
 
     def __fetchDynamoSiteItem(self):
@@ -165,14 +168,12 @@ class ServiceBuilder:
             tag = 'latest'
         context['image_string'] = ':'.join([self.app_config['docker_images']['docker-efs-dig-dirs'], tag])
 
-        context['efs_point_root'] = self.query['fsId'] + "/" + self.query['siteId']
+        context['efs_point_root'] = self.query['fsId']
 
         # Build Env
         env = [
                 "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['stock_manage']['access_key'],
                 "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['stock_manage']['secret_access_key'],
-                "S3_REGION=" + self.site_item['s3_region'],
-                "S3_BUCKET=" + self.site_item['s3_bucket'],
                 "EFS_ID=" + self.query['fsId'],
                 "SERVICE_NAME=" + self.query['sessionid'],
                 "DYNAMO_TABLE=" + self.app_config['dynamo_settings']['site_table']
