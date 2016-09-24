@@ -59,6 +59,10 @@ def lambda_handler(event, context):
             if 'fsId' not in event:
                 raise ShifterRequestError(info="params 'fsId' not found.")
             return ctr.createNewService()
+        elif (event["action"] == 'bulkDelete'):
+            if 'serviceIds' not in event:
+                raise ShifterRequestError(info="params 'serviceIds' not found.")
+            return ctr.bulkDelete()
 
         if 'siteId' not in event:
             raise ShifterRequestError(info="params 'siteId' not found.")
