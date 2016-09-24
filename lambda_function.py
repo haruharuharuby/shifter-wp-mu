@@ -28,6 +28,18 @@ def lambda_handler(event, context):
       - Hash of status(int), message(str), and informations for other Apps.
     """
 
+    AVALI_ACTIONS = [
+        'test',
+        'getTheService',
+        'digSiteDirs',
+        'bulkDelete',
+        'createNewService',
+        'syncEfsToS3',
+        'deletePublicContents',
+        'deleteTheService',
+        'deleteServiceByServiceId'
+    ]
+
     # Load Configrations
     lamvery.env.load()
     config_base = yaml.load(open('./config/appconfig.yml', 'r'))
@@ -39,6 +51,10 @@ def lambda_handler(event, context):
     try:
         if 'action' not in event:
             raise ShifterRequestError(info="params 'action' not found.")
+
+        if event['action'] not in AVALI_ACTIONS:
+            raise_message = event['action'] + ' is unregistered action type'
+            raise ShifterRequestError(info=raise_message)
 
         logger.info('invoke: ' + event["action"])
         ctr = DockerCtr(app_config, event)
@@ -66,6 +82,7 @@ def lambda_handler(event, context):
                 raise ShifterRequestError(info="params 'serviceIds' must be list.")
             return ctr.bulkDelete()
 
+        # ここからsiteId必須
         if 'siteId' not in event:
             raise ShifterRequestError(info="params 'siteId' not found.")
 
@@ -86,6 +103,7 @@ def lambda_handler(event, context):
                 raise ShifterRequestError(info="params 'serviceId' not found.")
             result = ctr.deleteServiceByServiceId(event)
         else:
+            # ここには来ないはずだけど一応。
             raise_message = event['action'] + ' is unregistered action type'
             raise ShifterRequestError(info=raise_message)
 
