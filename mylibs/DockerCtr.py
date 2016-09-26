@@ -100,8 +100,9 @@ class DockerCtr:
         )
 
     def createNewService(self):
-        if not (self.__isAvailablePortNum()):
-            raise ShifterNoAvaliPorts(exit_code=400, info='available port not found.')
+        if self.event['action'] not in DockerCtr.PORTLESS_ACTIONS:
+            if not (self.__isAvailablePortNum()):
+                raise ShifterNoAvaliPorts(exit_code=400, info='available port not found.')
 
         res = self.__createNewService(self.event)
         return res
