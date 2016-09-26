@@ -189,7 +189,7 @@ class DockerCtr:
 
         res = self.docker_session.post(
                 self.dockerapi_config['endpoint'] + 'services/create',
-                json=body_json,
+                json=body,
                 timeout=self.timeout_opts
               )
         logger.info(res.status_code)
