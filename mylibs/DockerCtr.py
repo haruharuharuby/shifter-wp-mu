@@ -12,6 +12,7 @@ import logging
 import boto3
 import botocore
 import requests
+import pystache
 import traceback
 from ShifterExceptions import *
 from DynamoDB import *
@@ -187,6 +188,16 @@ class DockerCtr:
         self.docker_session.headers.update({'X-Registry-Auth': self.__getXRegistryAuth()})
         self.docker_session.headers.update({'Content-Type': 'application/json'})
 
+        # 混戦を避けるため、専用のoverlayネットワークを作成する
+        if 'pubPort' in query:
+            logger.info('create specific network for service')
+            res = self.docker_session.post(
+                    self.dockerapi_config['endpoint'] + 'networks/create',
+                    json=__buildServiceNetworkfromTemplate(query),
+                    timeout=self.timeout_opts
+                  )
+            logger.info(res.status_code)
+
         res = self.docker_session.post(
                 self.dockerapi_config['endpoint'] + 'services/create',
                 json=body,
@@ -210,6 +221,16 @@ class DockerCtr:
             return 'inservice'
 
         return 'inuse'
+
+    def __buildServiceNetworkfromTemplate(self, query):
+        net_template_base = open('./network_specs/shifger_net_user.yml', 'r').read()
+        net_spec_rendered = pystache.render(net_template_base, {"publish_port1": query['pubPort']})
+        net_spec_base = yaml.load(net_spec_rendered)
+        if 'SHIFTER_ENV' in os.environ.keys():
+            net_spec = net_spec_base[os.environ['SHIFTER_ENV']]
+        else:
+            net_spec = net_spec_base['development']
+        return net_spec
 
     def __getCreateImageBody(self, query):
         query['notificationId'] = self.notificationId
