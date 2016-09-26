@@ -115,6 +115,9 @@ class ServiceBuilder:
             if archiveUrl is not False:
                 env.append('ARCHIVE_URL=' + base64.b64encode(archiveUrl))
 
+        if context['service_type'] in ['edit-wordpress']:
+            env.append('DISPLAY_ERRORS=On')
+
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
         logger.info(context)
