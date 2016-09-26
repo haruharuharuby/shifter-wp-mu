@@ -3,8 +3,8 @@
 
 from __future__ import print_function
 from __future__ import unicode_literals
-import urllib2
 import json
+import time
 import base64
 import random
 import uuid
@@ -108,12 +108,45 @@ class DockerCtr:
         res = self.__createNewService(self.event)
         return res
 
+    def __deleteNetworkIfExist(self, svc):
+        if 'DockerUrl' in svc:
+            port = svc['DockerUrl'].split(':')[-1]
+            try:
+                logger.info("deleting network for " + str(port))
+                res = self.docker_session.delete(self.dockerapi_config['endpoint'] + 'networks/shifter_net_user-' + str(port), timeout=self.timeout_opts)
+                logger.info(res.status_code)
+            except:
+                logger.error("Error occurred during builds Service definition: " + str(type(e)))
+                logger.error(traceback.format_exc())
+
+        # ここでエラーがでてもとりあえず無視してよい
+        return None
+
     def deleteTheService(self, siteId):
+        """ 専用OverlayNetWorkを削除するため、まずGetする """
+        has_network = False
+        svc = self.getTheService(siteId)
+        if svc['status'] == 404:
+            return ResponseBuilder.buildResponse(
+                    status=404,
+                    message="service: " + siteId + " not found.",
+                    serviceId=siteId,
+                    logs_to=None
+            )
+        elif svc['status'] == 200:
+            has_network = True
+        else:
+            raise ShifterUnknownError
+
         """ 404 のレスポンスはほぼ無加工でOKだけど一応Wrap """
         res = self.docker_session.delete(self.dockerapi_config['endpoint'] + 'services/' + siteId, timeout=self.timeout_opts)
         logger.info(res.status_code)
         if res.ok:
             message = "service: " + siteId + " is deleted."
+            if has_network:
+                # サービスのダウンがネットワーク削除に間に合わない場合、500で終わる
+                time.sleep(0.1)
+                self.__deleteNetworkIfExist(svc)
         elif res.status_code == 404:
             message = str(res.json()['message'])
         else:
@@ -191,6 +224,9 @@ class DockerCtr:
         # 混戦を避けるため、専用のoverlayネットワークを作成する
         if 'pubPort' in query:
             logger.info('create specific network for service')
+            # とりあえず消す、レスポンスは200か404になる
+            self.docker_session.delete(self.dockerapi_config['endpoint'] + 'networks/shifter_net_user-' + str(query['pubPort']), timeout=self.timeout_opts)
+            # その後作る
             res = self.docker_session.post(
                     self.dockerapi_config['endpoint'] + 'networks/create',
                     json=self.__buildServiceNetworkfromTemplate(query),
