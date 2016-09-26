@@ -9,7 +9,7 @@ default: &default
     Name: wordpress-worker
     Service: {{ service_type }}
   Networks:
-  - Target: shifter_net_user
+  - Target: shifter_net_user-{{ publish_port1 }}
   Name: {{ service_name }}
   TaskTemplate:
     ContainerSpec:
