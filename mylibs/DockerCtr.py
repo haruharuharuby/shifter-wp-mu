@@ -183,14 +183,13 @@ class DockerCtr:
 
         body = self.__getCreateImageBody(query)
         logger.info(body)
-        body_json = json.dumps(body)
 
         self.docker_session.headers.update({'X-Registry-Auth': self.__getXRegistryAuth()})
         self.docker_session.headers.update({'Content-Type': 'application/json'})
 
         res = self.docker_session.post(
                 self.dockerapi_config['endpoint'] + 'services/create',
-                data=body_json,
+                json=body_json,
                 timeout=self.timeout_opts
               )
         logger.info(res.status_code)
