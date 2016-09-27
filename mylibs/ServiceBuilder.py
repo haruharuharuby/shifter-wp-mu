@@ -133,7 +133,7 @@ class ServiceBuilder:
             tag = 'latest'
         context['image_string'] = ':'.join([self.app_config['docker_images']['sync-efs-to-s3'], tag])
 
-        context['efs_point_root'] = self.query['fsId'] + "/" + self.query['siteId']
+        context['efs_point_root'] = self.site_item['efs_id'] + "/" + self.query['siteId']
 
         # Build Env
         if self.query['action'] == 'syncEfsToS3':
