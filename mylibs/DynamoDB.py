@@ -52,8 +52,13 @@ class DynamoDB:
         """
         Returns Attributes( updated Item)
         """
+        site_item = self.getServiceById(serviceName)
         if len(self.getServiceById(serviceName)) == 0:
             return {}
+
+        if site_item['stock_state'] == 'delete':
+            return {}
+
         res = self.sitetable.update_item(
             Key={
                 'ID': serviceName
