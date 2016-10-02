@@ -286,7 +286,7 @@ class DockerCtr:
     def __buildInfoByAction(self, query):
         if query["action"] == 'createNewService':
             info = {
-                'docker_url': 'https://' + self.app_config['service_domain'] + ':' + str(query['pubPort']),
+                'docker_url': 'https://' + query['siteId'] + '.' + self.app_config['service_domain'] + ':' + str(query['pubPort']),
                 'serviceName': query['siteId'],
                 'message': "service " + query['siteId'] + ' started',
                 'notificationId': self.notificationId
