@@ -81,7 +81,7 @@ class DockerCtr:
 
         if (self.__hasDockerPublishedPort(result)):
             port = str(result['Endpoint']['Spec']['Ports'][0]['PublishedPort'])
-            result['DockerUrl'] = 'https://' + self.app_config['service_domain'] + ':' + port
+            result['DockerUrl'] = 'https://' + siteId + '.' + self.app_config['service_domain'] + ':' + port
 
         if (self.__hasDockerLabel(result)):
             result['Labels'] = result['Spec']['Labels']
