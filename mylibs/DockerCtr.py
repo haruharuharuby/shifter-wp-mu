@@ -81,7 +81,7 @@ class DockerCtr:
 
         if (self.__hasDockerPublishedPort(result)):
             port = str(result['Endpoint']['Spec']['Ports'][0]['PublishedPort'])
-            result['DockerUrl'] = 'https://' + self.app_config['service_domain'] + ':' + port
+            result['DockerUrl'] = 'https://' + siteId + '.' + self.app_config['service_domain'] + ':' + port
 
         if (self.__hasDockerLabel(result)):
             result['Labels'] = result['Spec']['Labels']
@@ -286,7 +286,7 @@ class DockerCtr:
     def __buildInfoByAction(self, query):
         if query["action"] == 'createNewService':
             info = {
-                'docker_url': 'https://' + self.app_config['service_domain'] + ':' + str(query['pubPort']),
+                'docker_url': 'https://' + query['siteId'] + '.' + self.app_config['service_domain'] + ':' + str(query['pubPort']),
                 'serviceName': query['siteId'],
                 'message': "service " + query['siteId'] + ' started',
                 'notificationId': self.notificationId
