@@ -103,6 +103,7 @@ class ServiceBuilder:
         notification_error_url = self.s3client.createNotificationErrorUrl(self.query['notificationId'])
         env = [
             "SERVICE_PORT=" + str(self.query['pubPort']),
+            "SERVICE_TYPE=" + self.query['serviceType'],
             "SITE_ID=" + self.query['siteId'],
             "SERVICE_DOMAIN=" + self.app_config['service_domain'],
             "EFS_ID=" + self.site_item['efs_id'],
