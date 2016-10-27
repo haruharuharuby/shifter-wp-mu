@@ -87,12 +87,8 @@ def lambda_handler(event, context):
             raise ShifterRequestError(info="params 'siteId' not found.")
 
         if (event["action"] == "createNewService"):
-            if 'fsId' not in event:
-                raise ShifterRequestError(info="params 'fsId' not found.")
             result = ctr.createNewService()
         elif (event["action"] == 'syncEfsToS3'):
-            if 'fsId' not in event:
-                raise ShifterRequestError(info="params 'fsId' not found.")
             result = ctr.createNewService()
         elif (event["action"] == 'deletePublicContents'):
             result = ctr.createNewService()

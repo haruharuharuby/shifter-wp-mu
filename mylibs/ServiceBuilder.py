@@ -95,8 +95,8 @@ class ServiceBuilder:
         context['image_string'] = ':'.join([self.app_config['docker_images']['wordpress-worker'], tag])
 
         context['publish_port1'] = int(self.query['pubPort'])
-        context['efs_point_web'] = self.query['fsId'] + "/" + self.query['siteId'] + "/web"
-        context['efs_point_db'] = self.query['fsId'] + "/" + self.query['siteId'] + "/db"
+        context['efs_point_web'] = self.site_item['efs_id'] + "/" + self.query['siteId'] + "/web"
+        context['efs_point_db'] = self.site_item['efs_id'] + "/" + self.query['siteId'] + "/db"
 
         # Build Env
         notification_url = self.s3client.createNotificationUrl(self.query['notificationId'])
@@ -105,7 +105,7 @@ class ServiceBuilder:
             "SERVICE_PORT=" + str(self.query['pubPort']),
             "SITE_ID=" + self.query['siteId'],
             "SERVICE_DOMAIN=" + self.app_config['service_domain'],
-            "EFS_ID=" + self.query['fsId'],
+            "EFS_ID=" + self.site_item['efs_id'],
             "NOTIFICATION_URL=" + base64.b64encode(notification_url),
             "NOTIFICATION_ERROR_URL=" + base64.b64encode(notification_error_url)
         ]
