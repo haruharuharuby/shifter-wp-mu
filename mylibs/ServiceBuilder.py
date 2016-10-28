@@ -108,8 +108,12 @@ class ServiceBuilder:
             "SERVICE_DOMAIN=" + self.app_config['service_domain'],
             "EFS_ID=" + self.site_item['efs_id'],
             "NOTIFICATION_URL=" + base64.b64encode(notification_url),
-            "NOTIFICATION_ERROR_URL=" + base64.b64encode(notification_error_url)
+            "NOTIFICATION_ERROR_URL=" + base64.b64encode(notification_error_url),
+            "CF_DOMAIN=" + self.site_item['access_url']
         ]
+
+        if self.site_item.get('domain', False):
+            env.append('SHIFTER_DOMAIN=' + self.site_item['domain'])
 
         if 'wpArchiveId' in self.query:
             archiveUrl = self.s3client.createWpArchiceUrl(self.query['wpArchiveId'])
