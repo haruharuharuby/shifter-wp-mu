@@ -113,7 +113,8 @@ class ServiceBuilder:
         ]
 
         if self.site_item.get('domain', False):
-            env.append('SHIFTER_DOMAIN=' + self.site_item['domain'])
+            if self.site_item['domain'].strip():
+                env.append('SHIFTER_DOMAIN=' + self.site_item['domain'])
 
         if 'wpArchiveId' in self.query:
             archiveUrl = self.s3client.createWpArchiceUrl(self.query['wpArchiveId'])
