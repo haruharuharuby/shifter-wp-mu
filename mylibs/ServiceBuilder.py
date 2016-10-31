@@ -90,6 +90,8 @@ class ServiceBuilder:
 
         if 'phpVersion' in self.query:
             tag = self.query['phpVersion']
+        elif self.site_item.get('php_version', False):
+            tag = self.site_item['php_version']
         else:
             tag = 'latest'
         context['image_string'] = ':'.join([self.app_config['docker_images']['wordpress-worker'], tag])
