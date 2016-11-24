@@ -71,3 +71,20 @@ class STSTokenGenerator:
              )
         logger.debug(pd.to_json())
         return pd.to_json()
+
+    def build_policy_uiless_wp(self, name):
+        """
+        Allow put id to SNS for delete service by itself.
+        """
+        pd = Policy(
+                Id=name,
+                Statement=[
+                    Statement(
+                        Effect=Allow,
+                        Action=[Action("sns", "Publish")],
+                        Resource=["arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished"],
+                    ),
+                ],
+             )
+        logger.debug(pd.to_json())
+        return pd.to_json()

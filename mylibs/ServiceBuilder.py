@@ -16,6 +16,7 @@ import pystache
 import traceback
 from DynamoDB import *
 from S3 import *
+from STSTokenGenerator import *
 
 # logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logger = logging.getLogger()
@@ -125,6 +126,14 @@ class ServiceBuilder:
 
         if context['service_type'] in ['edit-wordpress']:
             env.append('DISPLAY_ERRORS=On')
+
+        if context['service_type'] in ['create-archive']:
+            env.append('SHIFTER_TOKEN=' + self.site_item['shifter_token'])
+            token_gen = STSTokenGenerator(self.app_config)
+            tokens = token_gen.generateToken('create-archive', 'uiless_wp')
+            env.append('AWS_ACCESS_KEY_ID='     + tokens['AccessKeyId'])
+            env.append('AWS_SECRET_ACCESS_KEY=' + tokens['SecretAccessKey'])
+            env.append('AWS_SESSION_TOKEN='     + tokens['SessionToken'])
 
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
