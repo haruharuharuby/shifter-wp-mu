@@ -128,9 +128,16 @@ class ServiceBuilder:
             env.append('DISPLAY_ERRORS=On')
 
         if context['service_type'] in ['create-archive']:
-            env.append('SHIFTER_TOKEN=' + self.site_item['shifter_token'])
+            env.append('SHIFTER_TOKEN=' + self.query['shifterToken'])
             token_gen = STSTokenGenerator(self.app_config)
             tokens = token_gen.generateToken('create-archive', 'uiless_wp')
+            env.append('AWS_ACCESS_KEY_ID='     + tokens['AccessKeyId'])
+            env.append('AWS_SECRET_ACCESS_KEY=' + tokens['SecretAccessKey'])
+            env.append('AWS_SESSION_TOKEN='     + tokens['SessionToken'])
+
+        if context['service_type'] in ['import-archive']:
+            token_gen = STSTokenGenerator(self.app_config)
+            tokens = token_gen.generateToken('import-archive', 'uiless_wp')
             env.append('AWS_ACCESS_KEY_ID='     + tokens['AccessKeyId'])
             env.append('AWS_SECRET_ACCESS_KEY=' + tokens['SecretAccessKey'])
             env.append('AWS_SESSION_TOKEN='     + tokens['SessionToken'])

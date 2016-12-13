@@ -255,6 +255,10 @@ class DockerCtr:
             return 'ingenerate'
         elif sv_type == 'edit-wordpress':
             return 'inservice'
+        elif sv_type == 'create-archive':
+            return 'intasks'
+        elif sv_type == 'import-archive':
+            return 'inimport'
 
         return 'inuse'
 
