@@ -24,6 +24,7 @@ default: &default
     wordpress-worker: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-php-with-mysql
     sync-efs-to-s3: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync
     docker-efs-dig-dirs: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-efs-dig-dirs
+    docker-s3to-netlify: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3to-netlify
 
 
 development:

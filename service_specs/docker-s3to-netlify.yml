@@ -1,0 +1,36 @@
+---
+default: &default
+  Labels:
+    Name: docker-s3to-netlify
+  Networks:
+  - Target: shifter_net_user
+  Name: {{ service_name }}
+  TaskTemplate:
+    ContainerSpec:
+      Env:
+        {{#envvars}}
+        - "{{envvar}}"
+        {{/envvars}}
+        {{^envvars}}
+        - "DUMMY_ENV=True"
+        {{/envvars}}
+      Image: {{ image_string }}
+    LogDriver:
+      Name: awslogs
+      Options:
+        awslogs-group: dockerlog-services
+        awslogs-region: us-east-1
+        awslogs-stream: {{ service_id }}-s3to-netlify
+    Placement:
+      Constraints:
+        - "node.labels.type == deploy-worker"
+    RestartPolicy:
+      Condition: on-failure
+      Delay: 5000
+      MaxAttempts: 2
+
+development:
+  <<: *default
+
+production:
+  <<: *default
