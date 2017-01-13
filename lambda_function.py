@@ -1,19 +1,21 @@
-from __future__ import print_function
-from __future__ import unicode_literals
-import urllib2
-import json
+from __future__ import print_function, unicode_literals
+
 import base64
-import random
-import uuid
+import json
 import logging
+import os
+import random
+import urllib2
+import uuid
+
 import boto3
 import botocore
-import os
-import lamvery
 import yaml
-from mylibs.ShifterExceptions import *
-from mylibs.ResponseBuilder import *
+
+import lamvery
 from mylibs.DockerCtr import *
+from mylibs.ResponseBuilder import *
+from mylibs.ShifterExceptions import *
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

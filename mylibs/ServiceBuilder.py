@@ -1,23 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-from __future__ import unicode_literals
-import os
-import json
-import yaml
+from __future__ import print_function, unicode_literals
+
 import base64
-import random
+import json
 import logging
+import os
+import random
+import traceback
+
 import boto3
 import botocore
-import requests
 import pystache
-import traceback
+import requests
+import yaml
+
 from DynamoDB import *
 from S3 import *
-from STSTokenGenerator import *
 from ShifterExceptions import *
+from STSTokenGenerator import *
 
 # logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logger = logging.getLogger()
