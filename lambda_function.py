@@ -37,7 +37,8 @@ def lambda_handler(event, context):
         'syncEfsToS3',
         'deletePublicContents',
         'deleteTheService',
-        'deleteServiceByServiceId'
+        'deleteServiceByServiceId',
+        'deployToNetlify'
     ]
 
     # Load Configrations
@@ -89,6 +90,8 @@ def lambda_handler(event, context):
         if (event["action"] == "createNewService"):
             result = ctr.createNewService()
         elif (event["action"] == 'syncEfsToS3'):
+            result = ctr.createNewService()
+        elif (event["action"] == 'deployToNetlify'):
             result = ctr.createNewService()
         elif (event["action"] == 'deletePublicContents'):
             result = ctr.createNewService()

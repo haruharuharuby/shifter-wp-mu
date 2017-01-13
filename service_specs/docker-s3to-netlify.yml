@@ -23,7 +23,7 @@ default: &default
         awslogs-stream: {{ service_id }}-s3to-netlify
     Placement:
       Constraints:
-        - "node.labels.type == deploy-worker"
+        - "node.labels.type == efs-worker"
     RestartPolicy:
       Condition: on-failure
       Delay: 5000
