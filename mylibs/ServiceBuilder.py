@@ -221,6 +221,7 @@ class ServiceBuilder:
             tag = self.query['image_tag']
         else:
             tag = 'latest'
+
         context['image_string'] = ':'.join([self.app_config['docker_images']['docker-s3to-netlify'], tag])
 
         # Build Env
@@ -234,7 +235,7 @@ class ServiceBuilder:
         ]
 
         if 'nf_draft' in self.query:
-            env.append('NF_DRAFT=' + self.query['nf_draft'])
+            env.append('NF_DRAFT=' + str(self.query['nf_draft']))
 
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
