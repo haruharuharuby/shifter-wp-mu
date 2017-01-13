@@ -258,6 +258,8 @@ class DockerCtr:
             return 'inservice'
         elif sv_type == 'create-archive':
             return 'intasks'
+        elif sv_type == 'deploy-external':
+            return 'indeployment'
         elif sv_type == 'import-archive':
             return 'inimport'
 
