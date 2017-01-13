@@ -2,3 +2,4 @@ lamvery
 requests
 pystache
 awacs
+Jinja2==2.8.1
