@@ -29,6 +29,12 @@ default: &default
 
 development:
   <<: *default
+  dynamo_settings:
+    site_table: Site
+    db_table: UserDatabase2
 
 production:
   <<: *default
+  dynamo_settings:
+    site_table: Site
+    db_table: UserDatabase2-dev
