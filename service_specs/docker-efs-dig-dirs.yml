@@ -41,7 +41,83 @@ default: &default
       MaxAttempts: 3
 
 development:
-  <<: *default
+  Labels:
+    Name: docker-efs-dig-dirs
+  Networks:
+  - Target: shifter_net_user
+  Name: {{ service_name }}
+  TaskTemplate:
+    ContainerSpec:
+      Env:
+        {{#envvars}}
+        - "{{envvar}}"
+        {{/envvars}}
+        {{^envvars}}
+        - "DUMMY_ENV=True"
+        {{/envvars}}
+      Image: {{ image_string }}
+      Mounts:
+      - Source: {{ efs_point_root }}
+        Target: /opt/efs/
+        Type: volume
+        VolumeOptions:
+          DriverConfig:
+            Name: efs
+      - Target: /run
+        Type: tmpfs
+      - Target: /tmp
+        Type: tmpfs
+    LogDriver:
+      Name: awslogs
+      Options:
+        awslogs-group: dockerlog-systems
+        awslogs-region: us-east-1
+        awslogs-stream: docker-efs-dig-dirs
+    Placement:
+      Constraints:
+        - "node.labels.type == efs-worker"
+    RestartPolicy:
+      Condition: on-failure
+      Delay: 5000
+      MaxAttempts: 3
 
 production:
-  <<: *default
+  Labels:
+    Name: docker-efs-dig-dirs
+  Networks:
+  - Target: shifter_net_user
+  Name: {{ service_name }}
+  TaskTemplate:
+    ContainerSpec:
+      Env:
+        {{#envvars}}
+        - "{{envvar}}"
+        {{/envvars}}
+        {{^envvars}}
+        - "DUMMY_ENV=True"
+        {{/envvars}}
+      Image: {{ image_string }}
+      Mounts:
+      - Source: {{ efs_point_root }}
+        Target: /opt/efs/
+        Type: volume
+        VolumeOptions:
+          DriverConfig:
+            Name: efs
+      - Target: /run
+        Type: tmpfs
+      - Target: /tmp
+        Type: tmpfs
+    LogDriver:
+      Name: awslogs
+      Options:
+        awslogs-group: dockerlog-systems
+        awslogs-region: us-east-1
+        awslogs-stream: docker-efs-dig-dirs
+    Placement:
+      Constraints:
+        - "node.labels.type == efs-worker"
+    RestartPolicy:
+      Condition: on-failure
+      Delay: 5000
+      MaxAttempts: 3
