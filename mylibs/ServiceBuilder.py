@@ -136,9 +136,10 @@ class ServiceBuilder:
             pass
             rds = self.site_item['user_database']
             raw_passwd = self.kms_client.decrypt(CiphertextBlob=base64.b64decode(rds['enc_passwd']))
+            ob_passwd = base64.b64encode(self.app_config['mgword'] + raw_passwd['Plaintext'])
             env.append('RDB_ENDPOINT=' + rds['endpoint'])
             env.append('RDB_USER=' + rds['role'])
-            env.append('RDB_PASSWD=' + raw_passwd['Plaintext'])
+            env.append('RDB_PASSWD=' + ob_passwd)
 
         if context['service_type'] in ['edit-wordpress']:
             env.append('DISPLAY_ERRORS=On')
