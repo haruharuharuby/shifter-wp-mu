@@ -36,6 +36,7 @@ class ServiceBuilder:
         self.spec_path = './service_specs/'
         self.query = query
         self.s3client = S3(app_config)
+        self.kms_client = boto3.client('kms')
 
         if 'siteId' in query:
             self.site_item = self.__fetchDynamoSiteItem()
@@ -45,9 +46,13 @@ class ServiceBuilder:
     def __fetchDynamoSiteItem(self):
         dynamodb = DynamoDB(self.app_config)
         dbData = dynamodb.getServiceById(self.query['siteId'])
+
+        rdbData = dynamodb.fetchUserDBById(self.query['siteId'])
+
         dbItem = {
             's3_bucket': '',
             's3_region': '',
+            'user_database': rdbData
         }
 
         dbItem = dict(dbItem, **dbData)
@@ -127,6 +132,14 @@ class ServiceBuilder:
             if archiveUrl is not False:
                 env.append('ARCHIVE_URL=' + base64.b64encode(archiveUrl))
 
+        if self.site_item['user_database']:
+            pass
+            rds = self.site_item['user_database']
+            raw_passwd = kms_client.decrypt(CiphertextBlob=base64.b64decode(rds['passwd']))
+            env.append('RDB_ENDPOINT=' + rds['endpoint'])
+            env.append('RDB_USER=' + rds['role'])
+            env.append('RDB_PASSWD=' + raw_passwd['Plaintext'])
+
         if context['service_type'] in ['edit-wordpress']:
             env.append('DISPLAY_ERRORS=On')
 
@@ -134,16 +147,16 @@ class ServiceBuilder:
             env.append('SHIFTER_TOKEN=' + self.query['shifterToken'])
             token_gen = STSTokenGenerator(self.app_config)
             tokens = token_gen.generateToken('create-archive', 'uiless_wp')
-            env.append('AWS_ACCESS_KEY_ID='     + tokens['AccessKeyId'])
+            env.append('AWS_ACCESS_KEY_ID=' + tokens['AccessKeyId'])
             env.append('AWS_SECRET_ACCESS_KEY=' + tokens['SecretAccessKey'])
-            env.append('AWS_SESSION_TOKEN='     + tokens['SessionToken'])
+            env.append('AWS_SESSION_TOKEN=' + tokens['SessionToken'])
 
         if context['service_type'] in ['import-archive']:
             token_gen = STSTokenGenerator(self.app_config)
             tokens = token_gen.generateToken('import-archive', 'uiless_wp')
-            env.append('AWS_ACCESS_KEY_ID='     + tokens['AccessKeyId'])
+            env.append('AWS_ACCESS_KEY_ID=' + tokens['AccessKeyId'])
             env.append('AWS_SECRET_ACCESS_KEY=' + tokens['SecretAccessKey'])
-            env.append('AWS_SESSION_TOKEN='     + tokens['SessionToken'])
+            env.append('AWS_SESSION_TOKEN=' + tokens['SessionToken'])
 
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 

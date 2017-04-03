@@ -31,6 +31,7 @@ class DynamoDB:
     def __init__(self, app_config):
         client = boto3.resource('dynamodb')
         self.sitetable = client.Table(app_config['dynamo_settings']['site_table'])
+        self.dbtable = client.Table(app_config['dynamo_settings']['db_table'])
 
     def getServiceById(self, serviceName):
         """
@@ -91,3 +92,19 @@ class DynamoDB:
             ReturnValues="ALL_NEW"
         )
         return res['Attributes']
+
+    def fetchUserDBById(self, site_id):
+        """
+        Returns Hash Item or {}.
+        - 対象がDynamoのHashキーなので、必ず1つを返すか対象なしの2択。
+        """
+        res = self.sitetable.get_item(
+                Key={'ID': site_id}
+        )
+        logger.info(res['ResponseMetadata'])
+        if 'Item' in res:
+            item = res['Item']
+        else:
+            item = {}
+
+        return item
