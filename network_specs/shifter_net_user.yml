@@ -10,7 +10,19 @@ default: &default
 
 
 development:
-  <<: *default
+  Name: shifter_net_user-{{ publish_port1 }}
+  Driver: overlay
+  CheckDuplicate: true
+  EnableIPv6: false
+  IPAM:
+    Driver: default
+  Internal: false
 
 production:
-  <<: *default
+  Name: shifter_net_user-{{ publish_port1 }}
+  Driver: overlay
+  CheckDuplicate: true
+  EnableIPv6: false
+  IPAM:
+    Driver: default
+  Internal: false
