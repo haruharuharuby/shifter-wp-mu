@@ -1,5 +1,5 @@
 ---
-default: &default
+default:
   dockerapi:
     endpoint: http://dockerapi.sys.getshifter.io:8080/
     endpoint_tls: https://dockerapi.sys.getshifter.io:8443/
@@ -20,6 +20,7 @@ default: &default
     notification_bucket: sys.status.getshifter
   dynamo_settings:
     site_table: Site
+    db_table: UserDatabase2-dev
   docker_images:
     wordpress-worker: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-php-with-mysql
     sync-efs-to-s3: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync
@@ -28,13 +29,57 @@ default: &default
 
 
 development:
-  <<: *default
-  dynamo_settings:
-    site_table: Site
-    db_table: UserDatabase2
-
-production:
-  <<: *default
+  dockerapi:
+    endpoint: http://dockerapi.sys.getshifter.io:8080/
+    endpoint_tls: https://dockerapi.sys.getshifter.io:8443/
+    authuser: static
+    authpass: presspress
+  service_domain: app.getshifter.io
+  awscreds:
+    s3sync:
+      access_key: AKIAIXELICZZAPYVYELA
+      secret_access_key: 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
+    stock_manage:
+      access_key: AKIAJH6WHWXNXH7AVX7A
+      secret_access_key: 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
+  limits:
+    max_ports: 95
+  s3_settings:
+    archives_bucket: wp-archives-files
+    notification_bucket: sys.status.getshifter
   dynamo_settings:
     site_table: Site
     db_table: UserDatabase2-dev
+  docker_images:
+    wordpress-worker: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-php-with-mysql
+    sync-efs-to-s3: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync
+    docker-efs-dig-dirs: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-efs-dig-dirs
+    docker-s3to-netlify: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3to-netlify
+
+production:
+  dockerapi:
+    endpoint: http://dockerapi.sys.getshifter.io:8080/
+    endpoint_tls: https://dockerapi.sys.getshifter.io:8443/
+    authuser: static
+    authpass: presspress
+  service_domain: app.getshifter.io
+  awscreds:
+    s3sync:
+      access_key: AKIAIXELICZZAPYVYELA
+      secret_access_key: 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
+    stock_manage:
+      access_key: AKIAJH6WHWXNXH7AVX7A
+      secret_access_key: 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
+  limits:
+    max_ports: 95
+  s3_settings:
+    archives_bucket: wp-archives-files
+    notification_bucket: sys.status.getshifter
+  dynamo_settings:
+    site_table: Site
+    db_table: UserDatabase2
+  docker_images:
+    wordpress-worker: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-php-with-mysql
+    sync-efs-to-s3: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync
+    docker-efs-dig-dirs: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-efs-dig-dirs
+    docker-s3to-netlify: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3to-netlify

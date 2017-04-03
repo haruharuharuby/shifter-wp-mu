@@ -48,8 +48,7 @@ Actions
   "siteId": "676539db-c5cf-6c90-49b7-cd9c40a9985d",
   "action": "createNewService",
   "serviceType": "edit-wordpress",
-  "phpVersion": "7.0",
-  "fsId": "fs-4691580f"
+  "phpVersion": "7.0"
 }
 ```
 

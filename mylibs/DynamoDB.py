@@ -98,8 +98,8 @@ class DynamoDB:
         Returns Hash Item or {}.
         - 対象がDynamoのHashキーなので、必ず1つを返すか対象なしの2択。
         """
-        res = self.sitetable.get_item(
-                Key={'ID': site_id}
+        res = self.dbtable.get_item(
+                Key={'site_id': site_id}
         )
         logger.info(res['ResponseMetadata'])
         if 'Item' in res:
