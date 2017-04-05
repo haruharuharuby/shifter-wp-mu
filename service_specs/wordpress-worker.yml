@@ -48,8 +48,8 @@ default: &default
       Constraints:
         - "node.labels.type == efs-worker"
 
-development:
-  <<: &default
+dev:
+  <<: *default
 
-production:
-  <<: &default
+prod:
+  <<: *default

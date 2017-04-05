@@ -34,8 +34,8 @@ default: &default
       Delay: 5000
       MaxAttempts: 2
 
-development:
-  <<: &default
+dev:
+  <<: *default
 
-production:
-  <<: &default
+prod:
+  <<: *default

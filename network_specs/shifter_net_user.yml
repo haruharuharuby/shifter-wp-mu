@@ -9,8 +9,8 @@ default: &default
   Internal: false
 
 
-development:
+dev:
   <<: *default
 
-production:
+prod:
   <<: *default

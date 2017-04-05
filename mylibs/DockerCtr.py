@@ -272,7 +272,7 @@ class DockerCtr:
         if 'SHIFTER_ENV' in os.environ.keys():
             net_spec = net_spec_base[os.environ['SHIFTER_ENV']]
         else:
-            net_spec = net_spec_base['development']
+            net_spec = net_spec_base['dev']
 
         logger.info(net_spec)
         return net_spec
