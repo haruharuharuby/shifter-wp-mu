@@ -5,6 +5,7 @@ provider:
   runtime: python2.7
   stage: dev
   region: us-east-1
+  deploymentBucket: serverless.${self:provider.region}.shifter.deploys
   memorySize: 256
   timeout: 60
   iamRoleStatements:
