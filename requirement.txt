@@ -1,4 +1,3 @@
-lamvery
 requests
 pystache
 awacs
