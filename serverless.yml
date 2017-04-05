@@ -48,6 +48,9 @@ package:
     - lambda_function.py
     - vendored
   exclude:
+    - \.*
+    - \.vscode/**
+    - \.ipynb_checkpoints/**
     - venv/**
     - localvendored/**
     - test/**
