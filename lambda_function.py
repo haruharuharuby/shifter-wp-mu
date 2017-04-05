@@ -4,15 +4,18 @@ import base64
 import json
 import logging
 import os
+import sys
 import random
 import urllib2
 import uuid
-
 import boto3
 import botocore
-import yaml
 
-import lamvery
+here = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(here, "./vendored"))
+
+
+import yaml
 from mylibs.DockerCtr import *
 from mylibs.ResponseBuilder import *
 from mylibs.ShifterExceptions import *
@@ -20,8 +23,6 @@ from mylibs.ShifterExceptions import *
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 # logger.setLevel(logging.DEBUG)
-
-print('Loading function')
 
 
 def lambda_handler(event, context):
@@ -44,12 +45,11 @@ def lambda_handler(event, context):
     ]
 
     # Load Configrations
-    lamvery.env.load()
     config_base = yaml.load(open('./config/appconfig.yml', 'r'))
     if 'SHIFTER_ENV' in os.environ.keys():
         app_config = config_base[os.environ['SHIFTER_ENV']]
     else:
-        app_config = config_base['development']
+        app_config = config_base['dev']
 
     try:
         if 'action' not in event:
