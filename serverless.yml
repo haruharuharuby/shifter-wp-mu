@@ -63,7 +63,7 @@ package:
     - "*.ipynb"
 
 functions:
-  trigger:
+  entry:
     handler: lambda_function.lambda_handler
     description: Docker Swarm API Wrapper
     environment:
