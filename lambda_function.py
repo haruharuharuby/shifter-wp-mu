@@ -6,7 +6,6 @@ import logging
 import os
 import sys
 import random
-import urllib2
 import uuid
 import boto3
 import botocore
