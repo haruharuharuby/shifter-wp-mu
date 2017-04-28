@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function, unicode_literals
-
 import base64
 import json
 import logging
@@ -16,15 +14,18 @@ import pystache
 import requests
 import yaml
 
-from DynamoDB import *
-from S3 import *
-from ShifterExceptions import *
-from STSTokenGenerator import *
+from .DynamoDB import *
+from .S3 import *
+from .ShifterExceptions import *
+from .STSTokenGenerator import *
 
 # logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+import rollbar
+
+rollbar.init(os.getenv("ROLLBAR_TOKEN"), os.getenv("SHIFTER_ENV", "development"))
 
 if __name__ == '__main__':
     print('module')
@@ -67,7 +68,8 @@ class ServiceBuilder:
         except Exception as e:
             logger.error("Error occurred during builds Service definition: " + str(type(e)))
             logger.error(traceback.format_exc())
-            raise StandardError("Error occurred during calls Backend Service.")
+            rollbar.report_exc_info()
+            raise ShifterBackendError("Error occurred during calls Backend Service.")
 
         service_spec_rendered = pystache.render(template_base, context)
         logger.debug(service_spec_rendered)
@@ -118,8 +120,8 @@ class ServiceBuilder:
             "SITE_ID=" + self.query['siteId'],
             "SERVICE_DOMAIN=" + self.app_config['service_domain'],
             "EFS_ID=" + self.site_item['efs_id'],
-            "NOTIFICATION_URL=" + base64.b64encode(notification_url),
-            "NOTIFICATION_ERROR_URL=" + base64.b64encode(notification_error_url),
+            "NOTIFICATION_URL=" + base64.b64encode(notification_url.encode('utf-8')).decode(),
+            "NOTIFICATION_ERROR_URL=" + base64.b64encode(notification_error_url.encode('utf-8')).decode(),
             "CF_DOMAIN=" + self.site_item['access_url']
         ]
 
@@ -130,13 +132,13 @@ class ServiceBuilder:
         if 'wpArchiveId' in self.query:
             archiveUrl = self.s3client.createWpArchiceUrl(self.query['wpArchiveId'])
             if archiveUrl is not False:
-                env.append('ARCHIVE_URL=' + base64.b64encode(archiveUrl))
+                env.append('ARCHIVE_URL=' + base64.b64encode(archiveUrl.encode('utf-8')).decode())
 
         if self.site_item['user_database']:
             pass
             rds = self.site_item['user_database']
-            raw_passwd = self.kms_client.decrypt(CiphertextBlob=base64.b64decode(rds['enc_passwd']))
-            ob_passwd = base64.b64encode(self.app_config['mgword'] + raw_passwd['Plaintext'])
+            raw_passwd = self.kms_client.decrypt(CiphertextBlob=base64.b64decode(rds['enc_passwd']).decode())
+            ob_passwd = base64.b64encode((self.app_config['mgword'] + raw_passwd['Plaintext']).encode('utf-8')).decode()
             env.append('RDB_ENDPOINT=' + rds['endpoint'])
             env.append('RDB_USER=' + rds['role'])
             env.append('RDB_PASSWD=' + ob_passwd)

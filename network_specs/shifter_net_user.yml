@@ -14,3 +14,9 @@ dev:
 
 prod:
   <<: *default
+
+development:
+  <<: *default
+
+production:
+  <<: *default

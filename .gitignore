@@ -104,4 +104,6 @@ test.py
 test/
 *.ipynb
 node_modules/
-vendored/
+/vendored/
+/.serverless/
+/localvendored/
