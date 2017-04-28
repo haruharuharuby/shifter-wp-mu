@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function, unicode_literals
 
 import base64
 import json
@@ -14,6 +13,8 @@ import botocore
 
 here = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(here, "./vendored"))
+if os.environ.get('LAMBDA_LOCAL'):
+    sys.path.append(os.path.join(here, "./localvendored"))
 
 
 import yaml
@@ -21,6 +22,9 @@ from mylibs.DockerCtr import *
 from mylibs.ResponseBuilder import *
 from mylibs.ShifterExceptions import *
 
+import rollbar
+
+rollbar.init(os.getenv("ROLLBAR_TOKEN"), os.getenv("SHIFTER_ENV", "development"))
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 # logger.setLevel(logging.DEBUG)
@@ -50,7 +54,7 @@ def lambda_handler(event, context):
     if 'SHIFTER_ENV' in os.environ.keys():
         app_config = config_base[os.environ['SHIFTER_ENV']]
     else:
-        app_config = config_base['dev']
+        app_config = config_base['development']
 
     try:
         if 'action' not in event:
@@ -125,6 +129,7 @@ def lambda_handler(event, context):
                 logs_to=event
         )
     except Exception as e:
+        rollbar.report_exc_info()
         logger.exception("Error occurred during calls Docker API: " + str(type(e)))
         return ResponseBuilder.buildResponse(
                 status=500,

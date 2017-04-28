@@ -53,3 +53,9 @@ dev:
 
 prod:
   <<: *default
+
+development:
+  <<: *default
+
+prouction:
+  <<: *default

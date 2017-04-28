@@ -2,8 +2,8 @@ service: docker-swarm-controller
 
 provider:
   name: aws
-  runtime: python2.7
-  stage: dev
+  runtime: python3.6
+  stage: development
   region: us-east-1
   deploymentBucket: serverless.${self:provider.region}.shifter.deploys
   memorySize: 256
@@ -63,9 +63,13 @@ package:
     - tools/**
     - "*.ipynb"
 
+custom:
+  rollbar_token: 458e204f3c6b4b2caf4fa449d3a81077
+
 functions:
   entry:
     handler: lambda_function.lambda_handler
     description: Docker Swarm API Wrapper
     environment:
       SHIFTER_ENV: ${opt:stage, self:provider.stage}
+      ROLLBAR_TOKEN: ${self:custom.rollbar_token}
