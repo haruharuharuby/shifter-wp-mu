@@ -18,5 +18,5 @@ prod:
 development:
   <<: *default
 
-prouction:
+production:
   <<: *default
