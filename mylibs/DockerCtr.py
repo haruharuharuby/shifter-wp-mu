@@ -12,11 +12,11 @@ import botocore
 import requests
 import pystache
 import traceback
-from ShifterExceptions import *
-from DynamoDB import *
-from ServiceBuilder import *
-from ResponseBuilder import *
-from S3 import *
+from .ShifterExceptions import *
+from .DynamoDB import *
+from .ServiceBuilder import *
+from .ResponseBuilder import *
+from .S3 import *
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -195,12 +195,12 @@ class DockerCtr:
             ecr = boto3.client('ecr')
             res = ecr.get_authorization_token()
             raw_token = res['authorizationData'][0]['authorizationToken']
-            usertoken = base64.b64decode(raw_token).split(':')
+            usertoken = base64.b64decode(raw_token).decode().split(':')
             jsondata = {}
             jsondata['username'] = usertoken[0]
             jsondata['password'] = usertoken[1]
             jsondata['email'] = 'none'
-            auth_string = base64.b64encode(json.dumps(jsondata))
+            auth_string = base64.b64encode(json.dumps(jsondata).encode('utf-8')).decode()
         except:
             auth_string = 'failed_to_get_token'
         return auth_string

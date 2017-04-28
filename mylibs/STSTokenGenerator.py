@@ -11,7 +11,7 @@ import boto3
 from boto3.session import Session
 import botocore
 import traceback
-from ShifterExceptions import *
+from .ShifterExceptions import *
 
 # awscs: https://github.com/cloudtools/awacs
 from awacs.aws import Action, Allow, Policy, Statement
@@ -40,8 +40,8 @@ class STSTokenGenerator:
         self.app_config = app_config
         self.options = options
         session = Session(aws_access_key_id=app_config['awscreds']['s3sync']['access_key'],
-                  aws_secret_access_key=app_config['awscreds']['s3sync']['secret_access_key'],
-                  region_name='us-east-1')
+                          aws_secret_access_key=app_config['awscreds']['s3sync']['secret_access_key'],
+                          region_name='us-east-1')
         self.stsclient = session.client('sts')
 
     def generateToken(self, policy_name, policy_type):

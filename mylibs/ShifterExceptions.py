@@ -17,6 +17,10 @@ class ShifterRequestError(ShifterErrorBase):
     pass
 
 
+class ShifterBackendError(ShifterErrorBase):
+    pass
+
+
 class ShifterNoAvaliPorts(ShifterErrorBase):
     pass
 
