@@ -66,6 +66,10 @@ package:
 
 custom:
   rollbar_token: 458e204f3c6b4b2caf4fa449d3a81077
+  logRetentionInDays:
+    default: "3"
+    development: "14"
+    production: "90"
 
 functions:
   main:
@@ -74,3 +78,9 @@ functions:
     environment:
       SHIFTER_ENV: ${opt:stage, self:provider.stage}
       ROLLBAR_TOKEN: ${self:custom.rollbar_token}
+
+resources:
+  Resources:
+    MainLogGroup:
+      Properties:
+        RetentionInDays: ${self:custom.logRetentionInDays.${opt:stage, self:provider.stage}, self:custom.logRetentionInDays.default}
