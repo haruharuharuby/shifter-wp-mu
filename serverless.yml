@@ -65,7 +65,7 @@ package:
     - "*.ipynb"
 
 custom:
-  rollbar_token: 458e204f3c6b4b2caf4fa449d3a81077
+  rollbar_token: 68798442b4c44aa7901a8b788a84a7f8
   logRetentionInDays:
     default: "3"
     development: "14"
