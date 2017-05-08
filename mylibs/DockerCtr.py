@@ -329,7 +329,7 @@ class DockerCtr:
         services = self.getServices()
         svcs = [x for x in services if self.__hasDockerPublishedPort(x)]
         ports = map(lambda x: x['Endpoint']['Ports'][0]['PublishedPort'], svcs)
-        return ports
+        return list(ports)
 
     def __countRunningService(self):
         services = self.getServices()
