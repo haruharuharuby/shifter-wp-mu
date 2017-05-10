@@ -200,6 +200,9 @@ class ServiceBuilder:
                     "CF_DIST_ID=" + self.site_item['cf_id']
             ]
 
+        if 'artifactId' in self.query:
+            env.append('ARTIFACT_ID=' + str(self.query['artifactId']))
+
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
         logger.info(context)
@@ -233,6 +236,7 @@ class ServiceBuilder:
     def build_context_docker_s3to_netlify(self):
         context = {}
         context['service_name'] = self.query['sessionid']
+        context['service_id'] = self.query['siteId']
         if 'image_tag' in self.query:
             tag = self.query['image_tag']
         else:
@@ -252,6 +256,9 @@ class ServiceBuilder:
 
         if 'nf_draft' in self.query:
             env.append('NF_DRAFT=' + str(self.query['nf_draft']))
+
+        if 'artifactId' in self.query:
+            env.append('ARTIFACT_ID=' + str(self.query['artifactId']))
 
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
