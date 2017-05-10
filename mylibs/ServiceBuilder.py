@@ -236,6 +236,7 @@ class ServiceBuilder:
     def build_context_docker_s3to_netlify(self):
         context = {}
         context['service_name'] = self.query['sessionid']
+        context['service_id'] = self.query['siteId']
         if 'image_tag' in self.query:
             tag = self.query['image_tag']
         else:
