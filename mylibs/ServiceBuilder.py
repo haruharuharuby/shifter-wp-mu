@@ -87,7 +87,7 @@ class ServiceBuilder:
 
     def __prepare_envs_for_pystache(self, envs):
         new_array = []
-        map(lambda ev: new_array.append({"envvar": ev}), envs)
+        list(map(lambda ev: new_array.append({"envvar": ev}), envs))
         return new_array
 
     def build_context_wordpress_worker(self):
