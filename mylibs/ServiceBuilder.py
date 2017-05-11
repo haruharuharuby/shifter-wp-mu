@@ -135,9 +135,8 @@ class ServiceBuilder:
                 env.append('ARCHIVE_URL=' + base64.b64encode(archiveUrl.encode('utf-8')).decode())
 
         if self.site_item['user_database']:
-            pass
             rds = self.site_item['user_database']
-            raw_passwd = self.kms_client.decrypt(CiphertextBlob=base64.b64decode(rds['enc_passwd']).decode())
+            raw_passwd = self.kms_client.decrypt(CiphertextBlob=base64.b64decode(rds['enc_passwd']))
             ob_passwd = base64.b64encode((self.app_config['mgword'] + raw_passwd['Plaintext']).encode('utf-8')).decode()
             env.append('RDB_ENDPOINT=' + rds['endpoint'])
             env.append('RDB_USER=' + rds['role'])
