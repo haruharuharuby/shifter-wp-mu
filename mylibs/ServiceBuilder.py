@@ -137,7 +137,7 @@ class ServiceBuilder:
         if self.site_item['user_database']:
             rds = self.site_item['user_database']
             raw_passwd = self.kms_client.decrypt(CiphertextBlob=base64.b64decode(rds['enc_passwd']))
-            ob_passwd = base64.b64encode((self.app_config['mgword'] + str(raw_passwd['Plaintext']).encode('utf-8')).decode()
+            ob_passwd = base64.b64encode((self.app_config['mgword'] + str(raw_passwd['Plaintext'])).encode('utf-8')).decode()
             env.append('RDB_ENDPOINT=' + rds['endpoint'])
             env.append('RDB_USER=' + rds['role'])
             env.append('RDB_PASSWD=' + ob_passwd)
