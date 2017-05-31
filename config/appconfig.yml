@@ -36,6 +36,9 @@ prod:
 
 development:
   <<: *default
+  dynamo_settings:
+    site_table: Site-development
+    db_table: UserDatabase2-dev
 
 production:
   <<: *default
