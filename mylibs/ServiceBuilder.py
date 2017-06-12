@@ -202,6 +202,7 @@ class ServiceBuilder:
         if 'artifactId' in self.query:
             env.append('ARTIFACT_ID=' + str(self.query['artifactId']))
 
+        env.append('SNS_TOPIC_ARN=' + self.app_config['sns_arns']['to_delete'])
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
         logger.info(context)
