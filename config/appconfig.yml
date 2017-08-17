@@ -16,6 +16,7 @@ default: &default
   limits:
     max_ports: 95
   s3_settings:
+    region: us-east-1
     archives_bucket: wp-archives-files
     notification_bucket: sys.status.getshifter
   sns_arns:

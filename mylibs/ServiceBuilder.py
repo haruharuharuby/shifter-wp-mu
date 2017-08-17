@@ -275,15 +275,14 @@ class ServiceBuilder:
 
         # Build Env
         env = [
-                "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
-                "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
-                "S3_REGION_FROM=" + self.query['s3_region'],
-                "S3_BUCKET_FROM=" + self.query['s3_bucket'],
-                "S3_REGION_TO=" + self.site_item['s3_region'],
-                "S3_BUCKET_TO=" + self.site_item['s3_bucket'],
-                "SITE_ID=" + self.query['siteId'],
-                "SERVICE_NAME=" + self.query['sessionid'],
-                "CF_DIST_ID=" + self.site_item['cf_id']
+            "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
+            "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
+            "S3_REGION=" + self.app_config['s3_settings']['region'],
+            "S3_BUCKET_FROM=" + self.query['s3_bucket'],
+            "S3_BUCKET_TO=" + self.site_item['s3_bucket'],
+            "SITE_ID=" + self.query['siteId'],
+            "SERVICE_NAME=" + self.query['sessionid'],
+            "CF_DIST_ID=" + self.site_item['cf_id']
         ]
 
         if 'artifactId' in self.query:

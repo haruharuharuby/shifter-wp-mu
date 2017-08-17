@@ -1,27 +1,32 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+'''
+Testing ServiceBuilder Class
+'''
 
-import os, sys
-import pytest
+from __future__ import print_function
 from unittest.mock import Mock
 import yaml
 from ..ServiceBuilder import ServiceBuilder
 
 app_config = yaml.load(open('../config/appconfig.yml', 'r'))['development']
 
+
 def test_ServiceBuilder():
+    '''
+    Test constructor
+    '''
 
     ServiceBuilder._ServiceBuilder__fetchDynamoSiteItem = Mock()
 
     '''
-    SiteID doesn't specified. site_item attribute generate.
+    SiteID doesn't specified. site_item attribute doesn't generates.
     '''
     query = {
-      "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-      "action": "syncS3ToS3",
-      "serviceType": "syncS3ToS3",
-      "phpVersion": "5.5",
-      "fsId": "fs-5286491b"
+        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "action": "syncS3ToS3",
+        "serviceType": "syncS3ToS3",
+        "phpVersion": "5.5",
+        "fsId": "fs-5286491b"
     }
     result = ServiceBuilder(app_config, query)
     print(result)
@@ -29,13 +34,13 @@ def test_ServiceBuilder():
     assert result.site_item
 
     '''
-    SiteId specified. site_item attribute doesn't generate.
+    SiteId specified. site_item attribute generates.
     '''
     query = {
-      "action": "syncS3ToS3",
-      "serviceType": "syncS3ToS3",
-      "phpVersion": "5.5",
-      "fsId": "fs-5286491b"
+        "action": "syncS3ToS3",
+        "serviceType": "syncS3ToS3",
+        "phpVersion": "5.5",
+        "fsId": "fs-5286491b"
     }
     result = ServiceBuilder(app_config, query)
     print(result)
@@ -46,11 +51,11 @@ def test_ServiceBuilder():
     Invalid action specified. it doesn't raise any error.
     '''
     query = {
-      "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-      "action": "invalidAction",
-      "serviceType": "syncS3ToS3",
-      "phpVersion": "5.5",
-      "fsId": "fs-5286491b"
+        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "action": "invalidAction",
+        "serviceType": "syncS3ToS3",
+        "phpVersion": "5.5",
+        "fsId": "fs-5286491b"
     }
     result = ServiceBuilder(app_config, query)
     print(result)
@@ -59,10 +64,13 @@ def test_ServiceBuilder():
 
 
 def test_build_context_sync_efs_to_s3():
+    '''
+    Test building context of syhcrhonizing from efs to s3
+    '''
 
     test_site_item = {
         "access_url": "tender-ride7316.on.getshifter.io",
-        "cf_id":"E2XDOVHUH57BXZ",
+        "cf_id": "E2XDOVHUH57BXZ",
         "cf_url": "dw5aj9smo4km0.cloudfront.net",
         "cname_status": "ready",
         "efs_id": "fs-2308c16a",
@@ -76,12 +84,12 @@ def test_build_context_sync_efs_to_s3():
     ServiceBuilder._ServiceBuilder__fetchDynamoSiteItem = Mock(return_value=test_site_item)
 
     query = {
-      "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-      "action": "syncEfsToS3",
-      "serviceType": "syncS3ToS3",
-      "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-      "phpVersion": "5.5",
-      "fsId": "fs-5286491b"
+        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "action": "syncEfsToS3",
+        "serviceType": "syncS3ToS3",
+        "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "phpVersion": "5.5",
+        "fsId": "fs-5286491b"
     }
     instance = ServiceBuilder(app_config, query)
     context = instance.build_context_sync_efs_to_s3()
@@ -90,10 +98,12 @@ def test_build_context_sync_efs_to_s3():
 
 
 def test_build_context_sync_s3_to_s3():
-
+    '''
+    Test building context of syhcrhonizing from s3 to s3
+    '''
     test_site_item = {
         "access_url": "tender-ride7316.on.getshifter.io",
-        "cf_id":"E2XDOVHUH57BXZ",
+        "cf_id": "E2XDOVHUH57BXZ",
         "cf_url": "dw5aj9smo4km0.cloudfront.net",
         "cname_status": "ready",
         "efs_id": "fs-2308c16a",
@@ -106,19 +116,14 @@ def test_build_context_sync_s3_to_s3():
     }
     ServiceBuilder._ServiceBuilder__fetchDynamoSiteItem = Mock(return_value=test_site_item)
 
-
     '''
     image_tag not specfied, it generates context for using latest image.
     '''
     query = {
-      "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-      "action": "syncS3ToS3",
-      "serviceType": "syncS3ToS3",
-      "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-      "phpVersion": "5.5",
-      "fsId": "fs-5286491b",
-      "s3_bucket":"from.getshifter.io",
-      "s3_region":"from-us-east-1"
+        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "action": "syncS3ToS3",
+        "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "s3_bucket": "from.getshifter.io",
     }
 
     instance = ServiceBuilder(app_config, query)
@@ -131,9 +136,8 @@ def test_build_context_sync_s3_to_s3():
         'envvars': [
             {'envvar': 'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA'},
             {'envvar': 'AWS_SECRET_ACCESS_KEY=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'},
-            {'envvar': 'S3_REGION_FROM=from-us-east-1'},
+            {'envvar': 'S3_REGION=us-east-1'},
             {'envvar': 'S3_BUCKET_FROM=from.getshifter.io'},
-            {'envvar': 'S3_REGION_TO=to-us-east-1'},
             {'envvar': 'S3_BUCKET_TO=to.getshifter.io'},
             {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SERVICE_NAME=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
@@ -142,20 +146,15 @@ def test_build_context_sync_s3_to_s3():
         ]
     }
 
-
     '''
     Image_tag specfied, it generates context for using specfied image.
     '''
     query = {
-      "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-      "action": "syncS3ToS3",
-      "serviceType": "syncS3ToS3",
-      "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-      "phpVersion": "5.5",
-      "fsId": "fs-5286491b",
-      "s3_bucket": "from.getshifter.io",
-      "s3_region": "from-us-east-1",
-      "image_tag": "specified-image"
+        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "action": "syncS3ToS3",
+        "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "s3_bucket": "from.getshifter.io",
+        "image_tag": "specified-image"
     }
 
     instance = ServiceBuilder(app_config, query)
@@ -168,9 +167,8 @@ def test_build_context_sync_s3_to_s3():
         'envvars': [
             {'envvar': 'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA'},
             {'envvar': 'AWS_SECRET_ACCESS_KEY=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'},
-            {'envvar': 'S3_REGION_FROM=from-us-east-1'},
+            {'envvar': 'S3_REGION=us-east-1'},
             {'envvar': 'S3_BUCKET_FROM=from.getshifter.io'},
-            {'envvar': 'S3_REGION_TO=to-us-east-1'},
             {'envvar': 'S3_BUCKET_TO=to.getshifter.io'},
             {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SERVICE_NAME=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
