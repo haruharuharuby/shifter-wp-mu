@@ -1,0 +1,10 @@
+**/**
+\.*
+!config/
+!mylibs/
+!service_specs/
+!network_specs/
+!test/
+!\.flake8
+!lambda_function.py
+!requirement.txt
