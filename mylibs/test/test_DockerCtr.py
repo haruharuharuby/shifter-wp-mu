@@ -3,7 +3,6 @@
 Test DockerCtr Class
 '''
 
-from __future__ import print_function
 from unittest.mock import Mock
 import yaml
 from ..DockerCtr import DockerCtr

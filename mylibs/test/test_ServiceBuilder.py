@@ -3,7 +3,6 @@
 Testing ServiceBuilder Class
 '''
 
-from __future__ import print_function
 from unittest.mock import Mock
 import yaml
 from ..ServiceBuilder import ServiceBuilder
