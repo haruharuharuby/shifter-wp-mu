@@ -18,14 +18,12 @@ def test_ServiceBuilder():
     ServiceBuilder._ServiceBuilder__fetchDynamoSiteItem = Mock()
 
     '''
-    SiteID doesn't specified. site_item attribute doesn't generates.
+    SiteId specified. site_item attribute generates.
     '''
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "syncS3ToS3",
-        "serviceType": "syncS3ToS3",
-        "phpVersion": "5.5",
-        "fsId": "fs-5286491b"
+        "serviceType": "syncS3ToS3"
     }
     result = ServiceBuilder(app_config, query)
     print(result)
@@ -33,13 +31,11 @@ def test_ServiceBuilder():
     assert result.site_item
 
     '''
-    SiteId specified. site_item attribute generates.
+    SiteID doesn't specified. site_item attribute doesn't generates.
     '''
     query = {
         "action": "syncS3ToS3",
-        "serviceType": "syncS3ToS3",
-        "phpVersion": "5.5",
-        "fsId": "fs-5286491b"
+        "serviceType": "syncS3ToS3"
     }
     result = ServiceBuilder(app_config, query)
     print(result)
@@ -52,9 +48,7 @@ def test_ServiceBuilder():
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "invalidAction",
-        "serviceType": "syncS3ToS3",
-        "phpVersion": "5.5",
-        "fsId": "fs-5286491b"
+        "serviceType": "syncS3ToS3"
     }
     result = ServiceBuilder(app_config, query)
     print(result)
@@ -86,9 +80,7 @@ def test_build_context_sync_efs_to_s3():
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "syncEfsToS3",
         "serviceType": "syncS3ToS3",
-        "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "phpVersion": "5.5",
-        "fsId": "fs-5286491b"
+        "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd"
     }
     instance = ServiceBuilder(app_config, query)
     context = instance.build_context_sync_efs_to_s3()
