@@ -266,7 +266,6 @@ class ServiceBuilder:
         logger.info(context)
         return context
 
-
     def build_context_sync_s3_to_s3(self):
         context = self.__set_service_context()
         tag = self.__get_image_tag_or_latest()
@@ -294,10 +293,8 @@ class ServiceBuilder:
         logger.info(context)
         return context
 
-
     def __get_image_tag_or_latest(self):
         return self.query['image_tag'] if 'image_tag' in self.query else 'latest'
-
 
     def __set_service_context(self):
         return {

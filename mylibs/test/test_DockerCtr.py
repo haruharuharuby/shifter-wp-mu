@@ -85,7 +85,7 @@ def test__getCreateImageBody():
                     'awslogs-group': 'dockerlog-services',
                     'awslogs-region': 'us-east-1',
                     'awslogs-stream': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd-s3tos3'
-                    }
+                }
             },
             'Placement': {
                 'Constraints': [
