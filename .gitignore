@@ -101,7 +101,6 @@ ENV/
 
 test.py
 .envrc
-test/
 *.ipynb
 node_modules/
 /vendored/

@@ -265,3 +265,39 @@ class ServiceBuilder:
 
         logger.info(context)
         return context
+
+    def build_context_sync_s3_to_s3(self):
+        context = self.__set_service_context()
+        tag = self.__get_image_tag_or_latest()
+
+        context['image_string'] = ':'.join([self.app_config['docker_images']['sync-s3-to-s3'], tag])
+
+        # Build Env
+        env = [
+            "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
+            "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
+            "S3_REGION=" + self.app_config['s3_settings']['region'],
+            "S3_BUCKET_FROM=" + self.query['s3_bucket'],
+            "S3_BUCKET_TO=" + self.site_item['s3_bucket'],
+            "SITE_ID=" + self.query['siteId'],
+            "SERVICE_NAME=" + self.query['sessionid'],
+            "CF_DIST_ID=" + self.site_item['cf_id']
+        ]
+
+        if 'artifactId' in self.query:
+            env.append('ARTIFACT_ID=' + str(self.query['artifactId']))
+
+        env.append('SNS_TOPIC_ARN=' + self.app_config['sns_arns']['to_delete'])
+        context['envvars'] = self.__prepare_envs_for_pystache(env)
+
+        logger.info(context)
+        return context
+
+    def __get_image_tag_or_latest(self):
+        return self.query['image_tag'] if 'image_tag' in self.query else 'latest'
+
+    def __set_service_context(self):
+        return {
+            'service_name': self.query['sessionid'],
+            'service_id': self.query['siteId']
+        }

@@ -42,6 +42,7 @@ def lambda_handler(event, context):
         'bulkDelete',
         'createNewService',
         'syncEfsToS3',
+        'syncS3ToS3',
         'deletePublicContents',
         'deleteTheService',
         'deleteServiceByServiceId',
@@ -96,6 +97,8 @@ def lambda_handler(event, context):
         if (event["action"] == "createNewService"):
             result = ctr.createNewService()
         elif (event["action"] == 'syncEfsToS3'):
+            result = ctr.createNewService()
+        elif (event["action"] == 'syncS3ToS3'):
             result = ctr.createNewService()
         elif (event["action"] == 'deployToNetlify'):
             result = ctr.createNewService()

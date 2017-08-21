@@ -281,13 +281,14 @@ class DockerCtr:
 
         if query["action"] in ['syncEfsToS3', 'deletePublicContents']:
             service_spec = builder.buildServiceDef('sync-efs-to-s3')
+        elif (query["action"] == 'syncS3ToS3'):
+            service_spec = builder.buildServiceDef('sync-s3-to-s3')
         elif (query["action"] == 'deployToNetlify'):
             service_spec = builder.buildServiceDef('docker-s3to-netlify')
         elif (query["action"] == 'createNewService'):
             service_spec = builder.buildServiceDef('wordpress-worker')
         elif (query["action"] == 'digSiteDirs'):
             service_spec = builder.buildServiceDef('docker-efs-dig-dirs')
-
         return service_spec
 
     def __buildInfoByAction(self, query):
