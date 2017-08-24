@@ -110,9 +110,6 @@ def test__deleteNetworkIfExist():
     def side_effect_raise_exception():
         raise ValueError('this is test exception')
 
-    '''
-    No retry if removing docker_session succeeded.
-    '''
     ServiceBuilder._ServiceBuilder__loadServiceTemplate = Mock(return_value=(open('../service_specs/sync-s3-to-s3.yml', 'r').read()))
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
@@ -121,13 +118,16 @@ def test__deleteNetworkIfExist():
         "serviceId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd"
     }
 
+    '''
+    No retry if removing docker_session succeeded(204).
+    '''
     svc = {'status': 200, 'DockerUrl': "test:12345"}
     print(query)
     instance = DockerCtr(app_config, query)
-    instance.docker_session.delete = Mock(return_value=DummyResponse())
+    instance.docker_session.delete = Mock(return_value=DummyResponse(204))
     result = instance._DockerCtr__deleteNetworkIfExist(svc)
     print(result)
-    assert result.status_code == 200
+    assert result.status_code == 204
 
     '''
     Retry default(3) times per 2 sec. when removing docker_session is failed by not 200.
@@ -135,10 +135,10 @@ def test__deleteNetworkIfExist():
     svc = {'status': 200, 'DockerUrl': "test:12345"}
     print(query)
     instance = DockerCtr(app_config, query)
-    instance.docker_session.delete = Mock(return_value=DummyResponse(400))
+    instance.docker_session.delete = Mock(return_value=DummyResponse(403))
     result = instance._DockerCtr__deleteNetworkIfExist(svc)
     print(result)
-    assert result.status_code != 200
+    assert result.status_code != 204
 
     '''
     Retry default(3) times per 2 sec. when removing docker_session is failed by exception.
