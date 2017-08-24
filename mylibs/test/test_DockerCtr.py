@@ -3,6 +3,7 @@
 Test DockerCtr Class
 '''
 
+import requests
 from unittest.mock import Mock
 import yaml
 from ..DockerCtr import DockerCtr
@@ -28,6 +29,11 @@ test_site_item = {
     "stock_state": "ready"
 }
 ServiceBuilder._ServiceBuilder__fetchDynamoSiteItem = Mock(return_value=test_site_item)
+
+
+class DummyResponse():
+    def __init__(self, status_code=200):
+        self.status_code = status_code
 
 
 def test_DockerCtr():
@@ -97,3 +103,61 @@ def test__getCreateImageBody():
             }
         }
     }
+
+
+def test__deleteNetworkIfExist():
+
+    def side_effect_raise_exception():
+        raise ValueError('this is test exception')
+
+    ServiceBuilder._ServiceBuilder__loadServiceTemplate = Mock(return_value=(open('../service_specs/sync-s3-to-s3.yml', 'r').read()))
+    query = {
+        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "sessionid": "5d5a3d8d-b578-9da9-2126-4bdc13fcaccd",
+        "action": "deleteServiceByServiceId",
+        "serviceId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd"
+    }
+
+    '''
+    No retry if removing docker_session succeeded(204).
+    '''
+    svc = {'status': 200, 'DockerUrl': "test:12345"}
+    print(query)
+    instance = DockerCtr(app_config, query)
+    instance.docker_session.delete = Mock(return_value=DummyResponse(204))
+    result = instance._DockerCtr__deleteNetworkIfExist(svc)
+    print(result)
+    assert result.status_code == 204
+
+    '''
+    Retry default(3) times per 2 sec. when removing docker_session is failed by not 200.
+    '''
+    svc = {'status': 200, 'DockerUrl': "test:12345"}
+    print(query)
+    instance = DockerCtr(app_config, query)
+    instance.docker_session.delete = Mock(return_value=DummyResponse(403))
+    result = instance._DockerCtr__deleteNetworkIfExist(svc)
+    print(result)
+    assert result.status_code != 204
+
+    '''
+    Retry default(3) times per 2 sec. when removing docker_session is failed by exception.
+    '''
+    svc = {'status': 200, 'DockerUrl': "test:12345"}
+    print(query)
+    instance = DockerCtr(app_config, query)
+    instance.docker_session.delete = Mock(side_effect=side_effect_raise_exception)
+    result = instance._DockerCtr__deleteNetworkIfExist(svc)
+    print(result)
+    assert not result
+
+    '''
+    Retry 4 times per 2 sec. when removing docker_session is failed by exception.
+    '''
+    svc = {'status': 200, 'DockerUrl': "test:12345"}
+    print(query)
+    instance = DockerCtr(app_config, query)
+    instance.docker_session.delete = Mock(side_effect=side_effect_raise_exception)
+    result = instance._DockerCtr__deleteNetworkIfExist(svc, trial=4)
+    print(result)
+    assert not result

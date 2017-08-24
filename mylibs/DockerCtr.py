@@ -18,6 +18,9 @@ from .ServiceBuilder import *
 from .ResponseBuilder import *
 from .S3 import *
 
+import rollbar
+
+rollbar.init(os.getenv("ROLLBAR_TOKEN"), os.getenv("SHIFTER_ENV", "development"))
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -107,19 +110,27 @@ class DockerCtr:
         res = self.__createNewService(self.event)
         return res
 
-    def __deleteNetworkIfExist(self, svc):
+    def __deleteNetworkIfExist(self, svc, trial=3):
         if 'DockerUrl' in svc:
             port = svc['DockerUrl'].split(':')[-1]
-            try:
-                logger.info("deleting network for " + str(port))
-                res = self.docker_session.delete(self.dockerapi_config['endpoint'] + 'networks/shifter_net_user-' + str(port), timeout=self.timeout_opts)
-                logger.info(res.status_code)
-            except:
-                logger.error("Error occurred during builds Service definition: " + str(type(e)))
-                logger.error(traceback.format_exc())
+            res = None
+            for times in range(trial):
+                try:
+                    logger.info("deleting network for " + str(port))
+                    res = self.docker_session.delete(self.dockerapi_config['endpoint'] + 'networks/shifter_net_user-' + str(port), timeout=self.timeout_opts)
+                    logger.info(res.status_code)
+                    if res.status_code == 200:
+                        break
+                except Exception as e:
+                    logger.error("Error occurred during builds Service definition: " + str(type(e)))
+                    logger.error(traceback.format_exc())
+                time.sleep(2.0)
+
+            if not res or res.status_code != 200:
+                rollbar.report_exc_info()
 
         # ここでエラーがでてもとりあえず無視してよい
-        return None
+        return res
 
     def deleteTheService(self, siteId):
         """ 専用OverlayNetWorkを削除するため、まずGetする """
