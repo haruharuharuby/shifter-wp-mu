@@ -111,22 +111,22 @@ class DockerCtr:
         return res
 
     def __deleteNetworkIfExist(self, svc, trial=3):
+        res = None
         if 'DockerUrl' in svc:
             port = svc['DockerUrl'].split(':')[-1]
-            res = None
             for times in range(trial):
                 try:
                     logger.info("deleting network for " + str(port))
                     res = self.docker_session.delete(self.dockerapi_config['endpoint'] + 'networks/shifter_net_user-' + str(port), timeout=self.timeout_opts)
                     logger.info(res.status_code)
-                    if res.status_code == 200:
+                    if res.status_code == 204:
                         break
                 except Exception as e:
                     logger.error("Error occurred during builds Service definition: " + str(type(e)))
                     logger.error(traceback.format_exc())
                 time.sleep(2.0)
 
-            if not res or res.status_code != 200:
+            if not res or res.status_code != 204:
                 rollbar.report_exc_info()
 
         # ここでエラーがでてもとりあえず無視してよい
