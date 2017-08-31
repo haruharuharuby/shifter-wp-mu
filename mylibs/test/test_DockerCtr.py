@@ -9,7 +9,7 @@ import yaml
 from ..DockerCtr import DockerCtr
 from ..ServiceBuilder import ServiceBuilder
 
-app_config = yaml.load(open('../config/appconfig.yml', 'r'))['development']
+app_config = yaml.load(open('./config/appconfig.yml', 'r'))['development']
 test_event_base = {
     "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
     "sessionid": "5d5a3d8d-b578-9da9-2126-4bdc13fcaccd"
@@ -49,13 +49,13 @@ def test__getCreateImageBody():
     '''
     Pass to syncS3ToS3, return s3tos3 service_spec
     '''
-    ServiceBuilder._ServiceBuilder__loadServiceTemplate = Mock(return_value=(open('../service_specs/sync-s3-to-s3.yml', 'r').read()))
+    ServiceBuilder._ServiceBuilder__loadServiceTemplate = Mock(return_value=(open('./service_specs/sync-s3-to-s3.yml', 'r').read()))
 
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "sessionid": "5d5a3d8d-b578-9da9-2126-4bdc13fcaccd",
         "action": "syncS3ToS3",
-        "s3_bucket": "from.getshifter.io"
+        "artifactId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd"
     }
     print(query)
 
@@ -73,11 +73,12 @@ def test__getCreateImageBody():
                     'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA',
                     'AWS_SECRET_ACCESS_KEY=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',
                     'S3_REGION=us-east-1',
-                    'S3_BUCKET_FROM=from.getshifter.io',
+                    'S3_BUCKET_FROM=on.getshifter.io',
                     'S3_BUCKET_TO=to.getshifter.io',
                     'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
                     'SERVICE_NAME=' + str(sessionid),
                     'CF_DIST_ID=E2XDOVHUH57BXZ',
+                    'ARTIFACT_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
                     'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'
                 ],
                 'Image': '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3tos3:latest',
@@ -110,7 +111,7 @@ def test__deleteNetworkIfExist():
     def side_effect_raise_exception():
         raise ValueError('this is test exception')
 
-    ServiceBuilder._ServiceBuilder__loadServiceTemplate = Mock(return_value=(open('../service_specs/sync-s3-to-s3.yml', 'r').read()))
+    ServiceBuilder._ServiceBuilder__loadServiceTemplate = Mock(return_value=(open('./service_specs/sync-s3-to-s3.yml', 'r').read()))
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "sessionid": "5d5a3d8d-b578-9da9-2126-4bdc13fcaccd",

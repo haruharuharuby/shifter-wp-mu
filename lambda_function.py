@@ -29,25 +29,26 @@ logger.setLevel(logging.INFO)
 # logger.setLevel(logging.DEBUG)
 
 
+AVAIL_ACTIONS = {
+    'test': [],
+    'getTheService': [],
+    'digSiteDirs': [],
+    'bulkDelete': [],
+    'createNewService': [],
+    'syncEfsToS3': [],
+    'syncS3ToS3': ['sessionid', 'artifactId', 'siteId', 'action'],
+    'deletePublicContents': [],
+    'deleteTheService': [],
+    'deleteServiceByServiceId': [],
+    'deployToNetlify': []
+}
+
+
 def lambda_handler(event, context):
     """
     returns JSON String.
       - Hash of status(int), message(str), and informations for other Apps.
     """
-
-    AVAIL_ACTIONS = [
-        'test',
-        'getTheService',
-        'digSiteDirs',
-        'bulkDelete',
-        'createNewService',
-        'syncEfsToS3',
-        'syncS3ToS3',
-        'deletePublicContents',
-        'deleteTheService',
-        'deleteServiceByServiceId',
-        'deployToNetlify'
-    ]
 
     # Load Configrations
     config_base = yaml.load(open('./config/appconfig.yml', 'r'))
@@ -57,12 +58,8 @@ def lambda_handler(event, context):
         app_config = config_base['development']
 
     try:
-        if 'action' not in event:
-            raise ShifterRequestError(info="params 'action' not found.")
 
-        if event['action'] not in AVAIL_ACTIONS:
-            raise_message = event['action'] + ' is unregistered action type'
-            raise ShifterRequestError(info=raise_message)
+        validate_arguments(event)
 
         logger.info('invoke: ' + event["action"])
         ctr = DockerCtr(app_config, event)
@@ -76,7 +73,7 @@ def lambda_handler(event, context):
         == INFO: These methods are returns `wrapped` docker response with Shifter context.
         """
         if (event["action"] == "test"):
-            return test(event)
+            return do_test(event)
         elif (event["action"] == "getTheService"):
             return ctr.getTheService(event['siteId'])
         elif (event["action"] == 'digSiteDirs'):
@@ -142,5 +139,29 @@ def lambda_handler(event, context):
     return result
 
 
-def test(event):
+def validate_arguments(event):
+    if 'action' not in event:
+        raise ShifterRequestError(info="params 'action' not found.")
+
+    if event['action'] not in AVAIL_ACTIONS.keys():
+        raise_message = event['action'] + ' is unregistered action type'
+        raise ShifterRequestError(info=raise_message)
+
+    expect_args = AVAIL_ACTIONS[event['action']]
+    actual_args = list(event)
+
+    print(expect_args)
+    print(actual_args)
+
+    if not expect_args:
+        return True
+
+    if not all([x in actual_args for x in expect_args]):
+        raise_message = 'Invalid arguments expect: %(expect)s, actual: %(actual)s' % {'expect': expect_args, 'actual': actual_args}
+        raise ShifterRequestError(info=raise_message)
+
+    return True
+
+
+def do_test(event):
     return 'this is test'
