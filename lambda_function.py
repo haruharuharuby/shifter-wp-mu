@@ -28,19 +28,19 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 # logger.setLevel(logging.DEBUG)
 
-
+# 'action_name': [required parameters except of 'action']
 AVAIL_ACTIONS = {
     'test': [],
-    'getTheService': [],
-    'digSiteDirs': [],
-    'bulkDelete': [],
-    'createNewService': [],
-    'syncEfsToS3': [],
-    'syncS3ToS3': ['sessionid', 'artifactId', 'siteId', 'action'],
-    'deletePublicContents': [],
-    'deleteTheService': [],
-    'deleteServiceByServiceId': [],
-    'deployToNetlify': []
+    'getTheService': ['siteId'],
+    'digSiteDirs': ['sessionid', 'fsId'],
+    'bulkDelete': ['serviceIds'],
+    'createNewService': ['siteId'],
+    'syncEfsToS3': ['siteId', 'sessionid'],
+    'syncS3ToS3': ['siteId', 'sessionid', 'artifactId'],
+    'deletePublicContents': ['siteId'],
+    'deleteTheService': ['siteId'],
+    'deleteServiceByServiceId': ['siteId', 'serviceId'],
+    'deployToNetlify': ['siteId', 'sessionid', 'nf_siteID', 'nf_token']
 }
 
 
@@ -77,19 +77,9 @@ def lambda_handler(event, context):
         elif (event["action"] == "getTheService"):
             return ctr.getTheService(event['siteId'])
         elif (event["action"] == 'digSiteDirs'):
-            if 'fsId' not in event:
-                raise ShifterRequestError(info="params 'fsId' not found.")
             return ctr.createNewService()
         elif (event["action"] == 'bulkDelete'):
-            if 'serviceIds' not in event:
-                raise ShifterRequestError(info="params 'serviceIds' not found.")
-            if not isinstance(event['serviceIds'], list):
-                raise ShifterRequestError(info="params 'serviceIds' must be list.")
             return ctr.bulkDelete()
-
-        # ここからsiteId必須
-        if 'siteId' not in event:
-            raise ShifterRequestError(info="params 'siteId' not found.")
 
         if (event["action"] == "createNewService"):
             result = ctr.createNewService()
@@ -104,8 +94,6 @@ def lambda_handler(event, context):
         elif (event["action"] == "deleteTheService"):
             result = ctr.deleteTheService(event['siteId'])
         elif (event["action"] == 'deleteServiceByServiceId'):
-            if 'serviceId' not in event:
-                raise ShifterRequestError(info="params 'serviceId' not found.")
             result = ctr.deleteServiceByServiceId(event)
         else:
             # ここには来ないはずだけど一応。
@@ -114,26 +102,26 @@ def lambda_handler(event, context):
 
     except ShifterRequestError as e:
         return ResponseBuilder.buildResponse(
-                status=400,
-                message=e.info,
-                logs_to=event
+            status=400,
+            message=e.info,
+            logs_to=event
         )
     except (ShifterNoAvaliPorts,
             ShifterConfrictPublishPorts,
             ShifterConfrictNewService) as e:
         return ResponseBuilder.buildResponse(
-                status=e.exit_code,
-                message=e.info,
-                siteId=event['siteId'],
-                logs_to=event
+            status=e.exit_code,
+            message=e.info,
+            siteId=event['siteId'],
+            logs_to=event
         )
     except Exception as e:
         rollbar.report_exc_info()
         logger.exception("Error occurred during calls Docker API: " + str(type(e)))
         return ResponseBuilder.buildResponse(
-                status=500,
-                message='Error occurred during calls Backend Service.',
-                logs_to=event
+            status=500,
+            message='Error occurred during calls Backend Service.',
+            logs_to=event
         )
 
     return result
@@ -148,17 +136,19 @@ def validate_arguments(event):
         raise ShifterRequestError(info=raise_message)
 
     expect_args = AVAIL_ACTIONS[event['action']]
+    # python3.x から、dictのキー配列を取得するには、以下のように書く
     actual_args = list(event)
 
-    print(expect_args)
-    print(actual_args)
-
+    # チェック対象の引数がなければ通す
     if not expect_args:
         return True
 
     if not all([x in actual_args for x in expect_args]):
         raise_message = 'Invalid arguments expect: %(expect)s, actual: %(actual)s' % {'expect': expect_args, 'actual': actual_args}
         raise ShifterRequestError(info=raise_message)
+
+    if event['action'] == 'bulkDelete' and not isinstance(event['serviceIds'], list):
+        raise ShifterRequestError(info="params 'serviceIds' must be list.")
 
     return True
 
