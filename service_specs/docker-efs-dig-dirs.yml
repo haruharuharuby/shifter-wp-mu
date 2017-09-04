@@ -48,6 +48,13 @@ prod:
 
 development:
   <<: *default
+  TaskTemplate:
+    LogDriver:
+      Name: awslogs
+      Options:
+        awslogs-group: dockerlog-systems-development
+        awslogs-region: us-east-1
+        awslogs-stream: docker-efs-dig-dirs
 
 production:
   <<: *default

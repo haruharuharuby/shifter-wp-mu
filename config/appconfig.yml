@@ -40,6 +40,12 @@ prod:
 
 development:
   <<: *default
+  service_domain: appdev.getshifter.io
+  dockerapi:
+    endpoint: http://dockerapidev.sys.getshifter.io:8080/
+    endpoint_tls: https://dockerapidev.sys.getshifter.io:8443/
+    authuser: static
+    authpass: presspress
   dynamo_settings:
     site_table: Site-development
     db_table: UserDatabase2-dev

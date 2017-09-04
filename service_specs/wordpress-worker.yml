@@ -56,6 +56,13 @@ prod:
 
 development:
   <<: *default
+  TaskTemplate:
+    LogDriver:
+      Name: awslogs
+      Options:
+        awslogs-group: dockerlog-services-development
+        awslogs-region: us-east-1
+        awslogs-stream: {{ service_name }}
 
 production:
   <<: *default
