@@ -11,7 +11,7 @@ default: &default
   Networks:
   - Target: shifter_net_user-{{ publish_port1 }}
   Name: {{ service_name }}
-  TaskTemplate:
+  TaskTemplate: &default_task
     ContainerSpec:
       Env:
         {{#envvars}}
@@ -57,6 +57,7 @@ prod:
 development:
   <<: *default
   TaskTemplate:
+    <<: *default_task
     LogDriver:
       Name: awslogs
       Options:
