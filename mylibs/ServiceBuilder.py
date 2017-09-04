@@ -78,7 +78,7 @@ class ServiceBuilder:
         if 'SHIFTER_ENV' in os.environ.keys():
             service_spec = service_spec_base[os.environ['SHIFTER_ENV']]
         else:
-            service_spec = service_spec_base['dev']
+            service_spec = service_spec_base['development']
         return service_spec
 
     def __loadServiceTemplate(self, image_type):
