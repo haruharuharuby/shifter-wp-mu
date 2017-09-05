@@ -9,7 +9,6 @@ import yaml
 from lambda_function import *
 from mylibs.ShifterExceptions import *
 from mylibs.ServiceBuilder import ServiceBuilder
-from mylibs.DockerCtr import DockerCtr
 
 app_config = yaml.load(open('./config/appconfig.yml', 'r'))['development']
 test_event_base = {
@@ -33,6 +32,7 @@ test_site_item = {
 
 ServiceBuilder._ServiceBuilder__fetchDynamoSiteItem = Mock(return_value=test_site_item)
 ServiceBuilder._ServiceBuilder__loadServiceTemplate = Mock(return_value=(open('./service_specs/sync-s3-to-s3.yml', 'r').read()))
+
 
 def test_validate_arguments():
     query_base = {
