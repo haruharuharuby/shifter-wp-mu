@@ -88,7 +88,7 @@ def test__getCreateImageBody():
             },
             'LogDriver': {
                 'Name': 'awslogs', 'Options': {
-                    'awslogs-group': 'dockerlog-services',
+                    'awslogs-group': 'dockerlog-services-development',
                     'awslogs-region': 'us-east-1',
                     'awslogs-stream': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd-s3tos3'
                 }
