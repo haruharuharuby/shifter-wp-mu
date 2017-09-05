@@ -41,6 +41,8 @@ class S3:
             ExpiresIn=3600,
             HttpMethod='PUT'
         )
+        # create empty object
+        self.client.put_object(Body=''.encode('utf-8'), Bucket=self.notification_bucket, Key=notificationId)
         return result
 
     def createNotificationErrorUrl(self, notificationId):
