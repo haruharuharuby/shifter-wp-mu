@@ -5,7 +5,7 @@ default: &default
   Networks:
   - Target: shifter_net_user
   Name: {{ service_name }}
-  TaskTemplate:
+  TaskTemplate: &default_task
     ContainerSpec:
       Env:
         {{#envvars}}
@@ -48,6 +48,14 @@ prod:
 
 development:
   <<: *default
+  TaskTemplate:
+    <<: *default_task
+    LogDriver:
+      Name: awslogs
+      Options:
+        awslogs-group: dockerlog-systems-development
+        awslogs-region: us-east-1
+        awslogs-stream: docker-efs-dig-dirs
 
 production:
   <<: *default
