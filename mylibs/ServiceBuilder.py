@@ -180,23 +180,23 @@ class ServiceBuilder:
         # Build Env
         if self.query['action'] == 'syncEfsToS3':
             env = [
-                    "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
-                    "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
-                    "S3_REGION=" + self.site_item['s3_region'],
-                    "S3_BUCKET=" + self.site_item['s3_bucket'],
-                    "SITE_ID=" + self.query['siteId'],
-                    "SERVICE_NAME=" + self.query['sessionid']
+                "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
+                "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
+                "S3_REGION=" + self.site_item['s3_region'],
+                "S3_BUCKET=" + self.site_item['s3_bucket'],
+                "SITE_ID=" + self.query['siteId'],
+                "SERVICE_NAME=" + self.query['sessionid']
             ]
         elif self.query['action'] == 'deletePublicContents':
             env = [
-                    "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
-                    "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
-                    "S3_REGION=" + self.site_item['s3_region'],
-                    "S3_BUCKET=" + self.site_item['s3_bucket'],
-                    "SITE_ID=" + self.query['siteId'],
-                    "SERVICE_NAME=" + self.query['sessionid'],
-                    "DELETE_MODE=TRUE",
-                    "CF_DIST_ID=" + self.site_item['cf_id']
+                "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
+                "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
+                "S3_REGION=" + self.site_item['s3_region'],
+                "S3_BUCKET=" + self.site_item['s3_bucket'],
+                "SITE_ID=" + self.query['siteId'],
+                "SERVICE_NAME=" + self.query['sessionid'],
+                "DELETE_MODE=TRUE",
+                "CF_DIST_ID=" + self.site_item['cf_id']
             ]
 
         if 'artifactId' in self.query:
@@ -221,11 +221,11 @@ class ServiceBuilder:
 
         # Build Env
         env = [
-                "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['stock_manage']['access_key'],
-                "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['stock_manage']['secret_access_key'],
-                "EFS_ID=" + self.query['fsId'],
-                "SERVICE_NAME=" + self.query['sessionid'],
-                "DYNAMO_TABLE=" + self.app_config['dynamo_settings']['site_table']
+            "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['stock_manage']['access_key'],
+            "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['stock_manage']['secret_access_key'],
+            "EFS_ID=" + self.query['fsId'],
+            "SERVICE_NAME=" + self.query['sessionid'],
+            "DYNAMO_TABLE=" + self.app_config['dynamo_settings']['site_table']
         ]
 
         context['envvars'] = self.__prepare_envs_for_pystache(env)
@@ -246,12 +246,12 @@ class ServiceBuilder:
 
         # Build Env
         env = [
-                "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
-                "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
-                "SITE_ID=" + self.query['siteId'],
-                "SERVICE_NAME=" + self.query['sessionid'],
-                "NF_SITEID=" + self.query['nf_siteID'],
-                "NF_TOKEN=" + self.query['nf_token']
+            "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
+            "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
+            "SITE_ID=" + self.query['siteId'],
+            "SERVICE_NAME=" + self.query['sessionid'],
+            "NF_SITEID=" + self.query['nf_siteID'],
+            "NF_TOKEN=" + self.query['nf_token']
         ]
 
         if 'nf_draft' in self.query:
@@ -277,15 +277,13 @@ class ServiceBuilder:
             "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
             "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
             "S3_REGION=" + self.app_config['s3_settings']['region'],
-            "S3_BUCKET_FROM=" + self.query['s3_bucket'],
+            "S3_BUCKET_FROM=" + self.app_config['s3_settings']['artifacts_bucket'],
             "S3_BUCKET_TO=" + self.site_item['s3_bucket'],
             "SITE_ID=" + self.query['siteId'],
             "SERVICE_NAME=" + self.query['sessionid'],
-            "CF_DIST_ID=" + self.site_item['cf_id']
+            "CF_DIST_ID=" + self.site_item['cf_id'],
+            "ARTIFACT_ID=" + str(self.query['artifactId'])
         ]
-
-        if 'artifactId' in self.query:
-            env.append('ARTIFACT_ID=' + str(self.query['artifactId']))
 
         env.append('SNS_TOPIC_ARN=' + self.app_config['sns_arns']['to_delete'])
         context['envvars'] = self.__prepare_envs_for_pystache(env)

@@ -28,26 +28,27 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 # logger.setLevel(logging.DEBUG)
 
+# 'action_name': [required parameters except of 'action']
+AVAIL_ACTIONS = {
+    'test': [],
+    'getTheService': ['siteId'],
+    'digSiteDirs': ['sessionid', 'fsId'],
+    'bulkDelete': ['serviceIds'],
+    'createNewService': ['siteId'],
+    'syncEfsToS3': ['siteId', 'sessionid'],
+    'syncS3ToS3': ['siteId', 'sessionid', 'artifactId'],
+    'deletePublicContents': ['siteId'],
+    'deleteTheService': ['siteId'],
+    'deleteServiceByServiceId': ['siteId', 'serviceId'],
+    'deployToNetlify': ['siteId', 'sessionid', 'nf_siteID', 'nf_token']
+}
+
 
 def lambda_handler(event, context):
     """
     returns JSON String.
       - Hash of status(int), message(str), and informations for other Apps.
     """
-
-    AVAIL_ACTIONS = [
-        'test',
-        'getTheService',
-        'digSiteDirs',
-        'bulkDelete',
-        'createNewService',
-        'syncEfsToS3',
-        'syncS3ToS3',
-        'deletePublicContents',
-        'deleteTheService',
-        'deleteServiceByServiceId',
-        'deployToNetlify'
-    ]
 
     # Load Configrations
     config_base = yaml.load(open('./config/appconfig.yml', 'r'))
@@ -57,12 +58,8 @@ def lambda_handler(event, context):
         app_config = config_base['development']
 
     try:
-        if 'action' not in event:
-            raise ShifterRequestError(info="params 'action' not found.")
 
-        if event['action'] not in AVAIL_ACTIONS:
-            raise_message = event['action'] + ' is unregistered action type'
-            raise ShifterRequestError(info=raise_message)
+        validate_arguments(event)
 
         logger.info('invoke: ' + event["action"])
         ctr = DockerCtr(app_config, event)
@@ -76,23 +73,13 @@ def lambda_handler(event, context):
         == INFO: These methods are returns `wrapped` docker response with Shifter context.
         """
         if (event["action"] == "test"):
-            return test(event)
+            return do_test(event)
         elif (event["action"] == "getTheService"):
             return ctr.getTheService(event['siteId'])
         elif (event["action"] == 'digSiteDirs'):
-            if 'fsId' not in event:
-                raise ShifterRequestError(info="params 'fsId' not found.")
             return ctr.createNewService()
         elif (event["action"] == 'bulkDelete'):
-            if 'serviceIds' not in event:
-                raise ShifterRequestError(info="params 'serviceIds' not found.")
-            if not isinstance(event['serviceIds'], list):
-                raise ShifterRequestError(info="params 'serviceIds' must be list.")
             return ctr.bulkDelete()
-
-        # ここからsiteId必須
-        if 'siteId' not in event:
-            raise ShifterRequestError(info="params 'siteId' not found.")
 
         if (event["action"] == "createNewService"):
             result = ctr.createNewService()
@@ -107,8 +94,6 @@ def lambda_handler(event, context):
         elif (event["action"] == "deleteTheService"):
             result = ctr.deleteTheService(event['siteId'])
         elif (event["action"] == 'deleteServiceByServiceId'):
-            if 'serviceId' not in event:
-                raise ShifterRequestError(info="params 'serviceId' not found.")
             result = ctr.deleteServiceByServiceId(event)
         else:
             # ここには来ないはずだけど一応。
@@ -117,30 +102,56 @@ def lambda_handler(event, context):
 
     except ShifterRequestError as e:
         return ResponseBuilder.buildResponse(
-                status=400,
-                message=e.info,
-                logs_to=event
+            status=400,
+            message=e.info,
+            logs_to=event
         )
     except (ShifterNoAvaliPorts,
             ShifterConfrictPublishPorts,
             ShifterConfrictNewService) as e:
         return ResponseBuilder.buildResponse(
-                status=e.exit_code,
-                message=e.info,
-                siteId=event['siteId'],
-                logs_to=event
+            status=e.exit_code,
+            message=e.info,
+            siteId=event['siteId'],
+            logs_to=event
         )
     except Exception as e:
         rollbar.report_exc_info()
         logger.exception("Error occurred during calls Docker API: " + str(type(e)))
         return ResponseBuilder.buildResponse(
-                status=500,
-                message='Error occurred during calls Backend Service.',
-                logs_to=event
+            status=500,
+            message='Error occurred during calls Backend Service.',
+            logs_to=event
         )
 
     return result
 
 
-def test(event):
+def validate_arguments(event):
+    if 'action' not in event:
+        raise ShifterRequestError(info="params 'action' not found.")
+
+    if event['action'] not in AVAIL_ACTIONS.keys():
+        raise_message = event['action'] + ' is unregistered action type'
+        raise ShifterRequestError(info=raise_message)
+
+    expect_args = AVAIL_ACTIONS[event['action']]
+    # python3.x から、dictのキー配列を取得するには、以下のように書く
+    actual_args = list(event)
+
+    # チェック対象の引数がなければ通す
+    if not expect_args:
+        return True
+
+    if not all([x in actual_args for x in expect_args]):
+        raise_message = 'Invalid arguments expect: %(expect)s, actual: %(actual)s' % {'expect': expect_args, 'actual': actual_args}
+        raise ShifterRequestError(info=raise_message)
+
+    if event['action'] == 'bulkDelete' and not isinstance(event['serviceIds'], list):
+        raise ShifterRequestError(info="params 'serviceIds' must be list.")
+
+    return True
+
+
+def do_test(event):
     return 'this is test'
