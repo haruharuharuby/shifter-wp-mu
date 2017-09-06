@@ -72,33 +72,33 @@ def lambda_handler(event, context):
         """
         == INFO: These methods are returns `wrapped` docker response with Shifter context.
         """
-        if (event["action"] == "test"):
-            return do_test(event)
-        elif (event["action"] == "getTheService"):
-            return ctr.getTheService(event['siteId'])
-        elif (event["action"] == 'digSiteDirs'):
-            return ctr.createNewService()
-        elif (event["action"] == 'bulkDelete'):
-            return ctr.bulkDelete()
+        docker_actions = {
+            'test': {'invoke': do_test, 'args': event},
+            'getTheService': {'invoke': ctr.getTheService, 'args': event['siteId']},
+            'digSiteDirs': {'invoke': ctr.createNewService},
+            'bulkDelete': {'invoke': ctr.bulkDelete},
+            'createNewService': {'invoke': ctr.createNewService},
+            'syncEfsToS3': {'invoke': ctr.createNewService},
+            'syncS3ToS3': {'invoke': ctr.createNewService},
+            'deployToNetlify': {'invoke': ctr.createNewService},
+            'deletePublicContents': {'invoke': ctr.createNewService},
+            'deleteTheService': {'invoke': ctr.deleteTheService, 'args': event['siteId']},
+            'deleteServiceByServiceId': {'invoke': ctr.deleteServiceByServiceId, 'args': event}
+        }
 
-        if (event["action"] == "createNewService"):
-            result = ctr.createNewService()
-        elif (event["action"] == 'syncEfsToS3'):
-            result = ctr.createNewService()
-        elif (event["action"] == 'syncS3ToS3'):
-            result = ctr.createNewService()
-        elif (event["action"] == 'deployToNetlify'):
-            result = ctr.createNewService()
-        elif (event["action"] == 'deletePublicContents'):
-            result = ctr.createNewService()
-        elif (event["action"] == "deleteTheService"):
-            result = ctr.deleteTheService(event['siteId'])
-        elif (event["action"] == 'deleteServiceByServiceId'):
-            result = ctr.deleteServiceByServiceId(event)
-        else:
+        action_name = event['action']
+
+        if action_name not in list(docker_actions):
             # ここには来ないはずだけど一応。
             raise_message = event['action'] + ' is unregistered action type'
             raise ShifterRequestError(info=raise_message)
+
+        docker_action = docker_actions[action_name]
+        if 'args' in docker_action:
+            args = docker_action['args']
+            result = docker_action['invoke'](args)
+        else:
+            result = docker_action['invoke']()
 
     except ShifterRequestError as e:
         return ResponseBuilder.buildResponse(
@@ -144,7 +144,7 @@ def validate_arguments(event):
         return True
 
     if not all([x in actual_args for x in expect_args]):
-        raise_message = 'Invalid arguments expect: %(expect)s, actual: %(actual)s' % {'expect': expect_args, 'actual': actual_args}
+        raise_message = 'Arguments are not enough. expect: %(expect)s, actual: %(actual)s' % {'expect': expect_args, 'actual': actual_args}
         raise ShifterRequestError(info=raise_message)
 
     if event['action'] == 'bulkDelete' and not isinstance(event['serviceIds'], list):
