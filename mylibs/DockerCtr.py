@@ -290,7 +290,7 @@ class DockerCtr:
         query['notificationId'] = self.notificationId
         builder = ServiceBuilder(self.app_config, query)
 
-        if query["action"] in ['syncEfsToS3', 'deletePublicContents']:
+        if query["action"] in ['syncEfsToS3', 'deletePublicContents', 'deleteArtifact']:
             service_spec = builder.buildServiceDef('sync-efs-to-s3')
         elif (query["action"] == 'syncS3ToS3'):
             service_spec = builder.buildServiceDef('sync-s3-to-s3')
