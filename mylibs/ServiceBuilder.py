@@ -166,38 +166,34 @@ class ServiceBuilder:
         return context
 
     def build_context_sync_efs_to_s3(self):
+        target_buckets = {
+            'syncEfsToS3': self.site_item['s3_bucket'],
+            'deletePublicContents': self.site_item['s3_bucket'],
+            'deleteArtifact': self.app_config['s3_settings']['artifacts_bucket']
+        }
+
+        delete_options = [
+            "DELETE_MODE=TRUE",
+            "CF_DIST_ID=" + self.site_item['cf_id']
+        ]
         context = {}
         context['service_name'] = self.query['sessionid']
         context['service_id'] = self.query['siteId']
-        if 'image_tag' in self.query:
-            tag = self.query['image_tag']
-        else:
-            tag = 'latest'
-        context['image_string'] = ':'.join([self.app_config['docker_images']['sync-efs-to-s3'], tag])
-
+        context['image_string'] = ':'.join([self.app_config['docker_images']['sync-efs-to-s3'], self.__get_image_tag_or_latest()])
         context['efs_point_root'] = self.site_item['efs_id'] + "/" + self.query['siteId']
 
         # Build Env
-        if self.query['action'] == 'syncEfsToS3':
-            env = [
-                "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
-                "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
-                "S3_REGION=" + self.site_item['s3_region'],
-                "S3_BUCKET=" + self.site_item['s3_bucket'],
-                "SITE_ID=" + self.query['siteId'],
-                "SERVICE_NAME=" + self.query['sessionid']
-            ]
-        elif self.query['action'] == 'deletePublicContents':
-            env = [
-                "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
-                "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
-                "S3_REGION=" + self.site_item['s3_region'],
-                "S3_BUCKET=" + self.site_item['s3_bucket'],
-                "SITE_ID=" + self.query['siteId'],
-                "SERVICE_NAME=" + self.query['sessionid'],
-                "DELETE_MODE=TRUE",
-                "CF_DIST_ID=" + self.site_item['cf_id']
-            ]
+        env = [
+            "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
+            "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
+            "S3_REGION=" + self.site_item['s3_region'],
+            "S3_BUCKET=" + target_buckets[self.query['action']],
+            "SITE_ID=" + self.query['siteId'],
+            "SERVICE_NAME=" + self.query['sessionid']
+        ]
+
+        if self.query['action'] in ['deletePublicContents', 'deleteArtifact']:
+            env.extend(delete_options)
 
         if 'artifactId' in self.query:
             env.append('ARTIFACT_ID=' + str(self.query['artifactId']))
