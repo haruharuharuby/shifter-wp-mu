@@ -84,7 +84,10 @@ class STSTokenGenerator:
                     Statement(
                         Effect=Allow,
                         Action=[Action("sns", "Publish")],
-                        Resource=["arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished"],
+                        Resource=[
+                            "arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished",
+                            "arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development"
+                        ],
                     ),
                 ],
              )
