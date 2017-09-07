@@ -83,7 +83,7 @@ def lambda_handler(event, context):
             'deployToNetlify': {'invoke': ctr.createNewService},
             'deletePublicContents': {'invoke': ctr.createNewService},
             'deleteTheService': {'invoke': ctr.deleteTheService, 'args': event['siteId']},
-            'deleteServiceByServiceId': {'invoke': ctr.deleteTheService, 'args': event}
+            'deleteServiceByServiceId': {'invoke': ctr.deleteServiceByServiceId, 'args': event}
         }
 
         action_name = event['action']
