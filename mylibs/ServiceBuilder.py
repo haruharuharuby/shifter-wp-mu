@@ -190,7 +190,8 @@ class ServiceBuilder:
             "S3_REGION=" + self.site_item['s3_region'],
             "S3_BUCKET=" + target_buckets[self.query['action']],
             "SITE_ID=" + self.query['siteId'],
-            "SERVICE_NAME=" + self.query['sessionid']
+            "SERVICE_NAME=" + self.query['sessionid'],
+            "DYNAMODB_TABLE=" + self.app_config['dynamo_settings']['site_table']
         ]
 
         if self.query['action'] in ['deletePublicContents', 'deleteArtifact']:

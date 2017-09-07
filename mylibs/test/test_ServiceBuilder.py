@@ -100,8 +100,9 @@ def test_build_context_sync_efs_to_s3():
             {'envvar': 'S3_BUCKET=to.getshifter.io'},
             {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SERVICE_NAME=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'DYNAMODB_TABLE=Site-development'},
             {'envvar': 'ARTIFACT_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
-            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'}
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
         ]
     }
 
@@ -126,10 +127,11 @@ def test_build_context_sync_efs_to_s3():
             {'envvar': 'S3_BUCKET=to.getshifter.io'},
             {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SERVICE_NAME=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'DYNAMODB_TABLE=Site-development'},
             {'envvar': 'DELETE_MODE=TRUE'},
             {'envvar': 'CF_DIST_ID=E2XDOVHUH57BXZ'},
             {'envvar': 'ARTIFACT_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
-            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'}
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
         ]
     }
 
@@ -154,10 +156,11 @@ def test_build_context_sync_efs_to_s3():
             {'envvar': 'S3_BUCKET=on.getshifter.io'},
             {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SERVICE_NAME=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'DYNAMODB_TABLE=Site-development'},
             {'envvar': 'DELETE_MODE=TRUE'},
             {'envvar': 'CF_DIST_ID=E2XDOVHUH57BXZ'},
             {'envvar': 'ARTIFACT_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
-            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'}
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
         ]
     }
 
