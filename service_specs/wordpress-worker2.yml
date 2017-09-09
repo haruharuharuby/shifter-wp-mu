@@ -42,12 +42,6 @@ default: &default
       Constraints:
         - "node.labels.type == efs-worker"
 
-dev:
-  <<: *default
-
-prod:
-  <<: *default
-
 development:
   <<: *default
   TaskTemplate:
