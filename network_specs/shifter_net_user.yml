@@ -8,13 +8,6 @@ default: &default
     Driver: default
   Internal: false
 
-
-dev:
-  <<: *default
-
-prod:
-  <<: *default
-
 development:
   <<: *default
 

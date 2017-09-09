@@ -33,12 +33,6 @@ default: &default
     docker-s3to-netlify: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3to-netlify
   mgword: SHA_1R1JBVEVBR0FJTg
 
-dev:
-  <<: *default
-
-prod:
-  <<: *default
-
 development:
   <<: *default
   service_domain: appdev.getshifter.io
