@@ -27,6 +27,7 @@ default: &default
     db_table: UserDatabase2
   docker_images:
     wordpress-worker: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-php-with-mysql
+    wordpress-worker2: 027273742350.dkr.ecr.us-east-1.amazonaws.com/shifter-base
     sync-s3-to-s3: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3tos3
     sync-efs-to-s3: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync
     docker-efs-dig-dirs: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-efs-dig-dirs
