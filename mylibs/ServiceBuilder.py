@@ -177,6 +177,7 @@ class ServiceBuilder:
             "DELETE_MODE=TRUE",
             "CF_DIST_ID=" + self.site_item['cf_id']
         ]
+
         context = {}
         context['service_name'] = self.query['sessionid']
         context['service_id'] = self.query['siteId']
@@ -271,19 +272,26 @@ class ServiceBuilder:
         context['image_string'] = ':'.join([self.app_config['docker_images']['sync-s3-to-s3'], tag])
 
         # Build Env
+        artifact_bucket = self.app_config['s3_settings']['artifacts_bucket'] + '/' + self.query['artifactId']
+        public_bucket = self.app_config['s3_settings']['public_bucket'] + '/' + self.query['siteId']
+        target_buckets = {
+            'createArtifact': {'from': public_bucket, 'to': artifact_bucket},
+            'restoreArtifact': {'from': artifact_bucket, 'to': public_bucket}
+        }
         env = [
             "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
             "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
             "S3_REGION=" + self.app_config['s3_settings']['region'],
-            "S3_BUCKET_FROM=" + self.app_config['s3_settings']['artifacts_bucket'],
-            "S3_BUCKET_TO=" + self.site_item['s3_bucket'],
-            "SITE_ID=" + self.query['siteId'],
+            "S3_FROM=" + target_buckets[self.query['action']]['from'],
+            "S3_TO=" + target_buckets[self.query['action']]['to'],
             "SERVICE_NAME=" + self.query['sessionid'],
-            "CF_DIST_ID=" + self.site_item['cf_id'],
-            "ARTIFACT_ID=" + str(self.query['artifactId'])
+            "ARTIFACT_ID=" + self.query['artifactId'],
+            "SNS_TOPIC_ARN=" + self.app_config['sns_arns']['to_delete']
         ]
 
-        env.append('SNS_TOPIC_ARN=' + self.app_config['sns_arns']['to_delete'])
+        if self.query['action'] == 'restoreArtifact':
+            env.append("CF_DIST_ID=" + self.site_item['cf_id'])
+
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
         logger.info(context)

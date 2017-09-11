@@ -55,7 +55,7 @@ def test__getCreateImageBody():
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "sessionid": "5d5a3d8d-b578-9da9-2126-4bdc13fcaccd",
-        "action": "syncS3ToS3",
+        "action": "createArtifact",
         "artifactId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd"
     }
     print(query)
@@ -74,11 +74,9 @@ def test__getCreateImageBody():
                     'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA',
                     'AWS_SECRET_ACCESS_KEY=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',
                     'S3_REGION=us-east-1',
-                    'S3_BUCKET_FROM=artifact.getshifter.io',
-                    'S3_BUCKET_TO=to.getshifter.io',
-                    'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+                    'S3_FROM=on.getshifter.io/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+                    'S3_TO=artifact.getshifter.io/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
                     'SERVICE_NAME=' + str(sessionid),
-                    'CF_DIST_ID=E2XDOVHUH57BXZ',
                     'ARTIFACT_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
                     'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'
                 ],
