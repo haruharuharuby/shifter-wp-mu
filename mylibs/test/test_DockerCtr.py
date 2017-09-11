@@ -74,7 +74,7 @@ def test__getCreateImageBody():
                     'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA',
                     'AWS_SECRET_ACCESS_KEY=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',
                     'S3_REGION=us-east-1',
-                    'S3_BUCKET_FROM=on.getshifter.io',
+                    'S3_BUCKET_FROM=artifact.getshifter.io',
                     'S3_BUCKET_TO=to.getshifter.io',
                     'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
                     'SERVICE_NAME=' + str(sessionid),

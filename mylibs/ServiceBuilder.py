@@ -168,8 +168,8 @@ class ServiceBuilder:
 
     def build_context_sync_efs_to_s3(self):
         target_buckets = {
-            'syncEfsToS3': self.site_item['s3_bucket'],
-            'deletePublicContents': self.site_item['s3_bucket'],
+            'syncEfsToS3': self.app_config['s3_settings']['public_bucket'],
+            'deletePublicContents': self.app_config['s3_settings']['public_bucket'],
             'deleteArtifact': self.app_config['s3_settings']['artifacts_bucket']
         }
 
