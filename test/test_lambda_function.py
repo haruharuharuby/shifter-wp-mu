@@ -90,7 +90,7 @@ def test_lambda_handler():
     }
     DockerCtr.bulkDelete = Mock(return_value=expect)
     DockerCtr.sessionid = Mock(return_value='test_session_id')
-    query = query_base.copy()
+    query = {}
     query['action'] = 'bulkDelete'
     query['serviceIds'] = ['5d5a3d8c-b578-9da9-2126-4bdc13fcaccd', '5d5a3d8c-b578-9da9-2126-4bdc13fcacce', '5d5a3d8c-b578-9da9-2126-4bdc13fcaccf']
     result = lambda_handler(query, {})
