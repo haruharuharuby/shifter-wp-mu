@@ -5,6 +5,7 @@ Test DockerCtr Class
 
 import requests
 from unittest.mock import Mock
+from unittest.mock import patch
 import yaml
 from ..DockerCtr import DockerCtr
 from ..ServiceBuilder import ServiceBuilder
@@ -106,8 +107,8 @@ def test__getCreateImageBody():
     }
 
 
+@patch('time.sleep', lambda x: None)
 def test__deleteNetworkIfExist():
-
     def side_effect_raise_exception():
         raise ValueError('this is test exception')
 
