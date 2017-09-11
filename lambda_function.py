@@ -71,10 +71,11 @@ def lambda_handler(event, context):
         # Dispatch APIs for Clients
         """
         == INFO: These methods are returns `wrapped` docker response with Shifter context.
+        == INFO: args should be lambda function because it needs to be evaluated lazily.
         """
         docker_actions = {
-            'test': {'invoke': do_test, 'args': event},
-            'getTheService': {'invoke': ctr.getTheService, 'args': event['siteId']},
+            'test': {'invoke': do_test, 'args': lambda: event},
+            'getTheService': {'invoke': ctr.getTheService, 'args': lambda: event['siteId']},
             'digSiteDirs': {'invoke': ctr.createNewService},
             'bulkDelete': {'invoke': ctr.bulkDelete},
             'createNewService': {'invoke': ctr.createNewService},
@@ -82,8 +83,8 @@ def lambda_handler(event, context):
             'syncS3ToS3': {'invoke': ctr.createNewService},
             'deployToNetlify': {'invoke': ctr.createNewService},
             'deletePublicContents': {'invoke': ctr.createNewService},
-            'deleteTheService': {'invoke': ctr.deleteTheService, 'args': event['siteId']},
-            'deleteServiceByServiceId': {'invoke': ctr.deleteServiceByServiceId, 'args': event}
+            'deleteTheService': {'invoke': ctr.deleteTheService, 'args': lambda: event['siteId']},
+            'deleteServiceByServiceId': {'invoke': ctr.deleteServiceByServiceId, 'args': lambda: event}
         }
 
         action_name = event['action']
@@ -95,7 +96,7 @@ def lambda_handler(event, context):
 
         docker_action = docker_actions[action_name]
         if 'args' in docker_action:
-            args = docker_action['args']
+            args = docker_action['args']()
             result = docker_action['invoke'](args)
         else:
             result = docker_action['invoke']()
