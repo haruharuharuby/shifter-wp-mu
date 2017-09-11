@@ -40,7 +40,9 @@ class DockerCtr:
         'syncEfsToS3',
         'deletePublicContents',
         'digSiteDirs',
-        'deployToNetlify'
+        'deployToNetlify',
+        'createArtifact',
+        'restoreArtifact'
     ]
 
     def __init__(self, app_config, event):
@@ -315,7 +317,7 @@ class DockerCtr:
                 info['stock_state'] = stock_state
 
             self.__saveToDynamoDB(info)
-        elif query["action"] in ['syncEfsToS3', 'deletePublicContents']:
+        elif query["action"] in ['syncEfsToS3', 'deletePublicContents', 'createArtifact', 'restoreArtifact']:
             info = {
                 'message': "service " + self.sessionid + ' started',
                 'serviceName': self.sessionid
