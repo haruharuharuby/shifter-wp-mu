@@ -42,7 +42,6 @@ def test_lambda_handler():
     query_base = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "test",
-        "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "artifactId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "image_tag": "specified-image"
     }
@@ -201,7 +200,6 @@ def test_lambda_handler():
 def test_validate_arguments():
     query_base = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
         "image_tag": "specified-image"
     }
@@ -246,16 +244,6 @@ def test_validate_arguments():
     query['fsId'] = '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'
     result = validate_arguments(query)
     assert result is True
-
-    '''
-    action is digSiteDirs, raise if sessionid does not provided.
-    '''
-    query = query_base.copy()
-    query['action'] = 'digSiteDirs'
-    query['fsId'] = '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'
-    query.pop('sessionid')
-    with pytest.raises(ShifterRequestError):
-        result = validate_arguments(query)
 
     '''
     action is digSiteDirs, raise if fsId does not provided.
@@ -322,15 +310,6 @@ def test_validate_arguments():
     query = query_base.copy()
     query['action'] = 'syncEfsToS3'
     query.pop('siteId')
-    with pytest.raises(ShifterRequestError):
-        result = validate_arguments(query)
-
-    '''
-    action is syncEfsToS3, raise if sessionid does not provided.
-    '''
-    query = query_base.copy()
-    query['action'] = 'syncEfsToS3'
-    query.pop('sessionid')
     with pytest.raises(ShifterRequestError):
         result = validate_arguments(query)
 
@@ -418,17 +397,6 @@ def test_validate_arguments():
         result = validate_arguments(query)
 
     '''
-    action is deployToNetlify, raise if sessionid does not provided.
-    '''
-    query = query_base.copy()
-    query['action'] = 'deployToNetlify'
-    query['nf_siteID'] = '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'
-    query['nf_token'] = '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'
-    query.pop('sessionid')
-    with pytest.raises(ShifterRequestError):
-        result = validate_arguments(query)
-
-    '''
     action is deployToNetlify, raise if nf_siteID does not provided.
     '''
     query = query_base.copy()
@@ -447,7 +415,7 @@ def test_validate_arguments():
         result = validate_arguments(query)
 
     '''
-    action is createArtifact. True if siteId, sessionId and artifactId
+    action is createArtifact. True if siteId, and artifactId
     '''
     query = query_base.copy()
     query['action'] = 'createArtifact'
@@ -464,15 +432,6 @@ def test_validate_arguments():
         result = validate_arguments(query)
 
     '''
-    action is createArtifact. raise error if sessionId does not specified.
-    '''
-    query = query_base.copy()
-    query['action'] = 'createArtifact'
-    query.pop('sessionid')
-    with pytest.raises(ShifterRequestError):
-        result = validate_arguments(query)
-
-    '''
     action is createArtifact. raise error if artifactId does not specified.
     '''
     query = query_base.copy()
@@ -482,7 +441,7 @@ def test_validate_arguments():
         result = validate_arguments(query)
 
     '''
-    action is restoreArtifact. True if siteId, sessionId and artifactId
+    action is restoreArtifact. True if siteId, and artifactId
     '''
     query = query_base.copy()
     query['action'] = 'restoreArtifact'
@@ -495,15 +454,6 @@ def test_validate_arguments():
     query = query_base.copy()
     query['action'] = 'restoreArtifact'
     query.pop('siteId')
-    with pytest.raises(ShifterRequestError):
-        result = validate_arguments(query)
-
-    '''
-    action is restoreArtifact. raise error if sessionId does not specified.
-    '''
-    query = query_base.copy()
-    query['action'] = 'restoreArtifact'
-    query.pop('sessionid')
     with pytest.raises(ShifterRequestError):
         result = validate_arguments(query)
 
