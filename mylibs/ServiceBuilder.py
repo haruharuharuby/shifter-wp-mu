@@ -285,7 +285,6 @@ class ServiceBuilder:
             "S3_FROM=" + target_buckets[self.query['action']]['from'],
             "S3_TO=" + target_buckets[self.query['action']]['to'],
             "SERVICE_NAME=" + self.query['sessionid'],
-            "ARTIFACT_ID=" + self.query['artifactId'],
             "SNS_TOPIC_ARN=" + self.app_config['sns_arns']['to_delete']
         ]
 

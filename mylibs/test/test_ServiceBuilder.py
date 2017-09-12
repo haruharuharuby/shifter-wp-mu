@@ -204,7 +204,6 @@ def test_build_context_sync_s3_to_s3():
             {'envvar': 'S3_FROM=on.getshifter.io/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'S3_TO=artifact.getshifter.io/aaaaaaaa-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SERVICE_NAME=5d5a3d8cb5789da921264bdc13fcaccd'},
-            {'envvar': 'ARTIFACT_ID=aaaaaaaa-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'}
         ]
     }
@@ -233,7 +232,6 @@ def test_build_context_sync_s3_to_s3():
             {'envvar': 'S3_FROM=artifact.getshifter.io/aaaaaaaa-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'S3_TO=on.getshifter.io/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SERVICE_NAME=5d5a3d8cb5789da921264bdc13fcaccd'},
-            {'envvar': 'ARTIFACT_ID=aaaaaaaa-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
             {'envvar': 'CF_DIST_ID=E2XDOVHUH57BXZ'}
         ]
