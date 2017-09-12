@@ -19,7 +19,8 @@ default: &default
     region: us-east-1
     archives_bucket: wp-archives-files
     notification_bucket: sys.status.getshifter
-    artifacts_bucket: on.getshifter.io
+    artifacts_bucket: artifact.getshifter.io
+    public_bucket: on.getshifter.io
   sns_arns:
     to_delete: arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development
   dynamo_settings:

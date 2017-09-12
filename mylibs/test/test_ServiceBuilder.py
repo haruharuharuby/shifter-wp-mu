@@ -22,8 +22,7 @@ def test_ServiceBuilder():
     '''
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "action": "syncS3ToS3",
-        "serviceType": "syncS3ToS3",
+        "action": "createArtifact",
         "artifactId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd"
     }
     result = ServiceBuilder(app_config, query)
@@ -35,8 +34,7 @@ def test_ServiceBuilder():
     SiteID doesn't specified. site_item attribute doesn't generates.
     '''
     query = {
-        "action": "syncS3ToS3",
-        "serviceType": "syncS3ToS3"
+        "action": "createArtifact",
     }
     result = ServiceBuilder(app_config, query)
     print(result)
@@ -49,7 +47,6 @@ def test_ServiceBuilder():
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "invalidAction",
-        "serviceType": "syncS3ToS3",
         "artifactId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd"
     }
     result = ServiceBuilder(app_config, query)
@@ -81,7 +78,6 @@ def test_build_context_sync_efs_to_s3():
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "syncEfsToS3",
-        "serviceType": "syncS3ToS3",
         "artifactId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd"
     }
@@ -97,7 +93,7 @@ def test_build_context_sync_efs_to_s3():
             {'envvar': 'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA'},
             {'envvar': 'AWS_SECRET_ACCESS_KEY=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'},
             {'envvar': 'S3_REGION=us-east-1'},
-            {'envvar': 'S3_BUCKET=to.getshifter.io'},
+            {'envvar': 'S3_BUCKET=on.getshifter.io'},
             {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SERVICE_NAME=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'DYNAMODB_TABLE=Site-development'},
@@ -124,7 +120,7 @@ def test_build_context_sync_efs_to_s3():
             {'envvar': 'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA'},
             {'envvar': 'AWS_SECRET_ACCESS_KEY=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'},
             {'envvar': 'S3_REGION=us-east-1'},
-            {'envvar': 'S3_BUCKET=to.getshifter.io'},
+            {'envvar': 'S3_BUCKET=on.getshifter.io'},
             {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SERVICE_NAME=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'DYNAMODB_TABLE=Site-development'},
@@ -153,7 +149,7 @@ def test_build_context_sync_efs_to_s3():
             {'envvar': 'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA'},
             {'envvar': 'AWS_SECRET_ACCESS_KEY=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'},
             {'envvar': 'S3_REGION=us-east-1'},
-            {'envvar': 'S3_BUCKET=on.getshifter.io'},
+            {'envvar': 'S3_BUCKET=artifact.getshifter.io'},
             {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SERVICE_NAME=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'DYNAMODB_TABLE=Site-development'},
@@ -177,7 +173,7 @@ def test_build_context_sync_s3_to_s3():
         "efs_id": "fs-2308c16a",
         "ID": "c48db543-c3d0-27eb-9598-e6c33a2afdb7",
         "s3_bucket": "to.getshifter.io",
-        "s3_region": "to-us-east-1",
+        "s3_region": "us-east-1",
         "site_name": "null",
         "site_owner": "null",
         "stock_state": "ready"
@@ -189,60 +185,54 @@ def test_build_context_sync_s3_to_s3():
     '''
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "action": "syncS3ToS3",
-        "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "artifactId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "action": "createArtifact",
+        "sessionid": "5d5a3d8cb5789da921264bdc13fcaccd",
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
     }
 
     instance = ServiceBuilder(app_config, query)
     context = instance.build_context_sync_s3_to_s3()
     assert context
     assert context == {
-        'service_name': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'service_name': '5d5a3d8cb5789da921264bdc13fcaccd',
         'service_id': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
         'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3tos3:latest',
         'envvars': [
             {'envvar': 'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA'},
             {'envvar': 'AWS_SECRET_ACCESS_KEY=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'},
             {'envvar': 'S3_REGION=us-east-1'},
-            {'envvar': 'S3_BUCKET_FROM=on.getshifter.io'},
-            {'envvar': 'S3_BUCKET_TO=to.getshifter.io'},
-            {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
-            {'envvar': 'SERVICE_NAME=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
-            {'envvar': 'CF_DIST_ID=E2XDOVHUH57BXZ'},
-            {'envvar': 'ARTIFACT_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'S3_FROM=on.getshifter.io/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'S3_TO=artifact.getshifter.io/aaaaaaaa-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'SERVICE_NAME=5d5a3d8cb5789da921264bdc13fcaccd'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'}
         ]
     }
 
     '''
-    Image_tag specfied, it generates context for using specfied image.
+    image_tag not specfied, it generates context for using latest image.
     '''
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "action": "syncS3ToS3",
-        "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "artifactId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "image_tag": "specified-image"
+        "action": "restoreArtifact",
+        "sessionid": "5d5a3d8cb5789da921264bdc13fcaccd",
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
     }
 
     instance = ServiceBuilder(app_config, query)
     context = instance.build_context_sync_s3_to_s3()
     assert context
     assert context == {
-        'service_name': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'service_name': '5d5a3d8cb5789da921264bdc13fcaccd',
         'service_id': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
-        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3tos3:specified-image',
+        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3tos3:latest',
         'envvars': [
             {'envvar': 'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA'},
             {'envvar': 'AWS_SECRET_ACCESS_KEY=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'},
             {'envvar': 'S3_REGION=us-east-1'},
-            {'envvar': 'S3_BUCKET_FROM=on.getshifter.io'},
-            {'envvar': 'S3_BUCKET_TO=to.getshifter.io'},
-            {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
-            {'envvar': 'SERVICE_NAME=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
-            {'envvar': 'CF_DIST_ID=E2XDOVHUH57BXZ'},
-            {'envvar': 'ARTIFACT_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
-            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'}
+            {'envvar': 'S3_FROM=artifact.getshifter.io/aaaaaaaa-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'S3_TO=on.getshifter.io/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'SERVICE_NAME=5d5a3d8cb5789da921264bdc13fcaccd'},
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'CF_DIST_ID=E2XDOVHUH57BXZ'}
         ]
     }

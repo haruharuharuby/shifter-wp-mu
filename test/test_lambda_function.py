@@ -196,6 +196,34 @@ def test_lambda_handler():
     result = lambda_handler(query, {})
     assert result == expect
 
+    '''
+    action is createArtifact, return result of creating artifact
+    '''
+    expect = {
+        'status': 200,
+        'message': 'service test_session_id started',
+        'serviceName': 'test_session_id'
+    }
+    DockerCtr.deleteServiceByServiceId = Mock(return_value=expect)
+    query = query_base.copy()
+    query['action'] = 'createArtifact'
+    result = lambda_handler(query, {})
+    assert result == expect
+
+    '''
+    action is restoreArtifact, return result of restoring artifact
+    '''
+    expect = {
+        'status': 200,
+        'message': 'service test_session_id started',
+        'serviceName': 'test_session_id'
+    }
+    DockerCtr.deleteServiceByServiceId = Mock(return_value=expect)
+    query = query_base.copy()
+    query['action'] = 'restoreArtifact'
+    result = lambda_handler(query, {})
+    assert result == expect
+
 
 def test_validate_arguments():
     query_base = {
@@ -479,5 +507,75 @@ def test_validate_arguments():
     query = query_base.copy()
     query['action'] = 'deployToNetlify'
     query['nf_siteID'] = '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'
+    with pytest.raises(ShifterRequestError):
+        result = validate_arguments(query)
+
+    '''
+    action is createArtifact. True if siteId, sessionId and artifactId
+    '''
+    query = query_base.copy()
+    query['action'] = 'createArtifact'
+    result = validate_arguments(query)
+    assert result is True
+
+    '''
+    action is createArtifact. raise error if siteId does not specified.
+    '''
+    query = query_base.copy()
+    query['action'] = 'createArtifact'
+    query.pop('siteId')
+    with pytest.raises(ShifterRequestError):
+        result = validate_arguments(query)
+
+    '''
+    action is createArtifact. raise error if sessionId does not specified.
+    '''
+    query = query_base.copy()
+    query['action'] = 'createArtifact'
+    query.pop('sessionid')
+    with pytest.raises(ShifterRequestError):
+        result = validate_arguments(query)
+
+    '''
+    action is createArtifact. raise error if artifactId does not specified.
+    '''
+    query = query_base.copy()
+    query['action'] = 'createArtifact'
+    query.pop('artifactId')
+    with pytest.raises(ShifterRequestError):
+        result = validate_arguments(query)
+
+    '''
+    action is restoreArtifact. True if siteId, sessionId and artifactId
+    '''
+    query = query_base.copy()
+    query['action'] = 'restoreArtifact'
+    result = validate_arguments(query)
+    assert result is True
+
+    '''
+    action is restoreArtifact. raise error if siteId does not specified.
+    '''
+    query = query_base.copy()
+    query['action'] = 'restoreArtifact'
+    query.pop('siteId')
+    with pytest.raises(ShifterRequestError):
+        result = validate_arguments(query)
+
+    '''
+    action is restoreArtifact. raise error if sessionId does not specified.
+    '''
+    query = query_base.copy()
+    query['action'] = 'restoreArtifact'
+    query.pop('sessionid')
+    with pytest.raises(ShifterRequestError):
+        result = validate_arguments(query)
+
+    '''
+    action is restoreArtifact. raise error if artifactId does not specified.
+    '''
+    query = query_base.copy()
+    query['action'] = 'restoreArtifact'
+    query.pop('artifactId')
     with pytest.raises(ShifterRequestError):
         result = validate_arguments(query)
