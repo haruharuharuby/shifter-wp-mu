@@ -32,17 +32,17 @@ logger.setLevel(logging.INFO)
 AVAIL_ACTIONS = {
     'test': [],
     'getTheService': ['siteId'],
-    'digSiteDirs': ['sessionid', 'fsId'],
+    'digSiteDirs': ['fsId'],
     'bulkDelete': ['serviceIds'],
     'createNewService': ['siteId'],
-    'syncEfsToS3': ['siteId', 'sessionid'],
-    'syncS3ToS3': ['siteId', 'sessionid', 'artifactId'],
-    'createArtifact': ['siteId', 'sessionid', 'artifactId'],
-    'restoreArtifact': ['siteId', 'sessionid', 'artifactId'],
+    'syncEfsToS3': ['siteId'],
+    'syncS3ToS3': ['siteId', 'artifactId'],
+    'createArtifact': ['siteId', 'artifactId'],
+    'restoreArtifact': ['siteId', 'artifactId'],
     'deletePublicContents': ['siteId'],
     'deleteTheService': ['siteId'],
     'deleteServiceByServiceId': ['siteId', 'serviceId'],
-    'deployToNetlify': ['siteId', 'sessionid', 'nf_siteID', 'nf_token']
+    'deployToNetlify': ['siteId', 'nf_siteID', 'nf_token']
 }
 
 
