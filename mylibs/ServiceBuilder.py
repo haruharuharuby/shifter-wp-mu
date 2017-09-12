@@ -224,7 +224,8 @@ class ServiceBuilder:
             "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['stock_manage']['secret_access_key'],
             "EFS_ID=" + self.query['fsId'],
             "SERVICE_NAME=" + self.query['sessionid'],
-            "DYNAMO_TABLE=" + self.app_config['dynamo_settings']['site_table']
+            "DYNAMO_TABLE=" + self.app_config['dynamo_settings']['site_table'],
+            'SNS_TOPIC_ARN=' + self.app_config['sns_arns']['to_delete']
         ]
 
         context['envvars'] = self.__prepare_envs_for_pystache(env)
