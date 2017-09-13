@@ -1,0 +1,57 @@
+---
+default: &default
+  EndpointSpec:
+    Ports:
+    - Protocol: tcp
+      PublishedPort: {{ publish_port1 }}
+      TargetPort: 443
+  Labels:
+    Name: wordpress-worker2
+    Service: {{ service_type }}
+  Networks:
+  - Target: shifter_net_user-{{ publish_port1 }}
+  Name: {{ service_name }}
+  TaskTemplate: &default_task
+    ContainerSpec:
+      Env:
+        {{#envvars}}
+        - "{{envvar}}"
+        {{/envvars}}
+        {{^envvars}}
+        - "DUMMY_ENV=True"
+        {{/envvars}}
+      Image: {{ image_string }}
+      Mounts:
+      - Source: {{ efs_point_web }}
+        Target: /var/www/html/web/app
+        Type: volume
+        VolumeOptions:
+          DriverConfig:
+            Name: efs
+      - Target: /run
+        Type: tmpfs
+      - Target: /tmp
+        Type: tmpfs
+    LogDriver:
+      Name: awslogs
+      Options:
+        awslogs-group: dockerlog-services
+        awslogs-region: us-east-1
+        awslogs-stream: {{ service_name }}
+    Placement:
+      Constraints:
+        - "node.labels.type == efs-worker"
+
+development:
+  <<: *default
+  TaskTemplate:
+    <<: *default_task
+    LogDriver:
+      Name: awslogs
+      Options:
+        awslogs-group: dockerlog-services-development
+        awslogs-region: us-east-1
+        awslogs-stream: {{ service_name }}
+
+production:
+  <<: *default
