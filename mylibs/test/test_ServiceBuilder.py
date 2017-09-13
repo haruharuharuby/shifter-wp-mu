@@ -78,7 +78,7 @@ def test_build_context_sync_efs_to_s3():
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "syncEfsToS3",
-        "artifactId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
         "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd"
     }
     instance = ServiceBuilder(app_config, query)
@@ -93,11 +93,11 @@ def test_build_context_sync_efs_to_s3():
             {'envvar': 'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA'},
             {'envvar': 'AWS_SECRET_ACCESS_KEY=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'},
             {'envvar': 'S3_REGION=us-east-1'},
-            {'envvar': 'S3_BUCKET=on.getshifter.io'},
+            {'envvar': 'S3_BUCKET=artifact.getshifter.io'},
             {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SERVICE_NAME=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'DYNAMODB_TABLE=Site-development'},
-            {'envvar': 'ARTIFACT_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'ARTIFACT_ID=aaaaaaaa-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
         ]
     }
