@@ -126,33 +126,6 @@ def test_lambda_handler():
     assert result == expect
 
     '''
-    action is syncS3ToS3, return result of creating syncS3ToS3
-    '''
-    expect = {
-        'status': 200,
-        'message': 'service test_session_id started',
-        'serviceName': 'test_session_id'
-    }
-    DockerCtr.createNewService = Mock(return_value=expect)
-    query = query_base.copy()
-    query['action'] = 'syncS3ToS3'
-    result = lambda_handler(query, {})
-    assert result == expect
-
-    '''
-    action is deployToNetlify, return result of creating deployToNetlify
-    '''
-    expect = {
-        'status': 200,
-        'message': 'OK'
-    }
-    DockerCtr.createNewService = Mock(return_value=expect)
-    query = query_base.copy()
-    query['action'] = 'syncS3ToS3'
-    result = lambda_handler(query, {})
-    assert result == expect
-
-    '''
     action is deletePublicContents, return result of creating deletePublicContents
     '''
     expect = {
@@ -227,7 +200,6 @@ def test_lambda_handler():
 def test_validate_arguments():
     query_base = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "action": "syncS3ToS3",
         "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
         "image_tag": "specified-image"
     }
@@ -236,7 +208,6 @@ def test_validate_arguments():
     it does not contain 'action' in the parameter, raise
     '''
     query = query_base.copy()
-    query.pop('action')
     with pytest.raises(ShifterRequestError):
         result = validate_arguments(query)
 
@@ -339,32 +310,6 @@ def test_validate_arguments():
     query = query_base.copy()
     query['action'] = 'syncEfsToS3'
     query.pop('siteId')
-    with pytest.raises(ShifterRequestError):
-        result = validate_arguments(query)
-
-    '''
-    action is syncS3ToS3, True if siteId provided.
-    '''
-    query = query_base.copy()
-    query['action'] = 'syncS3ToS3'
-    result = validate_arguments(query)
-    assert result is True
-
-    '''
-    action is syncS3ToS3, raise if siteId does not provided.
-    '''
-    query = query_base.copy()
-    query['action'] = 'syncS3ToS3'
-    query.pop('siteId')
-    with pytest.raises(ShifterRequestError):
-        result = validate_arguments(query)
-
-    '''
-    action is syncS3ToS3, raise if artifactId does not provided.
-    '''
-    query = query_base.copy()
-    query['action'] = 'syncS3ToS3'
-    query.pop('artifactId')
     with pytest.raises(ShifterRequestError):
         result = validate_arguments(query)
 

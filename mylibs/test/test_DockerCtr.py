@@ -48,7 +48,7 @@ def test_DockerCtr():
 
 def test__getCreateImageBody():
     '''
-    Pass to syncS3ToS3, return s3tos3 service_spec
+    Pass to createArtifact, return s3tos3 service_spec
     '''
     ServiceBuilder._ServiceBuilder__loadServiceTemplate = Mock(return_value=(open('./service_specs/sync-s3-to-s3.yml', 'r').read()))
 
