@@ -3,12 +3,15 @@
 Test DockerCtr Class
 '''
 
+import boto3
 import requests
 from unittest.mock import Mock
 from unittest.mock import patch
 import yaml
 from ..DockerCtr import DockerCtr
 from ..ServiceBuilder import ServiceBuilder
+
+boto3.client.decrypt = Mock(return_value='test_pass')
 
 app_config = yaml.load(open('./config/appconfig.yml', 'r'))['development']
 test_event_base = {
@@ -27,8 +30,14 @@ test_site_item = {
     "s3_region": "to-us-east-1",
     "site_name": "null",
     "site_owner": "null",
-    "stock_state": "ready"
+    "stock_state": "ready",
+    "user_database": {
+        "role": "test_role",
+        "enc_passwd": "test_pass",
+        "endpoint": "test.rdbendpoint"
+    }
 }
+
 ServiceBuilder._ServiceBuilder__fetchDynamoSiteItem = Mock(return_value=test_site_item)
 
 
@@ -58,12 +67,10 @@ def test__getCreateImageBody():
         "action": "createArtifact",
         "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd"
     }
-    print(query)
 
     instance = DockerCtr(app_config, query)
     sessionid = instance.sessionid
     result = instance._DockerCtr__getCreateImageBody(query)
-    print(result)
     assert result == {
         'Labels': {'Name': 'sync-s3-to-s3'},
         'Networks': [{'Target': 'shifter_net_user'}],
@@ -102,6 +109,48 @@ def test__getCreateImageBody():
             }
         }
     }
+
+    '''
+    Pass to createNewService2 and editing wordpless. return wordpress-worker2 service_spec
+    '''
+    ServiceBuilder._ServiceBuilder__loadServiceTemplate = Mock(return_value=(open('./service_specs/wordpress-worker2.yml', 'r').read()))
+    org_build_context_wordpress_worker2 = ServiceBuilder.build_context_wordpress_worker2
+    ServiceBuilder.build_context_wordpress_worker2 = Mock(return_value='true')
+    query = {
+        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "sessionid": "5d5a3d8d-b578-9da9-2126-4bdc13fcaccd",
+        "action": "createNewService2",
+        "serviceType": "edit-wordpress",
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
+        "pubPort": 12345
+    }
+    instance = DockerCtr(app_config, query)
+    sessionid = instance.sessionid
+    result = instance._DockerCtr__getCreateImageBody(query)
+    print(result)
+    assert result == {
+        'EndpointSpec': {'Ports': [{'Protocol': 'tcp', 'PublishedPort': None, 'TargetPort': 443}]},
+        'Labels': {'Name': 'wordpress-worker2', 'Service': None},
+        'Networks': [{'Target': 'shifter_net_user-'}],
+        'Name': None,
+        'TaskTemplate': {
+            'ContainerSpec': {
+                'Env': ['DUMMY_ENV=True'],
+                'Image': None,
+                'Mounts': [
+                    {'Source': None, 'Target': '/var/www/html/web/app', 'Type': 'volume', 'VolumeOptions': {'DriverConfig': {'Name': 'efs'}}},
+                    {'Target': '/run', 'Type': 'tmpfs'},
+                    {'Target': '/tmp', 'Type': 'tmpfs'}
+                ]
+            },
+            'LogDriver': {
+                'Name': 'awslogs',
+                'Options': {'awslogs-group': 'dockerlog-services-development', 'awslogs-region': 'us-east-1', 'awslogs-stream': None}
+            },
+            'Placement': {'Constraints': ['node.labels.type == efs-worker']}
+        }
+    }
+    ServiceBuilder.build_context_wordpress_worker2 = org_build_context_wordpress_worker2
 
 
 @patch('time.sleep', lambda x: None)

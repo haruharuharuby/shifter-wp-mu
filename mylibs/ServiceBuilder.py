@@ -297,6 +297,69 @@ class ServiceBuilder:
         logger.info(context)
         return context
 
+    def build_context_wordpress_worker2(self):
+        def __get_service_type_or_default():
+            return self.query['serviceType'] if 'serviceType' in self.query else 'edit-wordpress'
+
+        def __get_php_version_or_latest():
+            php_var_from_query = self.query['phpVersion'] if 'phpVersion' in self.query else ''
+            return php_var_from_query or self.site_item.get('php_version', False) or 'latest'
+
+        def __add_aws_access_key_to_envvars(key='create-archive', *options):
+            token_gen = STSTokenGenerator(self.app_config)
+            tokens = token_gen.generateToken(key, 'uiless_wp')
+            env.append('AWS_ACCESS_KEY_ID=' + tokens['AccessKeyId'])
+            env.append('AWS_SECRET_ACCESS_KEY=' + tokens['SecretAccessKey'])
+            env.append('AWS_SESSION_TOKEN=' + tokens['SessionToken'])
+            for extra_envvar in options:
+                env.append(extra_envvar)
+
+        context = {}
+        context['service_name'] = self.query['siteId']
+        context['service_type'] = __get_service_type_or_default()
+        context['image_string'] = ':'.join([self.app_config['docker_images']['wordpress-worker2'], __get_php_version_or_latest()])
+        context['publish_port1'] = int(self.query['pubPort'])
+        context['efs_point_web'] = self.site_item['efs_id'] + "/" + self.query['siteId'] + "/web"
+
+        # Build Env
+        notification_url = self.s3client.createNotificationUrl(self.query['notificationId'])
+        notification_error_url = self.s3client.createNotificationErrorUrl(self.query['notificationId'])
+        env = [
+            "SERVICE_PORT=" + str(self.query['pubPort']),
+            "SERVICE_TYPE=" + self.query['serviceType'],
+            "SITE_ID=" + self.query['siteId'],
+            "SERVICE_DOMAIN=" + self.app_config['service_domain'],
+            "NOTIFICATION_URL=" + base64.b64encode(notification_url.encode('utf-8')).decode(),
+            "NOTIFICATION_ERROR_URL=" + base64.b64encode(notification_error_url.encode('utf-8')).decode(),
+            "CF_DOMAIN=" + self.site_item['access_url'],
+            "SNS_TOPIC_ARN=" + self.app_config['sns_arns']['to_delete']
+        ]
+
+        if 'domain' in self.site_item and self.site_item['domain'].strip():
+            env.append('SHIFTER_DOMAIN=' + self.site_item['domain'])
+
+        print(self.site_item)
+
+        if self.site_item['user_database']:
+            rds = self.site_item['user_database']
+            raw_passwd = self.kms_client.decrypt(CiphertextBlob=base64.b64decode(rds['enc_passwd']))
+            ob_passwd = base64.b64encode((self.app_config['mgword'] + raw_passwd['Plaintext'].decode()).encode('utf-8'))
+            env.append('RDB_ENDPOINT=' + rds['endpoint'])
+            env.append('RDB_USER=' + rds['role'])
+            env.append('RDB_PASSWD=' + ob_passwd.decode())
+        else:
+            raise ValueError('RDS information could not be found.')
+
+        if context['service_type'] in ['create-archive']:
+            __add_aws_access_key_to_envvars('create-archive', ('SHIFTER_TOKEN=' + self.query['shifterToken']))
+        elif context['service_type'] in ['import-archive']:
+            __add_aws_access_key_to_envvars('import-archive')
+
+        context['envvars'] = self.__prepare_envs_for_pystache(env)
+
+        logger.info(context)
+        return context
+
     def __get_image_tag_or_latest(self):
         return self.query['image_tag'] if 'image_tag' in self.query else 'latest'
 

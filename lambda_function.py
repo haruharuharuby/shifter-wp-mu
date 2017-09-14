@@ -41,7 +41,8 @@ AVAIL_ACTIONS = {
     'deletePublicContents': ['siteId'],
     'deleteTheService': ['siteId'],
     'deleteServiceByServiceId': ['siteId', 'serviceId'],
-    'deployToNetlify': ['siteId', 'nf_siteID', 'nf_token']
+    'deployToNetlify': ['siteId', 'nf_siteID', 'nf_token'],
+    'createNewService2': ['siteId']
 }
 
 
@@ -86,7 +87,8 @@ def lambda_handler(event, context):
             'deployToNetlify': {'invoke': ctr.createNewService},
             'deletePublicContents': {'invoke': ctr.createNewService},
             'deleteTheService': {'invoke': ctr.deleteTheService, 'args': lambda: event['siteId']},
-            'deleteServiceByServiceId': {'invoke': ctr.deleteServiceByServiceId, 'args': lambda: event}
+            'deleteServiceByServiceId': {'invoke': ctr.deleteServiceByServiceId, 'args': lambda: event},
+            'createNewService2': {'invoke': ctr.createNewService}
         }
 
         action_name = event['action']

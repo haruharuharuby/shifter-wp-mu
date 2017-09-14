@@ -300,6 +300,8 @@ class DockerCtr:
             service_spec = builder.buildServiceDef('docker-s3to-netlify')
         elif (query["action"] == 'createNewService'):
             service_spec = builder.buildServiceDef('wordpress-worker')
+        elif (query["action"] == 'createNewService2'):
+            service_spec = builder.buildServiceDef('wordpress-worker2')
         elif (query["action"] == 'digSiteDirs'):
             service_spec = builder.buildServiceDef('docker-efs-dig-dirs')
         return service_spec

@@ -10,28 +10,31 @@ from lambda_function import *
 from mylibs.ShifterExceptions import *
 from mylibs.ServiceBuilder import ServiceBuilder
 
-app_config = yaml.load(open('./config/appconfig.yml', 'r'))['development']
-test_event_base = {
-    "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-    "sessionid": "5d5a3d8d-b578-9da9-2126-4bdc13fcaccd"
-}
 
-test_site_item = {
-    "access_url": "tender-ride7316.on.getshifter.io",
-    "cf_id": "E2XDOVHUH57BXZ",
-    "cf_url": "dw5aj9smo4km0.cloudfront.net",
-    "cname_status": "ready",
-    "efs_id": "fs-2308c16a",
-    "ID": "c48db543-c3d0-27eb-9598-e6c33a2afdb7",
-    "s3_bucket": "to.getshifter.io",
-    "s3_region": "to-us-east-1",
-    "site_name": "null",
-    "site_owner": "null",
-    "stock_state": "ready"
-}
+@pytest.fixture
+def setup():
+    test_site_item = {
+        "access_url": "tender-ride7316.on.getshifter.io",
+        "cf_id": "E2XDOVHUH57BXZ",
+        "cf_url": "dw5aj9smo4km0.cloudfront.net",
+        "cname_status": "ready",
+        "efs_id": "fs-2308c16a",
+        "ID": "c48db543-c3d0-27eb-9598-e6c33a2afdb7",
+        "s3_bucket": "to.getshifter.io",
+        "s3_region": "to-us-east-1",
+        "site_name": "null",
+        "site_owner": "null",
+        "stock_state": "ready",
+        "phpVersion": "7.0",
+        "user_database": {
+            "role": "test_role",
+            "enc_passwd": "test_pass",
+            "endpoint": "end"
+        }
+    }
 
-ServiceBuilder._ServiceBuilder__fetchDynamoSiteItem = Mock(return_value=test_site_item)
-ServiceBuilder._ServiceBuilder__loadServiceTemplate = Mock(return_value=(open('./service_specs/sync-s3-to-s3.yml', 'r').read()))
+    ServiceBuilder._ServiceBuilder__fetchDynamoSiteItem = Mock(return_value=test_site_item)
+    ServiceBuilder._ServiceBuilder__loadServiceTemplate = Mock(return_value=(open('./service_specs/sync-s3-to-s3.yml', 'r').read()))
 
 
 def test_lambda_handler():
@@ -193,6 +196,23 @@ def test_lambda_handler():
     DockerCtr.deleteServiceByServiceId = Mock(return_value=expect)
     query = query_base.copy()
     query['action'] = 'restoreArtifact'
+    result = lambda_handler(query, {})
+    assert result == expect
+
+    '''
+    action is createNewService2, return result of new services version 2
+    '''
+    expect = {
+        'status': 200,
+        'message': 'service 5d5a3d8c-b578-9da9-2126-4bdc13fcaccd started',
+        'docker_url': 'https://5d5a3d8c-b578-9da9-2126-4bdc13fcaccd.appdev.getshifter.io:12345',
+        'serviceName': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'notificationId': 'test_session_id'
+    }
+    DockerCtr.createNewService = Mock(return_value=expect)
+    query = query_base.copy()
+    query['action'] = 'createNewService2'
+    query['phpVersion'] = '7.0'
     result = lambda_handler(query, {})
     assert result == expect
 
@@ -463,5 +483,21 @@ def test_validate_arguments():
     query = query_base.copy()
     query['action'] = 'restoreArtifact'
     query.pop('artifactId')
+    with pytest.raises(ShifterRequestError):
+        result = validate_arguments(query)
+
+    '''
+    action is createNewService2. True if siteId.
+    '''
+    query = query_base.copy()
+    query['action'] = 'createNewService2'
+    assert result is True
+
+    '''
+    action is createNewService2. raise error if siteId does not specified.
+    '''
+    query = query_base.copy()
+    query['action'] = 'createNewService2'
+    query.pop('siteId')
     with pytest.raises(ShifterRequestError):
         result = validate_arguments(query)
