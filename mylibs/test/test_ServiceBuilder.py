@@ -3,9 +3,11 @@
 Testing ServiceBuilder Class
 '''
 
+import pytest
 from unittest.mock import Mock
 import yaml
 from ..ServiceBuilder import ServiceBuilder
+from ..ShifterExceptions import *
 
 app_config = yaml.load(open('./config/appconfig.yml', 'r'))['development']
 
@@ -71,7 +73,14 @@ def test_build_context_sync_efs_to_s3():
         "s3_region": "us-east-1",
         "site_name": "null",
         "site_owner": "null",
-        "stock_state": "ready"
+        "stock_state": "ready",
+        "phpVersion": "7.0",
+        "user_database": {
+            "role": "test_role",
+            "enc_passwd": "test_pass",
+            "endpoint": "end"
+        }
+
     }
     ServiceBuilder._ServiceBuilder__fetchDynamoSiteItem = Mock(return_value=test_site_item)
 
@@ -176,7 +185,14 @@ def test_build_context_sync_s3_to_s3():
         "s3_region": "us-east-1",
         "site_name": "null",
         "site_owner": "null",
-        "stock_state": "ready"
+        "stock_state": "ready",
+        "phpVersion": "7.0",
+        "user_database": {
+            "role": "test_role",
+            "enc_passwd": "test_pass",
+            "endpoint": "end"
+        }
+
     }
     ServiceBuilder._ServiceBuilder__fetchDynamoSiteItem = Mock(return_value=test_site_item)
 
@@ -187,7 +203,7 @@ def test_build_context_sync_s3_to_s3():
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "createArtifact",
         "sessionid": "5d5a3d8cb5789da921264bdc13fcaccd",
-        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd"
     }
 
     instance = ServiceBuilder(app_config, query)
@@ -215,7 +231,7 @@ def test_build_context_sync_s3_to_s3():
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "restoreArtifact",
         "sessionid": "5d5a3d8cb5789da921264bdc13fcaccd",
-        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd"
     }
 
     instance = ServiceBuilder(app_config, query)
@@ -236,3 +252,132 @@ def test_build_context_sync_s3_to_s3():
             {'envvar': 'CF_DIST_ID=E2XDOVHUH57BXZ'}
         ]
     }
+
+
+def test_build_context_wordpress_worker2():
+    '''
+    Test building context for wordpress worker2
+    '''
+    test_site_item = {
+        "access_url": "tender-ride7316.on.getshifter.io",
+        "cf_id": "E2XDOVHUH57BXZ",
+        "cf_url": "dw5aj9smo4km0.cloudfront.net",
+        "cname_status": "ready",
+        "efs_id": "fs-2308c16a",
+        "ID": "c48db543-c3d0-27eb-9598-e6c33a2afdb7",
+        "s3_bucket": "to.getshifter.io",
+        "s3_region": "us-east-1",
+        "site_name": "null",
+        "site_owner": "null",
+        "stock_state": "ready",
+        "domain": "test.shifterdomain",
+        "phpVersion": "7.0",
+        "user_database": {
+            "role": "test_role",
+            "enc_passwd": "test_pass",
+            "endpoint": "test.rdbendpoint"
+        }
+    }
+
+    def mock_instance(obj):
+        obj.kms_client.decrypt = Mock(return_value={'Plaintext': b'test_pass'})
+        obj.s3client.createNotificationUrl = Mock(return_value='test.notification_url')
+        obj.s3client.createNotificationErrorUrl = Mock(return_value='test.notificationerror_url')
+
+    ServiceBuilder._ServiceBuilder__fetchDynamoSiteItem = Mock(return_value=test_site_item)
+    '''
+    default context build.
+    '''
+    query = {
+        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "action": "createNewService2",
+        "serviceType": 'generator',
+        "sessionid": "5d5a3d8cb5789da921264bdc13fcaccd",
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
+        "pubPort": 12345,
+        "notificationId": "5d5a3d8cb5789da921264bdc13fcaccd"
+    }
+
+    instance = ServiceBuilder(app_config, query)
+    mock_instance(instance)
+    context = instance.build_context_wordpress_worker2()
+    assert context
+    assert context == {
+        'service_name': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'service_type': 'generator',
+        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/shifter-base:latest',
+        'publish_port1': 12345,
+        'efs_point_web': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd/web',
+        'envvars': [
+            {'envvar': 'SERVICE_PORT=12345'},
+            {'envvar': 'SERVICE_TYPE=generator'},
+            {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'SERVICE_DOMAIN=appdev.getshifter.io'},
+            {'envvar': 'NOTIFICATION_URL=dGVzdC5ub3RpZmljYXRpb25fdXJs'},
+            {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
+            {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'SHIFTER_DOMAIN=test.shifterdomain'},
+            {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
+            {'envvar': 'RDB_USER=test_role'},
+            {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='}
+        ]
+    }
+
+    '''
+    site domain is 'null'. envvar SHIFTER_DOMAIN does not generate.
+    '''
+    query = {
+        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "action": "createNewService2",
+        "serviceType": 'generator',
+        "sessionid": "5d5a3d8cb5789da921264bdc13fcaccd",
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
+        "pubPort": 12345,
+        "notificationId": "5d5a3d8cb5789da921264bdc13fcaccd"
+    }
+
+    instance = ServiceBuilder(app_config, query)
+    mock_instance(instance)
+    test_site_item['domain'] = 'null'
+    context = instance.build_context_wordpress_worker2()
+    assert context
+    assert context == {
+        'service_name': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'service_type': 'generator',
+        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/shifter-base:latest',
+        'publish_port1': 12345,
+        'efs_point_web': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd/web',
+        'envvars': [
+            {'envvar': 'SERVICE_PORT=12345'},
+            {'envvar': 'SERVICE_TYPE=generator'},
+            {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'SERVICE_DOMAIN=appdev.getshifter.io'},
+            {'envvar': 'NOTIFICATION_URL=dGVzdC5ub3RpZmljYXRpb25fdXJs'},
+            {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
+            {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
+            {'envvar': 'RDB_USER=test_role'},
+            {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='}
+        ]
+    }
+
+    '''
+    raise exception if nothing is found RDS information.
+    '''
+    query = {
+        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "action": "createNewService2",
+        "serviceType": 'edit-wordpress',
+        "sessionid": "5d5a3d8cb5789da921264bdc13fcaccd",
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
+        "pubPort": 12345,
+        "notificationId": "5d5a3d8cb5789da921264bdc13fcaccd"
+    }
+
+    instance = ServiceBuilder(app_config, query)
+    mock_instance(instance)
+    test_site_item['user_database'] = {}
+    with pytest.raises(ShifterInvalidSiteItem):
+        instance.build_context_wordpress_worker2()
