@@ -63,7 +63,6 @@ def test__getCreateImageBody():
 
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "sessionid": "5d5a3d8d-b578-9da9-2126-4bdc13fcaccd",
         "action": "createArtifact",
         "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd"
     }
@@ -118,11 +117,8 @@ def test__getCreateImageBody():
     ServiceBuilder.build_context_wordpress_worker2 = Mock(return_value='true')
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "sessionid": "5d5a3d8d-b578-9da9-2126-4bdc13fcaccd",
         "action": "createNewService2",
-        "serviceType": "edit-wordpress",
-        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
-        "pubPort": 12345
+        "serviceType": "edit-wordpress"
     }
     instance = DockerCtr(app_config, query)
     sessionid = instance.sessionid
@@ -161,7 +157,6 @@ def test__deleteNetworkIfExist():
     ServiceBuilder._ServiceBuilder__loadServiceTemplate = Mock(return_value=(open('./service_specs/sync-s3-to-s3.yml', 'r').read()))
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "sessionid": "5d5a3d8d-b578-9da9-2126-4bdc13fcaccd",
         "action": "deleteServiceByServiceId",
         "serviceId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd"
     }

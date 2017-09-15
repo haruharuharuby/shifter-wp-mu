@@ -305,15 +305,6 @@ class ServiceBuilder:
             php_var_from_query = self.query['phpVersion'] if 'phpVersion' in self.query else ''
             return php_var_from_query or self.site_item.get('php_version', False) or 'latest'
 
-        def __add_aws_access_key_to_envvars(key='create-archive', *options):
-            token_gen = STSTokenGenerator(self.app_config)
-            tokens = token_gen.generateToken(key, 'uiless_wp')
-            env.append('AWS_ACCESS_KEY_ID=' + tokens['AccessKeyId'])
-            env.append('AWS_SECRET_ACCESS_KEY=' + tokens['SecretAccessKey'])
-            env.append('AWS_SESSION_TOKEN=' + tokens['SessionToken'])
-            for extra_envvar in options:
-                env.append(extra_envvar)
-
         context = {}
         context['service_name'] = self.query['siteId']
         context['service_type'] = __get_service_type_or_default()
@@ -335,7 +326,7 @@ class ServiceBuilder:
             "SNS_TOPIC_ARN=" + self.app_config['sns_arns']['to_delete']
         ]
 
-        if 'domain' in self.site_item and self.site_item['domain'].strip():
+        if 'domain' in self.site_item and self.site_item['domain'].strip() and self.site_item['domain'] != 'null':
             env.append('SHIFTER_DOMAIN=' + self.site_item['domain'])
 
         print(self.site_item)
@@ -348,12 +339,12 @@ class ServiceBuilder:
             env.append('RDB_USER=' + rds['role'])
             env.append('RDB_PASSWD=' + ob_passwd.decode())
         else:
-            raise ValueError('RDS information could not be found.')
+            raise ShifterInvalidSiteItem('RDS information could not be found.')
 
         if context['service_type'] in ['create-archive']:
-            __add_aws_access_key_to_envvars('create-archive', ('SHIFTER_TOKEN=' + self.query['shifterToken']))
+            self.__add_aws_access_key_to_envvars(env, 'create-archive', ('SHIFTER_TOKEN=' + self.query['shifterToken']))
         elif context['service_type'] in ['import-archive']:
-            __add_aws_access_key_to_envvars('import-archive')
+            self.__add_aws_access_key_to_envvars(env, 'import-archive')
 
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
@@ -368,3 +359,13 @@ class ServiceBuilder:
             'service_name': self.query['sessionid'],
             'service_id': self.query['siteId']
         }
+
+    def __add_aws_access_key_to_envvars(self, env, key='create-archive', *options):
+        token_gen = STSTokenGenerator(self.app_config)
+        tokens = token_gen.generateToken(key, 'uiless_wp')
+        env.append('AWS_ACCESS_KEY_ID=' + tokens['AccessKeyId'])
+        env.append('AWS_SECRET_ACCESS_KEY=' + tokens['SecretAccessKey'])
+        env.append('AWS_SESSION_TOKEN=' + tokens['SessionToken'])
+        for extra_envvar in options:
+            env.append(extra_envvar)
+        return env

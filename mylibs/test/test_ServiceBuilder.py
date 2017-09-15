@@ -7,7 +7,7 @@ import pytest
 from unittest.mock import Mock
 import yaml
 from ..ServiceBuilder import ServiceBuilder
-from ..ShifterExceptions import ShifterBackendError
+from ..ShifterExceptions import *
 
 app_config = yaml.load(open('./config/appconfig.yml', 'r'))['development']
 
@@ -325,6 +325,45 @@ def test_build_context_wordpress_worker2():
     }
 
     '''
+    site domain is 'null'. envvar SHIFTER_DOMAIN does not generate.
+    '''
+    query = {
+        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "action": "createNewService2",
+        "serviceType": 'generator',
+        "sessionid": "5d5a3d8cb5789da921264bdc13fcaccd",
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
+        "pubPort": 12345,
+        "notificationId": "5d5a3d8cb5789da921264bdc13fcaccd"
+    }
+
+    instance = ServiceBuilder(app_config, query)
+    mock_instance(instance)
+    test_site_item['domain'] = 'null'
+    context = instance.build_context_wordpress_worker2()
+    assert context
+    assert context == {
+        'service_name': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'service_type': 'generator',
+        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/shifter-base:latest',
+        'publish_port1': 12345,
+        'efs_point_web': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd/web',
+        'envvars': [
+            {'envvar': 'SERVICE_PORT=12345'},
+            {'envvar': 'SERVICE_TYPE=generator'},
+            {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'SERVICE_DOMAIN=appdev.getshifter.io'},
+            {'envvar': 'NOTIFICATION_URL=dGVzdC5ub3RpZmljYXRpb25fdXJs'},
+            {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
+            {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
+            {'envvar': 'RDB_USER=test_role'},
+            {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='}
+        ]
+    }
+
+    '''
     raise exception if nothing is found RDS information.
     '''
     query = {
@@ -340,5 +379,5 @@ def test_build_context_wordpress_worker2():
     instance = ServiceBuilder(app_config, query)
     mock_instance(instance)
     test_site_item['user_database'] = {}
-    with pytest.raises(ValueError):
+    with pytest.raises(ShifterInvalidSiteItem):
         instance.build_context_wordpress_worker2()

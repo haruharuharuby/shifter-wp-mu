@@ -31,3 +31,7 @@ class ShifterConfrictNewService(ShifterErrorBase):
 
 class ShifterConfrictPublishPorts(ShifterErrorBase):
     pass
+
+
+class ShifterInvalidSiteItem(ShifterErrorBase):
+    pass
