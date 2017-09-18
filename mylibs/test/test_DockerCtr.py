@@ -160,7 +160,6 @@ def test__buildInfoByAction():
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "createArtifact",
-        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd"
     }
     instance = DockerCtr(app_config, query)
     result = instance._DockerCtr__buildInfoByAction(query)
@@ -177,7 +176,6 @@ def test__buildInfoByAction():
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "createNewService2",
-        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
         "pubPort": 12345
     }
     instance = DockerCtr(app_config, query)
@@ -199,7 +197,6 @@ def test__buildInfoByAction():
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "createNewService2",
-        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
         "serviceType": 'generator',
         "pubPort": 12345
     }
@@ -223,7 +220,6 @@ def test__buildInfoByAction():
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "createNewService2",
-        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
         "serviceType": 'edit-wordpress',
         "pubPort": 12345
     }
