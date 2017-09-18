@@ -50,6 +50,7 @@ def test_lambda_handler():
     }
 
     DockerCtr.sessionid = Mock(return_value='test_session_id')
+    org_create_new_service = DockerCtr.createNewService
 
     '''
     action is 'test', only return fixed text.
@@ -215,6 +216,8 @@ def test_lambda_handler():
     query['phpVersion'] = '7.0'
     result = lambda_handler(query, {})
     assert result == expect
+
+    DockerCtr.createNewService = org_create_new_service
 
 
 def test_validate_arguments():

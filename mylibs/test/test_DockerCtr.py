@@ -149,6 +149,99 @@ def test__getCreateImageBody():
     ServiceBuilder.build_context_wordpress_worker2 = org_build_context_wordpress_worker2
 
 
+def test__buildInfoByAction():
+    '''
+    This is test to make response from query.
+    '''
+
+    '''
+    createArtifact action
+    '''
+    query = {
+        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "action": "createArtifact",
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd"
+    }
+    instance = DockerCtr(app_config, query)
+    result = instance._DockerCtr__buildInfoByAction(query)
+    sessionid = instance.sessionid
+    expect = {
+        "message": ("service %s started" % (sessionid)),
+        "serviceName": str(sessionid)
+    }
+    assert result == expect
+
+    '''
+    createNewService2 action. Service Type does not specfied. stock_state won't generate.
+    '''
+    query = {
+        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "action": "createNewService2",
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
+        "pubPort": 12345
+    }
+    instance = DockerCtr(app_config, query)
+    instance._DockerCtr__saveToDynamoDB = Mock(return_value=True)
+    result = instance._DockerCtr__buildInfoByAction(query)
+    sessionid = instance.sessionid
+
+    expect = {
+        "message": "service 5d5a3d8c-b578-9da9-2126-4bdc13fcaccd started",
+        "docker_url": "https://5d5a3d8c-b578-9da9-2126-4bdc13fcaccd.appdev.getshifter.io:12345",
+        'notificationId': str(sessionid),
+        'serviceName': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'
+    }
+    assert result == expect
+
+    '''
+    createNewService2 action. Service Type specfied. stock_state will generate(ingenerate).
+    '''
+    query = {
+        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "action": "createNewService2",
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
+        "serviceType": 'generator',
+        "pubPort": 12345
+    }
+    instance = DockerCtr(app_config, query)
+    instance._DockerCtr__saveToDynamoDB = Mock(return_value=True)
+    result = instance._DockerCtr__buildInfoByAction(query)
+    sessionid = instance.sessionid
+
+    expect = {
+        "message": "service 5d5a3d8c-b578-9da9-2126-4bdc13fcaccd started",
+        "docker_url": "https://5d5a3d8c-b578-9da9-2126-4bdc13fcaccd.appdev.getshifter.io:12345",
+        'notificationId': str(sessionid),
+        'serviceName': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'stock_state': 'ingenerate'
+    }
+    assert result == expect
+
+    '''
+    createNewService2 action. Service Type 'edit-wordpress'. stock_state will generate(inservice).
+    '''
+    query = {
+        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "action": "createNewService2",
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
+        "serviceType": 'edit-wordpress',
+        "pubPort": 12345
+    }
+    instance = DockerCtr(app_config, query)
+    instance._DockerCtr__saveToDynamoDB = Mock(return_value=True)
+    result = instance._DockerCtr__buildInfoByAction(query)
+    sessionid = instance.sessionid
+
+    expect = {
+        "message": "service 5d5a3d8c-b578-9da9-2126-4bdc13fcaccd started",
+        "docker_url": "https://5d5a3d8c-b578-9da9-2126-4bdc13fcaccd.appdev.getshifter.io:12345",
+        'notificationId': str(sessionid),
+        'serviceName': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'stock_state': 'inservice'
+    }
+    assert result == expect
+
+
 @patch('time.sleep', lambda x: None)
 def test__deleteNetworkIfExist():
     def side_effect_raise_exception():

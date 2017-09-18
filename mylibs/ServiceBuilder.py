@@ -317,7 +317,7 @@ class ServiceBuilder:
         notification_error_url = self.s3client.createNotificationErrorUrl(self.query['notificationId'])
         env = [
             "SERVICE_PORT=" + str(self.query['pubPort']),
-            "SERVICE_TYPE=" + self.query['serviceType'],
+            "SERVICE_TYPE=" + __get_service_type_or_default(),
             "SITE_ID=" + self.query['siteId'],
             "SERVICE_DOMAIN=" + self.app_config['service_domain'],
             "NOTIFICATION_URL=" + base64.b64encode(notification_url.encode('utf-8')).decode(),
@@ -328,8 +328,6 @@ class ServiceBuilder:
 
         if 'domain' in self.site_item and self.site_item['domain'].strip() and self.site_item['domain'] != 'null':
             env.append('SHIFTER_DOMAIN=' + self.site_item['domain'])
-
-        print(self.site_item)
 
         if self.site_item['user_database']:
             rds = self.site_item['user_database']
@@ -344,6 +342,7 @@ class ServiceBuilder:
         if context['service_type'] in ['create-archive']:
             self.__add_aws_access_key_to_envvars(env, 'create-archive', ('SHIFTER_TOKEN=' + self.query['shifterToken']))
         elif context['service_type'] in ['import-archive']:
+            # ToDo
             self.__add_aws_access_key_to_envvars(env, 'import-archive')
 
         context['envvars'] = self.__prepare_envs_for_pystache(env)
