@@ -23,7 +23,7 @@ default: &default
       Image: {{ image_string }}
       Mounts:
       - Source: {{ efs_point_web }}
-        Target: /var/www/html/web/app
+        Target: /var/www/html/web/wp/app
         Type: volume
         VolumeOptions:
           DriverConfig:
