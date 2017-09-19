@@ -84,6 +84,11 @@ def test_build_context_sync_efs_to_s3():
     }
     ServiceBuilder._ServiceBuilder__fetchDynamoSiteItem = Mock(return_value=test_site_item)
 
+    '''
+    Action syncEfsToS3.
+    if artifact id specfied, ARTIFACT_ID will generate in envvars.
+    if pj_version does not spedfied, PJ_VERSION generate 1 in envvars.
+    '''
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "syncEfsToS3",
@@ -108,14 +113,20 @@ def test_build_context_sync_efs_to_s3():
             {'envvar': 'DYNAMODB_TABLE=Site-development'},
             {'envvar': 'ARTIFACT_ID=aaaaaaaa-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'PJ_VERSION=1'},
         ]
     }
 
+    '''
+    Action deletePublicContents.
+    if artifact id does not specfied, ARTIFACT_ID won't generate in envvars.
+    if pj_version spedfied, PJ_VERSION generate query's value in envvars.
+    '''
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "deletePublicContents",
-        'artifactId': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
-        "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd"
+        "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "pjVersion": 2
     }
     instance = ServiceBuilder(app_config, query)
     context = instance.build_context_sync_efs_to_s3()
@@ -135,14 +146,16 @@ def test_build_context_sync_efs_to_s3():
             {'envvar': 'DYNAMODB_TABLE=Site-development'},
             {'envvar': 'DELETE_MODE=TRUE'},
             {'envvar': 'CF_DIST_ID=E2XDOVHUH57BXZ'},
-            {'envvar': 'ARTIFACT_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'PJ_VERSION=2'},
         ]
     }
 
+    '''
+    Action deleteArtifact. if artifact id does not specfied, ARTIFACT_ID won't generate in envvars.
+    '''
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "artifactId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "deleteArtifact",
         "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd"
     }
@@ -164,8 +177,8 @@ def test_build_context_sync_efs_to_s3():
             {'envvar': 'DYNAMODB_TABLE=Site-development'},
             {'envvar': 'DELETE_MODE=TRUE'},
             {'envvar': 'CF_DIST_ID=E2XDOVHUH57BXZ'},
-            {'envvar': 'ARTIFACT_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'PJ_VERSION=1'},
         ]
     }
 
