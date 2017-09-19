@@ -178,6 +178,9 @@ class ServiceBuilder:
             "CF_DIST_ID=" + self.site_item['cf_id']
         ]
 
+        def __get_pj_version():
+            return self.query['pjVersion'] if 'pjVersion' in self.query else 1
+
         context = {}
         context['service_name'] = self.query['sessionid']
         context['service_id'] = self.query['siteId']
@@ -202,6 +205,7 @@ class ServiceBuilder:
             env.append('ARTIFACT_ID=' + str(self.query['artifactId']))
 
         env.append('SNS_TOPIC_ARN=' + self.app_config['sns_arns']['to_delete'])
+        env.append("PJ_VERSION=" + str(__get_pj_version()))
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
         logger.info(context)
