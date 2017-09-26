@@ -73,6 +73,7 @@ def test_build_context_sync_efs_to_s3():
         "s3_region": "us-east-1",
         "site_name": "null",
         "site_owner": "null",
+        "version": "",
         "stock_state": "ready",
         "phpVersion": "7.0",
         "user_database": {
@@ -86,7 +87,7 @@ def test_build_context_sync_efs_to_s3():
 
     '''
     Action syncEfsToS3.
-    if artifact id specfied, ARTIFACT_ID will generate in envvars.
+    if artifact id specified, ARTIFACT_ID will generate in envvars.
     if pj_version does not spedfied, PJ_VERSION generate 1 in envvars.
     '''
     query = {
@@ -118,15 +119,51 @@ def test_build_context_sync_efs_to_s3():
     }
 
     '''
+    Action syncEfsToS3.
+    if artifact id specified, ARTIFACT_ID will generate in envvars.
+    if pj_version does not spedfied, but exists in site_item PJ_VERSION is used from site_item.
+    '''
+    query = {
+        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "action": "syncEfsToS3",
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
+        "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd"
+    }
+    test_site_item['version'] = "2"
+    instance = ServiceBuilder(app_config, query)
+    context = instance.build_context_sync_efs_to_s3()
+    print(context)
+    assert context == {
+        'service_name': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'service_id': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync:latest',
+        'efs_point_root': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'envvars': [
+            {'envvar': 'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA'},
+            {'envvar': 'AWS_SECRET_ACCESS_KEY=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'},
+            {'envvar': 'S3_REGION=us-east-1'},
+            {'envvar': 'S3_BUCKET=artifact.getshifter.io'},
+            {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'SERVICE_NAME=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'DYNAMODB_TABLE=Site-development'},
+            {'envvar': 'ARTIFACT_ID=aaaaaaaa-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'PJ_VERSION=2'},
+        ]
+    }
+    test_site_item['version'] = ''
+
+
+    '''
     Action deletePublicContents.
-    if artifact id does not specfied, ARTIFACT_ID won't generate in envvars.
-    if pj_version spedfied, PJ_VERSION generate query's value in envvars.
+    if artifact id does not specified, ARTIFACT_ID won't generate in envvars.
+    if pj_version specified, PJ_VERSION generate query's value in envvars.
     '''
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "deletePublicContents",
         "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "pjVersion": 2
+        "pjVersion": "2"
     }
     instance = ServiceBuilder(app_config, query)
     context = instance.build_context_sync_efs_to_s3()
@@ -152,7 +189,7 @@ def test_build_context_sync_efs_to_s3():
     }
 
     '''
-    Action deleteArtifact. if artifact id does not specfied, ARTIFACT_ID won't generate in envvars.
+    Action deleteArtifact. if artifact id does not specified, ARTIFACT_ID won't generate in envvars.
     '''
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
@@ -210,7 +247,7 @@ def test_build_context_sync_s3_to_s3():
     ServiceBuilder._ServiceBuilder__fetchDynamoSiteItem = Mock(return_value=test_site_item)
 
     '''
-    image_tag not specfied, it generates context for using latest image.
+    image_tag not specified, it generates context for using latest image.
     '''
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
@@ -238,7 +275,7 @@ def test_build_context_sync_s3_to_s3():
     }
 
     '''
-    image_tag not specfied, it generates context for using latest image.
+    image_tag not specified, it generates context for using latest image.
     '''
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
@@ -377,7 +414,7 @@ def test_build_context_wordpress_worker2():
     }
 
     '''
-    ServiceType does not specfied. Use default 'edit-wordpress'.
+    ServiceType does not specified. Use default 'edit-wordpress'.
     '''
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
