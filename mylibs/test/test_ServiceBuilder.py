@@ -153,7 +153,6 @@ def test_build_context_sync_efs_to_s3():
     }
     test_site_item['version'] = ''
 
-
     '''
     Action deletePublicContents.
     if artifact id does not specified, ARTIFACT_ID won't generate in envvars.
