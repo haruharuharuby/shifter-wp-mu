@@ -179,7 +179,13 @@ class ServiceBuilder:
         ]
 
         def __get_pj_version():
-            return self.query['pjVersion'] if 'pjVersion' in self.query else 1
+            if 'pjVersion' in self.query:
+                version = self.query['pjVersion']
+            elif self.site_item['version']:
+                version = self.site_item['version']
+            else:
+                version = "1"
+            return version
 
         context = {}
         context['service_name'] = self.query['sessionid']
@@ -205,7 +211,7 @@ class ServiceBuilder:
             env.append('ARTIFACT_ID=' + str(self.query['artifactId']))
 
         env.append('SNS_TOPIC_ARN=' + self.app_config['sns_arns']['to_delete'])
-        env.append("PJ_VERSION=" + str(__get_pj_version()))
+        env.append("PJ_VERSION=" + __get_pj_version())
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
         logger.info(context)
