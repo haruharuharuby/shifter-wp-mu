@@ -181,7 +181,7 @@ class ServiceBuilder:
         def __get_pj_version():
             if 'pjVersion' in self.query:
                 version = self.query['pjVersion']
-            elif self.site_item['version']:
+            elif self.site_item.get('version'):
                 version = self.site_item['version']
             else:
                 version = "1"

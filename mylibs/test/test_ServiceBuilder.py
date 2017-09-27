@@ -73,7 +73,6 @@ def test_build_context_sync_efs_to_s3():
         "s3_region": "us-east-1",
         "site_name": "null",
         "site_owner": "null",
-        "version": "",
         "stock_state": "ready",
         "phpVersion": "7.0",
         "user_database": {
@@ -121,7 +120,7 @@ def test_build_context_sync_efs_to_s3():
     '''
     Action syncEfsToS3.
     if artifact id specified, ARTIFACT_ID will generate in envvars.
-    if pj_version does not spedfied, but exists in site_item PJ_VERSION is used from site_item.
+    if pj_version does not spedfied, but exists in site_item version is used from site_item.
     '''
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
@@ -156,7 +155,7 @@ def test_build_context_sync_efs_to_s3():
     '''
     Action deletePublicContents.
     if artifact id does not specified, ARTIFACT_ID won't generate in envvars.
-    if pj_version specified, PJ_VERSION generate query's value in envvars.
+    if pj_version specified(and version in site_item exists), PJ_VERSION generate query's value in envvars.
     '''
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
@@ -164,6 +163,7 @@ def test_build_context_sync_efs_to_s3():
         "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "pjVersion": "2"
     }
+    test_site_item['version'] = "1"
     instance = ServiceBuilder(app_config, query)
     context = instance.build_context_sync_efs_to_s3()
     assert context
@@ -189,6 +189,7 @@ def test_build_context_sync_efs_to_s3():
 
     '''
     Action deleteArtifact. if artifact id does not specified, ARTIFACT_ID won't generate in envvars.
+    if pj_version does not specified and version in site_item is empty, PJ_VERSION generate default(=1).
     '''
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
@@ -196,6 +197,7 @@ def test_build_context_sync_efs_to_s3():
         "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd"
     }
     instance = ServiceBuilder(app_config, query)
+    test_site_item['version'] = ""
     context = instance.build_context_sync_efs_to_s3()
     assert context
     assert context == {
