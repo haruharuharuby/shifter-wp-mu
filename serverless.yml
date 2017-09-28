@@ -8,6 +8,8 @@ provider:
   deploymentBucket: serverless.${self:provider.region}.shifter.deploys
   memorySize: 256
   timeout: 60
+  stackTags:
+    SHIFTER-ENV: ${opt:stage, self:provider.stage}
   iamRoleStatements:
     - Effect: "Allow"
       Action:
