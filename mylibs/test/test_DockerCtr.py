@@ -134,7 +134,7 @@ def test__getCreateImageBody():
                 'Env': ['DUMMY_ENV=True'],
                 'Image': None,
                 'Mounts': [
-                    {'Source': None, 'Target': '/var/www/html/web/wp/app', 'Type': 'volume', 'VolumeOptions': {'DriverConfig': {'Name': 'efs'}}},
+                    {'Source': None, 'Target': '/var/www/html/web/wp/wp-content', 'Type': 'volume', 'VolumeOptions': {'DriverConfig': {'Name': 'efs'}}},
                     {'Target': '/run', 'Type': 'tmpfs'},
                     {'Target': '/tmp', 'Type': 'tmpfs'}
                 ]
