@@ -225,7 +225,6 @@ def test_lambda_handler():
     xray_recorder.end_segment()
 
 
-
 def test_validate_arguments():
     query_base = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
