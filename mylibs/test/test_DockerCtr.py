@@ -243,6 +243,8 @@ def test__deleteNetworkIfExist():
     def side_effect_raise_exception():
         raise ValueError('this is test exception')
 
+    from aws_xray_sdk.core import xray_recorder
+    xray_recorder.begin_segment('test__deleteNetworkIfExist')
     ServiceBuilder._ServiceBuilder__loadServiceTemplate = Mock(return_value=(open('./service_specs/sync-s3-to-s3.yml', 'r').read()))
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
@@ -293,3 +295,5 @@ def test__deleteNetworkIfExist():
     result = instance._DockerCtr__deleteNetworkIfExist(svc, trial=4)
     print(result)
     assert not result
+
+    xray_recorder.end_segment()

@@ -31,7 +31,6 @@ provider:
       Resource:
         - "arn:aws:s3:::sys.status.getshifter/*"
         - "arn:aws:s3:::sawatest-lambda-permission/*"
-
     - Effect: "Allow"
       Action:
         - "dynamodb:DeleteItem"
@@ -47,6 +46,12 @@ provider:
         - "arn:aws:dynamodb:us-east-1:027273742350:table/Archive-development"
         - "arn:aws:dynamodb:us-east-1:027273742350:table/UserDatabase2"
         - "arn:aws:dynamodb:us-east-1:027273742350:table/UserDatabase2-dev"
+    - Effect: "Allow"
+      Action:
+        - "xray:PutTelemetryRecords"
+        - "xray:PutTraceSegments"
+      Resource:
+        - "*"
 
 package:
   include:
