@@ -9,6 +9,7 @@ import yaml
 from lambda_function import *
 from mylibs.ShifterExceptions import *
 from mylibs.ServiceBuilder import ServiceBuilder
+from aws_xray_sdk.core import xray_recorder
 
 
 @pytest.fixture
@@ -48,6 +49,8 @@ def test_lambda_handler():
         "artifactId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "image_tag": "specified-image"
     }
+
+    xray_recorder.begin_segment('test_lambda_handler')
 
     DockerCtr.sessionid = Mock(return_value='test_session_id')
     org_create_new_service = DockerCtr.createNewService
@@ -218,6 +221,8 @@ def test_lambda_handler():
     assert result == expect
 
     DockerCtr.createNewService = org_create_new_service
+
+    xray_recorder.end_segment()
 
 
 def test_validate_arguments():

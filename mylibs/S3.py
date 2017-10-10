@@ -8,6 +8,7 @@ import uuid
 import logging
 import boto3
 import botocore
+from aws_xray_sdk.core import xray_recorder
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -20,6 +21,7 @@ class S3:
         self.notification_bucket = app_config['s3_settings']['notification_bucket']
         return None
 
+    @xray_recorder.capture('S3___hasObject')
     def __hasObject(self, key):
         try:
             self.client.get_object(
@@ -31,6 +33,7 @@ class S3:
             logger.info(e)
             return False
 
+    @xray_recorder.capture('S3_createNotificationUrl')
     def createNotificationUrl(self, notificationId):
         result = self.client.generate_presigned_url(
             ClientMethod='put_object',
@@ -43,10 +46,12 @@ class S3:
         )
         return result
 
+    @xray_recorder.capture('S3_createNotificationErrorUrl')
     def createNotificationErrorUrl(self, notificationId):
         result = self.createNotificationUrl(notificationId + '/errors')
         return result
 
+    @xray_recorder.capture('S3_createWpArchiceUrl')
     def createWpArchiceUrl(self, wpArchiveId):
         if (self.__hasObject(wpArchiveId + '/wordpress.zip')):
             result = self.client.generate_presigned_url(

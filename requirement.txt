@@ -4,3 +4,4 @@ awacs
 PyYAML
 Jinja2
 rollbar
+aws-xray-sdk

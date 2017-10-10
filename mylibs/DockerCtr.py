@@ -17,6 +17,7 @@ from .DynamoDB import *
 from .ServiceBuilder import *
 from .ResponseBuilder import *
 from .S3 import *
+from aws_xray_sdk.core import xray_recorder
 
 import rollbar
 
@@ -49,38 +50,26 @@ class DockerCtr:
         self.event = event
         self.svcs = []
         self.app_config = app_config
-        self.dockerapi_config = app_config['dockerapi']
         self.sessionid = uuid.uuid4().hex
         self.event['sessionid'] = self.sessionid
-        self.docker_session = self.buildDockerSession()
         # http://docs.python-requests.org/en/master/user/advanced/#timeouts
         self.timeout_opts = (5.0, 15.0)
         self.notificationId = self.sessionid
-
-    def buildDockerSession(self):
-        session = requests.Session()
-        session.auth = (self.dockerapi_config['authuser'], self.dockerapi_config['authpass'])
-        session.mount("http://", requests.adapters.HTTPAdapter(max_retries=3))
-        session.mount("https://", requests.adapters.HTTPAdapter(max_retries=3))
-        return session
+        self.docker_session = DockerSession(app_config['dockerapi'])
 
     """ RAW APIs"""
     def getServices(self):
         # return cached list (安定してるようなら毎回とっても良い)
         if len(self.svcs) > 0:
             return self.svcs
-
-        res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services', timeout=self.timeout_opts)
-        logger.info(res.status_code)
+        res = self.docker_session.get('services')
         result = res.json()
         self.svcs = result
-
         return result
 
     """ Wrapped APIs"""
     def getTheService(self, siteId):
-        res = self.docker_session.get(self.dockerapi_config['endpoint'] + 'services/' + siteId, timeout=self.timeout_opts)
-        logger.info(res.status_code)
+        res = self.docker_session.get('services/' + siteId)
         result = res.json()
 
         if (self.__hasDockerPublishedPort(result)):
@@ -118,9 +107,7 @@ class DockerCtr:
             port = svc['DockerUrl'].split(':')[-1]
             for times in range(trial):
                 try:
-                    logger.info("deleting network for " + str(port))
-                    res = self.docker_session.delete(self.dockerapi_config['endpoint'] + 'networks/shifter_net_user-' + str(port), timeout=self.timeout_opts)
-                    logger.info(res.status_code)
+                    res = self.docker_session.delete_port(port)
                     if res.status_code == 204:
                         break
                 except Exception as e:
@@ -151,8 +138,7 @@ class DockerCtr:
             raise ShifterUnknownError
 
         """ 404 のレスポンスはほぼ無加工でOKだけど一応Wrap """
-        res = self.docker_session.delete(self.dockerapi_config['endpoint'] + 'services/' + siteId, timeout=self.timeout_opts)
-        logger.info(res.status_code)
+        res = self.docker_session.delete('services/' + siteId)
         if res.ok:
             message = "service: " + siteId + " is deleted."
             if has_network:
@@ -230,28 +216,16 @@ class DockerCtr:
         body = self.__getCreateImageBody(query)
         logger.info(body)
 
-        self.docker_session.headers.update({'X-Registry-Auth': self.__getXRegistryAuth()})
-        self.docker_session.headers.update({'Content-Type': 'application/json'})
-
+        self.docker_session.update_header(self.__getXRegistryAuth())
         # 混戦を避けるため、専用のoverlayネットワークを作成する
         if 'pubPort' in query:
             logger.info('create specific network for service')
             # とりあえず消す、レスポンスは200か404になる
-            self.docker_session.delete(self.dockerapi_config['endpoint'] + 'networks/shifter_net_user-' + str(query['pubPort']), timeout=self.timeout_opts)
+            self.docker_session.delete_port(query['pubPort'])
             # その後作る
-            res = self.docker_session.post(
-                    self.dockerapi_config['endpoint'] + 'networks/create',
-                    json=self.__buildServiceNetworkfromTemplate(query),
-                    timeout=self.timeout_opts
-                  )
-            logger.info(res.status_code)
+            res = self.docker_session.create_network(self.__buildServiceNetworkfromTemplate(query))
 
-        res = self.docker_session.post(
-                self.dockerapi_config['endpoint'] + 'services/create',
-                json=body,
-                timeout=self.timeout_opts
-              )
-        logger.info(res.status_code)
+        res = self.docker_session.create(body)
         res.raise_for_status()
 
         info = self.__buildInfoByAction(query)
@@ -371,16 +345,16 @@ class DockerCtr:
         return False
 
     def __checkStockStatus(self, Item, query):
-        if (Item['stock_state'] == 'ingenerate'):
+        if Item['stock_state'] == 'ingenerate':
             raise ShifterConfrictNewService(
-                      exit_code=409,
-                      info="site id:" + query['siteId'] + " is now generating.Please wait finished it."
-                  )
-        elif (Item['stock_state'] == 'inservice'):
+                exit_code=409,
+                info="site id:" + query['siteId'] + " is now generating.Please wait finished it."
+            )
+        elif Item['stock_state'] == 'inservice':
             raise ShifterConfrictNewService(
-                      exit_code=409,
-                      info="site id:" + query['siteId'] + " is already running"
-                  )
+                exit_code=409,
+                info="site id:" + query['siteId'] + " is already running"
+            )
 
         return None
 
@@ -392,3 +366,56 @@ class DockerCtr:
         dynamo = DynamoDB(self.app_config)
         dynamo.resetSiteItem(siteId)
         return None
+
+
+class DockerSession:
+    '''
+    Request to Docker API.
+    Trace activities on X-Ray
+    '''
+    def __init__(self, config):
+        self.config = config
+        self.session = self.buildDockerSession()
+        self.timeout_opts = (5.0, 15.0)
+
+    def buildDockerSession(self):
+        session = requests.Session()
+        session.auth = (self.config['authuser'], self.config['authpass'])
+        session.mount("http://", requests.adapters.HTTPAdapter(max_retries=3))
+        session.mount("https://", requests.adapters.HTTPAdapter(max_retries=3))
+        return session
+
+    @xray_recorder.capture('DockerSession_get')
+    def get(self, path):
+        res = self.session.get(self.config['endpoint'] + path, timeout=self.timeout_opts)
+        logger.info(res.status_code)
+        return res
+
+    @xray_recorder.capture('DockerSession_delete_port')
+    def delete_port(self, port):
+        logger.info("deleting network for " + str(port))
+        res = self.delete('networks/shifter_net_user-' + str(port))
+        logger.info(res.status_code)
+        return res
+
+    @xray_recorder.capture('DockerSession_delete')
+    def delete(self, path):
+        res = self.session.delete(self.config['endpoint'] + path, timeout=self.timeout_opts)
+        logger.info(res.status_code)
+        return res
+
+    def update_header(self, authentication_header):
+        self.session.headers.update({'X-Registry-Auth': authentication_header})
+        self.session.headers.update({'Content-Type': 'application/json'})
+
+    @xray_recorder.capture('DockerSession_create_network')
+    def create_network(self, body):
+        res = self.session.post(self.config['endpoint'] + 'networks/create', json=body, timeout=self.timeout_opts)
+        logger.info(res.status_code)
+        return res
+
+    @xray_recorder.capture('DockerSession_create')
+    def create(self, body):
+        res = self.session.post(self.config['endpoint'] + 'services/create', json=body, timeout=self.timeout_opts)
+        logger.info(res.status_code)
+        return res
