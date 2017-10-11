@@ -10,9 +10,12 @@ import boto3
 from boto3.dynamodb.conditions import Key, Attr
 import botocore
 from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.core import patch_all
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+patch_all()
 
 
 class DynamoDB:
@@ -31,7 +34,6 @@ class DynamoDB:
         self.sitetable = client.Table(app_config['dynamo_settings']['site_table'])
         self.dbtable = client.Table(app_config['dynamo_settings']['db_table'])
 
-    @xray_recorder.capture('DynamoDB_getServiceById')
     def getServiceById(self, serviceName):
         """
         Returns Hash Item or {}.
@@ -48,7 +50,6 @@ class DynamoDB:
 
         return item
 
-    @xray_recorder.capture('DynamoDB_resetSiteItem')
     def resetSiteItem(self, serviceName):
         """
         Returns Attributes( updated Item)
@@ -73,7 +74,6 @@ class DynamoDB:
         )
         return res['Attributes']
 
-    @xray_recorder.capture('DynamoDB_updateSiteState')
     def updateSiteState(self, message):
         """
         Returns Attributes( updated Item)
@@ -94,7 +94,6 @@ class DynamoDB:
         )
         return res['Attributes']
 
-    @xray_recorder.capture('DynamoDB_fetchUserDBById')
     def fetchUserDBById(self, site_id):
         """
         Returns Hash Item or {}.
