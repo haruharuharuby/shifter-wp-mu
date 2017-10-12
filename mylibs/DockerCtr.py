@@ -18,7 +18,6 @@ from .ServiceBuilder import *
 from .ResponseBuilder import *
 from .S3 import *
 from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.core import patch_all
 
 import rollbar
 
@@ -26,7 +25,6 @@ rollbar.init(os.getenv("ROLLBAR_TOKEN"), os.getenv("SHIFTER_ENV", "development")
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-patch_all()
 
 if __name__ == '__main__':
     print('module')
@@ -387,17 +385,20 @@ class DockerSession:
         session.mount("https://", requests.adapters.HTTPAdapter(max_retries=3))
         return session
 
+    @xray_recorder.capture('DockerSession_get')
     def get(self, path):
         res = self.session.get(self.config['endpoint'] + path, timeout=self.timeout_opts)
         logger.info(res.status_code)
         return res
 
+    @xray_recorder.capture('DockerSession_delete_port')
     def delete_port(self, port):
         logger.info("deleting network for " + str(port))
         res = self.delete('networks/shifter_net_user-' + str(port))
         logger.info(res.status_code)
         return res
 
+    @xray_recorder.capture('DockerSession_delete')
     def delete(self, path):
         res = self.session.delete(self.config['endpoint'] + path, timeout=self.timeout_opts)
         logger.info(res.status_code)
@@ -407,11 +408,13 @@ class DockerSession:
         self.session.headers.update({'X-Registry-Auth': authentication_header})
         self.session.headers.update({'Content-Type': 'application/json'})
 
+    @xray_recorder.capture('DockerSession_create_network')
     def create_network(self, body):
         res = self.session.post(self.config['endpoint'] + 'networks/create', json=body, timeout=self.timeout_opts)
         logger.info(res.status_code)
         return res
 
+    @xray_recorder.capture('DockerSession_create')
     def create(self, body):
         res = self.session.post(self.config['endpoint'] + 'services/create', json=body, timeout=self.timeout_opts)
         logger.info(res.status_code)
