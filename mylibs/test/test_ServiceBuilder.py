@@ -254,7 +254,7 @@ def test_build_context_sync_s3_to_s3():
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "createArtifact",
         "sessionid": "5d5a3d8cb5789da921264bdc13fcaccd",
-        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd"
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
     }
 
     instance = ServiceBuilder(app_config, query)
@@ -336,9 +336,6 @@ def test_build_context_wordpress_worker2():
         obj.s3client.createNotificationErrorUrl = Mock(return_value='test.notificationerror_url')
 
     ServiceBuilder._ServiceBuilder__fetchDynamoSiteItem = Mock(return_value=test_site_item)
-    '''
-    default context build.
-    '''
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "createNewService2",
@@ -346,9 +343,13 @@ def test_build_context_wordpress_worker2():
         "sessionid": "5d5a3d8cb5789da921264bdc13fcaccd",
         "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
         "pubPort": 12345,
-        "notificationId": "5d5a3d8cb5789da921264bdc13fcaccd"
+        "notificationId": "5d5a3d8cb5789da921264bdc13fcaccd",
+        "token": "token"
     }
 
+    '''
+    default context build.
+    '''
     instance = ServiceBuilder(app_config, query)
     mock_instance(instance)
     context = instance.build_context_wordpress_worker2()
@@ -368,6 +369,7 @@ def test_build_context_wordpress_worker2():
             {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
             {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'SHIFTER_TOKEN=token'},
             {'envvar': 'SHIFTER_DOMAIN=test.shifterdomain'},
             {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
             {'envvar': 'RDB_USER=test_role'},
@@ -378,16 +380,6 @@ def test_build_context_wordpress_worker2():
     '''
     site domain is 'null'. envvar SHIFTER_DOMAIN does not generate.
     '''
-    query = {
-        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "action": "createNewService2",
-        "serviceType": 'generator',
-        "sessionid": "5d5a3d8cb5789da921264bdc13fcaccd",
-        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
-        "pubPort": 12345,
-        "notificationId": "5d5a3d8cb5789da921264bdc13fcaccd"
-    }
-
     instance = ServiceBuilder(app_config, query)
     mock_instance(instance)
     test_site_item['domain'] = 'null'
@@ -408,6 +400,7 @@ def test_build_context_wordpress_worker2():
             {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
             {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'SHIFTER_TOKEN=token'},
             {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
             {'envvar': 'RDB_USER=test_role'},
             {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='}
@@ -417,16 +410,9 @@ def test_build_context_wordpress_worker2():
     '''
     ServiceType does not specified. Use default 'edit-wordpress'.
     '''
-    query = {
-        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "action": "createNewService2",
-        "sessionid": "5d5a3d8cb5789da921264bdc13fcaccd",
-        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
-        "pubPort": 12345,
-        "notificationId": "5d5a3d8cb5789da921264bdc13fcaccd"
-    }
-
-    instance = ServiceBuilder(app_config, query)
+    q = query.copy()
+    q.pop('serviceType')
+    instance = ServiceBuilder(app_config, q)
     mock_instance(instance)
     test_site_item['domain'] = 'null'
     context = instance.build_context_wordpress_worker2()
@@ -446,6 +432,7 @@ def test_build_context_wordpress_worker2():
             {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
             {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'SHIFTER_TOKEN=token'},
             {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
             {'envvar': 'RDB_USER=test_role'},
             {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='}
@@ -455,16 +442,6 @@ def test_build_context_wordpress_worker2():
     '''
     raise exception if nothing is found RDS information.
     '''
-    query = {
-        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "action": "createNewService2",
-        "serviceType": 'edit-wordpress',
-        "sessionid": "5d5a3d8cb5789da921264bdc13fcaccd",
-        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
-        "pubPort": 12345,
-        "notificationId": "5d5a3d8cb5789da921264bdc13fcaccd"
-    }
-
     instance = ServiceBuilder(app_config, query)
     mock_instance(instance)
     test_site_item['user_database'] = {}

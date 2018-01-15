@@ -334,7 +334,8 @@ class ServiceBuilder:
             "NOTIFICATION_URL=" + base64.b64encode(notification_url.encode('utf-8')).decode(),
             "NOTIFICATION_ERROR_URL=" + base64.b64encode(notification_error_url.encode('utf-8')).decode(),
             "CF_DOMAIN=" + self.site_item['access_url'],
-            "SNS_TOPIC_ARN=" + self.app_config['sns_arns']['to_delete']
+            "SNS_TOPIC_ARN=" + self.app_config['sns_arns']['to_delete'],
+            "SHIFTER_TOKEN=" + self.query['token']
         ]
 
         if 'domain' in self.site_item and self.site_item['domain'].strip() and self.site_item['domain'] != 'null':

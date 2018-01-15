@@ -215,6 +215,7 @@ def test_lambda_handler():
     }
     DockerCtr.createNewService = Mock(return_value=expect)
     query = query_base.copy()
+    query['token'] = 'token'
     query['action'] = 'createNewService2'
     query['phpVersion'] = '7.0'
     result = lambda_handler(query, {})
@@ -229,6 +230,7 @@ def test_validate_arguments():
     query_base = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
+        "token": "token",
         "image_tag": "specified-image"
     }
 
@@ -495,14 +497,24 @@ def test_validate_arguments():
         result = validate_arguments(query)
 
     '''
-    action is createNewService2. True if siteId.
+    action is createNewService2. True if siteId, token
     '''
     query = query_base.copy()
     query['action'] = 'createNewService2'
+    result = validate_arguments(query)
     assert result is True
 
     '''
-    action is createNewService2. raise error if siteId does not specified.
+    action is createNewService2. False if token does not specify.
+    '''
+    query = query_base.copy()
+    query.pop('token')
+    query['action'] = 'createNewService2'
+    with pytest.raises(ShifterRequestError):
+        result = validate_arguments(query)
+
+    '''
+    action is createNewService2. raise error if siteId does not specify.
     '''
     query = query_base.copy()
     query['action'] = 'createNewService2'

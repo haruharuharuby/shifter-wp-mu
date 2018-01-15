@@ -42,7 +42,7 @@ AVAIL_ACTIONS = {
     'deleteTheService': ['siteId'],
     'deleteServiceByServiceId': ['siteId', 'serviceId'],
     'deployToNetlify': ['siteId', 'nf_siteID', 'nf_token'],
-    'createNewService2': ['siteId']
+    'createNewService2': ['siteId', 'token']
 }
 
 
