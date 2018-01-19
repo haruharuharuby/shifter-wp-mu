@@ -339,12 +339,12 @@ def test_build_context_wordpress_worker2():
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
         "action": "createNewService2",
-        "serviceType": 'generator',
         "sessionid": "5d5a3d8cb5789da921264bdc13fcaccd",
         "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
         "pubPort": 12345,
         "notificationId": "5d5a3d8cb5789da921264bdc13fcaccd",
-        "token": "token"
+        "accessToken": "accesstoken",
+        "refreshToken": "refreshtoken"
     }
 
     '''
@@ -356,20 +356,21 @@ def test_build_context_wordpress_worker2():
     assert context
     assert context == {
         'service_name': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
-        'service_type': 'generator',
+        'service_type': 'edit-wordpress',
         'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/shifter-base:latest',
         'publish_port1': 12345,
         'efs_point_web': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd/web',
         'envvars': [
             {'envvar': 'SERVICE_PORT=12345'},
-            {'envvar': 'SERVICE_TYPE=generator'},
+            {'envvar': 'SERVICE_TYPE=edit-wordpress'},
             {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SERVICE_DOMAIN=appdev.getshifter.io'},
             {'envvar': 'NOTIFICATION_URL=dGVzdC5ub3RpZmljYXRpb25fdXJs'},
             {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
             {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
-            {'envvar': 'SHIFTER_TOKEN=token'},
+            {'envvar': 'SHIFTER_ACCESS_TOKEN=accesstoken'},
+            {'envvar': 'SHIFTER_REFRESH_TOKEN=refreshtoken'},
             {'envvar': 'SHIFTER_DOMAIN=test.shifterdomain'},
             {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
             {'envvar': 'RDB_USER=test_role'},
@@ -381,38 +382,6 @@ def test_build_context_wordpress_worker2():
     site domain is 'null'. envvar SHIFTER_DOMAIN does not generate.
     '''
     instance = ServiceBuilder(app_config, query)
-    mock_instance(instance)
-    test_site_item['domain'] = 'null'
-    context = instance.build_context_wordpress_worker2()
-    assert context
-    assert context == {
-        'service_name': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
-        'service_type': 'generator',
-        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/shifter-base:latest',
-        'publish_port1': 12345,
-        'efs_point_web': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd/web',
-        'envvars': [
-            {'envvar': 'SERVICE_PORT=12345'},
-            {'envvar': 'SERVICE_TYPE=generator'},
-            {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
-            {'envvar': 'SERVICE_DOMAIN=appdev.getshifter.io'},
-            {'envvar': 'NOTIFICATION_URL=dGVzdC5ub3RpZmljYXRpb25fdXJs'},
-            {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
-            {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
-            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
-            {'envvar': 'SHIFTER_TOKEN=token'},
-            {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
-            {'envvar': 'RDB_USER=test_role'},
-            {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='}
-        ]
-    }
-
-    '''
-    ServiceType does not specified. Use default 'edit-wordpress'.
-    '''
-    q = query.copy()
-    q.pop('serviceType')
-    instance = ServiceBuilder(app_config, q)
     mock_instance(instance)
     test_site_item['domain'] = 'null'
     context = instance.build_context_wordpress_worker2()
@@ -432,12 +401,58 @@ def test_build_context_wordpress_worker2():
             {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
             {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
-            {'envvar': 'SHIFTER_TOKEN=token'},
+            {'envvar': 'SHIFTER_ACCESS_TOKEN=accesstoken'},
+            {'envvar': 'SHIFTER_REFRESH_TOKEN=refreshtoken'},
             {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
             {'envvar': 'RDB_USER=test_role'},
             {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='}
         ]
     }
+
+    '''
+    ServiceType specified 'generator'. generator context is published
+    '''
+    q = query.copy()
+    q['serviceType'] = 'generator'
+    instance = ServiceBuilder(app_config, q)
+    mock_instance(instance)
+    test_site_item['domain'] = 'null'
+    test_site_item['serviceType'] = 'edit-wordpress'
+    context = instance.build_context_wordpress_worker2()
+    assert context
+    assert context == {
+        'service_name': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'service_type': 'generator',
+        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/shifter-base:latest',
+        'publish_port1': 12345,
+        'efs_point_web': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd/web',
+        'envvars': [
+            {'envvar': 'SERVICE_PORT=12345'},
+            {'envvar': 'SERVICE_TYPE=generator'},
+            {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'SERVICE_DOMAIN=appdev.getshifter.io'},
+            {'envvar': 'NOTIFICATION_URL=dGVzdC5ub3RpZmljYXRpb25fdXJs'},
+            {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
+            {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
+            {'envvar': 'RDB_USER=test_role'},
+            {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='}
+        ]
+    }
+
+    '''
+    raise exception if tokens is not supplyed on 'edit-wordpress' type.
+    '''
+    q = query.copy()
+    q['serviceType'] = 'edit-wordpress'
+    q.pop('accessToken')
+    instance = ServiceBuilder(app_config, q)
+    mock_instance(instance)
+    test_site_item['domain'] = 'null'
+    test_site_item['serviceType'] = 'edit-wordpress'
+    with pytest.raises(ShifterRequestError):
+        instance.build_context_wordpress_worker2()
 
     '''
     raise exception if nothing is found RDS information.

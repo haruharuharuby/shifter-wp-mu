@@ -334,9 +334,15 @@ class ServiceBuilder:
             "NOTIFICATION_URL=" + base64.b64encode(notification_url.encode('utf-8')).decode(),
             "NOTIFICATION_ERROR_URL=" + base64.b64encode(notification_error_url.encode('utf-8')).decode(),
             "CF_DOMAIN=" + self.site_item['access_url'],
-            "SNS_TOPIC_ARN=" + self.app_config['sns_arns']['to_delete'],
-            "SHIFTER_TOKEN=" + self.query['token']
+            "SNS_TOPIC_ARN=" + self.app_config['sns_arns']['to_delete']
         ]
+
+        if __get_service_type_or_default() == 'edit-wordpress':
+            if self.query.get('refreshToken') and self.query.get('accessToken'):
+                env.append("SHIFTER_ACCESS_TOKEN=" + self.query['accessToken'])
+                env.append("SHIFTER_REFRESH_TOKEN=" + self.query['refreshToken'])
+            else:
+                raise ShifterRequestError('when edit-wordpress, RefreshToken and AccessToken are required.')
 
         if 'domain' in self.site_item and self.site_item['domain'].strip() and self.site_item['domain'] != 'null':
             env.append('SHIFTER_DOMAIN=' + self.site_item['domain'])
