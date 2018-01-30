@@ -3,6 +3,7 @@
 Testing ServiceBuilder Class
 '''
 
+import os
 import pytest
 from unittest.mock import Mock
 import yaml
@@ -347,6 +348,9 @@ def test_build_context_wordpress_worker2():
         "refreshToken": "refreshtoken"
     }
 
+    os.environ['SHIFTER_API_URL_V1'] = 'V1'
+    os.environ['SHIFTER_API_URL_V2'] = 'V2'
+
     '''
     default context build.
     '''
@@ -371,6 +375,8 @@ def test_build_context_wordpress_worker2():
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
             {'envvar': 'SHIFTER_ACCESS_TOKEN=accesstoken'},
             {'envvar': 'SHIFTER_REFRESH_TOKEN=refreshtoken'},
+            {'envvar': 'SHIFTER_API_URL_V1=V1'},
+            {'envvar': 'SHIFTER_API_URL_V2=V2'},
             {'envvar': 'SHIFTER_DOMAIN=test.shifterdomain'},
             {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
             {'envvar': 'RDB_USER=test_role'},
@@ -403,6 +409,8 @@ def test_build_context_wordpress_worker2():
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
             {'envvar': 'SHIFTER_ACCESS_TOKEN=accesstoken'},
             {'envvar': 'SHIFTER_REFRESH_TOKEN=refreshtoken'},
+            {'envvar': 'SHIFTER_API_URL_V1=V1'},
+            {'envvar': 'SHIFTER_API_URL_V2=V2'},
             {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
             {'envvar': 'RDB_USER=test_role'},
             {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='}
@@ -462,3 +470,6 @@ def test_build_context_wordpress_worker2():
     test_site_item['user_database'] = {}
     with pytest.raises(ShifterInvalidSiteItem):
         instance.build_context_wordpress_worker2()
+
+    del os.environ['SHIFTER_API_URL_V1']
+    del os.environ['SHIFTER_API_URL_V2']
