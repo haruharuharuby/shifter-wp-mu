@@ -96,8 +96,8 @@ functions:
     environment:
       SHIFTER_ENV: ${opt:stage, self:provider.stage}
       ROLLBAR_TOKEN: ${self:custom.rollbar_token}
-      SHIFTER_API_URL_V1: ${self:custom.shifter_api_url.${self:provider.stage}.V1}
-      SHIFTER_API_URL_V2: ${self:custom.shifter_api_url.${self:provider.stage}.V2}
+      SHIFTER_API_URL_V1: ${self:custom.shifter_api_url.${opt:stage, self:provider.stage}.V1}
+      SHIFTER_API_URL_V2: ${self:custom.shifter_api_url.${opt:stage, self:provider.stage}.V2}
 resources:
   Resources:
     MainLogGroup:
