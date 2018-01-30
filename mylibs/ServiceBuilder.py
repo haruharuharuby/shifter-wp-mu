@@ -337,6 +337,15 @@ class ServiceBuilder:
             "SNS_TOPIC_ARN=" + self.app_config['sns_arns']['to_delete']
         ]
 
+        if __get_service_type_or_default() == 'edit-wordpress':
+            if self.query.get('refreshToken') and self.query.get('accessToken'):
+                env.append("SHIFTER_ACCESS_TOKEN=" + self.query['accessToken'])
+                env.append("SHIFTER_REFRESH_TOKEN=" + self.query['refreshToken'])
+                env.append("SHIFTER_API_URL_V1=" + os.environ.get('SHIFTER_API_URL_V1'))
+                env.append("SHIFTER_API_URL_V2=" + os.environ.get('SHIFTER_API_URL_V2'))
+            else:
+                raise ShifterRequestError('when edit-wordpress, RefreshToken and AccessToken are required.')
+
         if 'domain' in self.site_item and self.site_item['domain'].strip() and self.site_item['domain'] != 'null':
             env.append('SHIFTER_DOMAIN=' + self.site_item['domain'])
 

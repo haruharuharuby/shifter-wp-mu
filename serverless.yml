@@ -82,7 +82,13 @@ custom:
     default: "3"
     development: "14"
     production: "90"
-
+  shifter_api_url:
+    development:
+      V1: ${ssm:shifter-api-url-v1-development}
+      V2: ${ssm:shifter-api-url-v2-development}
+    production:
+      V1: ${ssm:shifter-api-url-v1-production}
+      V2: ${ssm:shifter-api-url-v2-production}
 functions:
   main:
     handler: lambda_function.lambda_handler
@@ -90,7 +96,8 @@ functions:
     environment:
       SHIFTER_ENV: ${opt:stage, self:provider.stage}
       ROLLBAR_TOKEN: ${self:custom.rollbar_token}
-
+      SHIFTER_API_URL_V1: ${self:custom.shifter_api_url.${self:provider.stage}.V1}
+      SHIFTER_API_URL_V2: ${self:custom.shifter_api_url.${self:provider.stage}.V2}
 resources:
   Resources:
     MainLogGroup:
