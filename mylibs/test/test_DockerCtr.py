@@ -152,6 +152,7 @@ def test__getCreateImageBody():
     ServiceBuilder.build_context_wordpress_worker2 = org_build_context_wordpress_worker2
     xray_recorder.end_segment()
 
+
 def test__buildInfoByAction():
     '''
     This is test to make response from query.
