@@ -439,7 +439,7 @@ def test_build_context_wordpress_worker2():
     }
 
     '''
-    email is 'null'. envvar SHIFTER_USER_EMAIL is set tu null.
+    email is 'null'. envvar SHIFTER_USER_EMAIL is set to null.
     '''
     q = query.copy()
     q.pop('email')
