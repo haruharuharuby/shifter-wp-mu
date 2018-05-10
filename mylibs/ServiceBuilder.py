@@ -343,6 +343,7 @@ class ServiceBuilder:
                 env.append("SHIFTER_REFRESH_TOKEN=" + self.query['refreshToken'])
                 env.append("SHIFTER_API_URL_V1=" + os.environ.get('SHIFTER_API_URL_V1'))
                 env.append("SHIFTER_API_URL_V2=" + os.environ.get('SHIFTER_API_URL_V2'))
+                env.append("SHIFTER_USER_EMAIL=" + self.query.get('email', ''))
             else:
                 raise ShifterRequestError('when edit-wordpress, RefreshToken and AccessToken are required.')
 
