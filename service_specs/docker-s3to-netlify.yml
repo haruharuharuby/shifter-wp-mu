@@ -16,8 +16,6 @@ default: &default
         {{/envvars}}
       Image: {{ image_string }}
       Mounts:
-      - Target: /run
-        Type: tmpfs
       - Target: /tmp
         Type: tmpfs
     LogDriver:

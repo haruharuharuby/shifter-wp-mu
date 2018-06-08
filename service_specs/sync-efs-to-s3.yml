@@ -22,8 +22,6 @@ default: &default
         VolumeOptions:
           DriverConfig:
             Name: efs
-      - Target: /run
-        Type: tmpfs
       - Target: /tmp
         Type: tmpfs
     LogDriver:
