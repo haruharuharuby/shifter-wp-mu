@@ -56,6 +56,9 @@ def test_DockerCtr():
 
 
 def test__getCreateImageBody():
+    from aws_xray_sdk.core import xray_recorder
+    xray_recorder.begin_segment('test__getCreateImageBody')
+
     '''
     Pass to createArtifact, return s3tos3 service_spec
     '''
@@ -147,6 +150,7 @@ def test__getCreateImageBody():
         }
     }
     ServiceBuilder.build_context_wordpress_worker2 = org_build_context_wordpress_worker2
+    xray_recorder.end_segment()
 
 
 def test__buildInfoByAction():
