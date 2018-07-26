@@ -314,19 +314,19 @@ class ServiceBuilder:
         def __get_php_version_or_latest():
             php_var_from_query = self.query['phpVersion'] if 'phpVersion' in self.query else ''
             # return php_var_from_query or self.site_item.get('php_version', False) or 'latest'
-            return self.site_item.get('php_version', False) or php_var_from_query or 'latest'
+            shifter_env = os.getenv("SHIFTER_ENV", 'development')
+            tagname = self.site_item.get('php_version', False) or php_var_from_query or 'latest'
 
-        shifter_env = os.getenv("SHIFTER_ENV", 'development')
+            if shifter_env == 'development':
+                if not tagname.count('image'):
+                    tagname = tagname + '_develop'
+
+            return tagname
+
         context = {}
         context['service_name'] = self.query['siteId']
         context['service_type'] = __get_service_type_or_default()
-        if shifter_env == 'development':
-            tagname = __get_php_version_or_latest()
-            if not tagname.count('image'):
-                tagname = tagname + '_develop'
-                context['image_string'] = ':'.join([self.app_config['docker_images']['wordpress-worker2'], tagname])
-        else:
-            context['image_string'] = ':'.join([self.app_config['docker_images']['wordpress-worker2'], __get_php_version_or_latest()])
+        context['image_string'] = ':'.join([self.app_config['docker_images']['wordpress-worker2'], __get_php_version_or_latest()])
         context['publish_port1'] = int(self.query['pubPort'])
         context['efs_point_web'] = self.site_item['efs_id'] + "/" + self.query['siteId'] + "/web"
 
