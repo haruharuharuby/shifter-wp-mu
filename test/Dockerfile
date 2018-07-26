@@ -1,10 +1,10 @@
 FROM python:3.6
 
 # create cache
-ADD requirement.txt /test/requirement.txt
+ADD requirements.txt /test/requirements.txt
 ADD mylibs/test/requirements.txt /test/mylibs/test/requirements.txt
 WORKDIR /test
-RUN pip install -r requirement.txt -r mylibs/test/requirements.txt
+RUN pip install -r requirements.txt -r mylibs/test/requirements.txt
 
 ADD . /test
 RUN find . -type f -name "*.py[co]" -delete && \

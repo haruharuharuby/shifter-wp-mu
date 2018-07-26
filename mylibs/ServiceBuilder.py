@@ -314,7 +314,14 @@ class ServiceBuilder:
         def __get_php_version_or_latest():
             php_var_from_query = self.query['phpVersion'] if 'phpVersion' in self.query else ''
             # return php_var_from_query or self.site_item.get('php_version', False) or 'latest'
-            return self.site_item.get('php_version', False) or php_var_from_query or 'latest'
+            shifter_env = os.getenv("SHIFTER_ENV", 'development')
+            tagname = self.site_item.get('php_version', False) or php_var_from_query or 'latest'
+
+            if shifter_env == 'development':
+                if not tagname.count('image'):
+                    tagname = tagname + '_develop'
+
+            return tagname
 
         context = {}
         context['service_name'] = self.query['siteId']

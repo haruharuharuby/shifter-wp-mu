@@ -90,7 +90,6 @@ def test__getCreateImageBody():
                 ],
                 'Image': '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3tos3:latest',
                 'Mounts': [
-                    {'Target': '/run', 'Type': 'tmpfs'},
                     {'Target': '/tmp', 'Type': 'tmpfs'}
                 ]
             },
@@ -138,7 +137,6 @@ def test__getCreateImageBody():
                 'Image': None,
                 'Mounts': [
                     {'Source': None, 'Target': '/var/www/html/web/wp/wp-content', 'Type': 'volume', 'VolumeOptions': {'DriverConfig': {'Name': 'efs'}}},
-                    {'Target': '/run', 'Type': 'tmpfs'},
                     {'Target': '/tmp', 'Type': 'tmpfs'}
                 ]
             },
