@@ -373,6 +373,12 @@ class ServiceBuilder:
             # ToDo
             self.__add_aws_access_key_to_envvars(env, 'import-archive')
 
+        # Safemode
+        if self.query.get('opts_cleanup_plugins'):
+            env.append('SHIFTEROPTS_CLEANUP_PLUGINS=TRUE')
+        if self.query.get('opts_cleanup_themes'):
+            env.append('SHIFTEROPTS_CLEANUP_THEMES=TRUE')
+
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
         logger.info(context)
