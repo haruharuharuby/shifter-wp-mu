@@ -381,7 +381,7 @@ class ServiceBuilder:
 
         # Emerge mode
         if self.query.get('opts_emerge_admin'):
-            env.append('SHIFTEROPTS_EMERGE_ADMIN=' + self.query['opts_emerge_admin'])
+            env.append('SHIFTEROPTS_EMERGE_ADMIN=' + str(self.query['opts_emerge_admin']))
 
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
