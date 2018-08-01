@@ -379,6 +379,10 @@ class ServiceBuilder:
         if self.query.get('opts_cleanup_themes'):
             env.append('SHIFTEROPTS_CLEANUP_THEMES=TRUE')
 
+        # Emerge mode
+        if self.query.get('opts_emerge_admin'):
+            env.append('SHIFTEROPTS_EMERGE_ADMIN=' + self.query['opts_emerge_admin'])
+
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
         logger.info(context)
