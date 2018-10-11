@@ -234,39 +234,6 @@ def test_build_context_sync_efs_to_s3():
         ]
     }
 
-    '''
-    Action deleteArtifact. if artifact id does not specified, ARTIFACT_ID won't generate in envvars.
-    if pj_version does not specified and version in site_item is empty, PJ_VERSION generate default(=1).
-    '''
-    query = {
-        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
-        "action": "deleteArtifact",
-        "sessionid": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd"
-    }
-    instance = ServiceBuilder(app_config, query)
-    test_site_item['version'] = ""
-    context = instance.build_context_sync_efs_to_s3()
-    assert context
-    assert context == {
-        'service_name': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
-        'service_id': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
-        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync:latest',
-        'efs_point_root': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
-        'envvars': [
-            {'envvar': 'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA'},
-            {'envvar': 'AWS_SECRET_ACCESS_KEY=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'},
-            {'envvar': 'S3_REGION=us-east-1'},
-            {'envvar': 'S3_BUCKET=artifact.getshifter.io'},
-            {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
-            {'envvar': 'SERVICE_NAME=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
-            {'envvar': 'DYNAMODB_TABLE=Site-development'},
-            {'envvar': 'DELETE_MODE=TRUE'},
-            {'envvar': 'CF_DIST_ID=E2XDOVHUH57BXZ'},
-            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
-            {'envvar': 'PJ_VERSION=1'},
-        ]
-    }
-
     xray_recorder.end_segment()
 
 
