@@ -14,9 +14,6 @@ app_config = yaml.load(open('./config/appconfig.yml', 'r'))['development']
 
 
 def test_ServiceBuilder():
-    from aws_xray_sdk.core import xray_recorder
-    xray_recorder.begin_segment('test_ServiceBuilder')
-
     '''
     Test constructor
     '''
@@ -60,13 +57,8 @@ def test_ServiceBuilder():
     assert result
     assert result.site_item
 
-    xray_recorder.end_segment()
-
 
 def test_build_context_sync_efs_to_s3():
-    from aws_xray_sdk.core import xray_recorder
-    xray_recorder.begin_segment('test_ServiceBuilder')
-
     '''
     Test building context of syhcrhonizing from efs to s3
     '''
@@ -267,13 +259,8 @@ def test_build_context_sync_efs_to_s3():
         ]
     }
 
-    xray_recorder.end_segment()
-
 
 def test_build_context_sync_s3_to_s3():
-    from aws_xray_sdk.core import xray_recorder
-    xray_recorder.begin_segment('test_ServiceBuilder')
-
     '''
     Test building context of syhcrhonizing from s3 to s3
     '''
@@ -356,13 +343,8 @@ def test_build_context_sync_s3_to_s3():
         ]
     }
 
-    xray_recorder.end_segment()
-
 
 def test_build_context_wordpress_worker2():
-    from aws_xray_sdk.core import xray_recorder
-    xray_recorder.begin_segment('test_ServiceBuilder')
-
     '''
     Test building context for wordpress worker2
     '''
@@ -681,5 +663,3 @@ def test_build_context_wordpress_worker2():
 
     del os.environ['SHIFTER_API_URL_V1']
     del os.environ['SHIFTER_API_URL_V2']
-
-    xray_recorder.end_segment()
