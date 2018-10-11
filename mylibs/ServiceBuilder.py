@@ -93,8 +93,7 @@ class ServiceBuilder:
     def build_context_sync_efs_to_s3(self):
         target_buckets = {
             'syncEfsToS3': self.app_config['s3_settings']['artifacts_bucket'],
-            'deletePublicContents': self.app_config['s3_settings']['public_bucket'],
-            'deleteArtifact': self.app_config['s3_settings']['artifacts_bucket']
+            'deletePublicContents': self.app_config['s3_settings']['public_bucket']
         }
 
         delete_options = [
@@ -128,7 +127,7 @@ class ServiceBuilder:
             "DYNAMODB_TABLE=" + self.app_config['dynamo_settings']['site_table']
         ]
 
-        if self.query['action'] in ['deletePublicContents', 'deleteArtifact']:
+        if self.query['action'] in ['deletePublicContents']:
             env.extend(delete_options)
 
         if 'artifactId' in self.query:
