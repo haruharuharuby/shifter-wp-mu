@@ -190,7 +190,7 @@ class ServiceBuilder:
         context = {}
         context['service_name'] = self.query['sessionid']
         context['service_id'] = self.query['siteId']
-        context['image_string'] = ':'.join([self.app_config['docker_images']['sync-efs-to-s3'], self.__get_image_tag_or_latest()])
+        context['image_string'] = ':'.join([self.app_config['docker_images']['sync-efs-to-s3'], self.__get_image_tag_or_latest_or_dev()])
         context['efs_point_root'] = self.site_item['efs_id'] + "/" + self.query['siteId']
 
         # Build Env
@@ -390,6 +390,16 @@ class ServiceBuilder:
 
     def __get_image_tag_or_latest(self):
         return self.query['image_tag'] if 'image_tag' in self.query else 'latest'
+
+    def __get_image_tag_or_latest_or_dev(self):
+        environ = os.getenv("SHIFTER_ENV", None)
+        if 'image_tag' in self.query:
+            tag = self.query['image_tag']
+        elif environ == 'development':
+            tag = 'develop'
+        else:
+            tag = 'latest'
+        return tag
 
     def __set_service_context(self):
         return {

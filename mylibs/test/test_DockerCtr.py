@@ -137,7 +137,8 @@ def test__getCreateImageBody():
                 'Image': None,
                 'Mounts': [
                     {'Source': None, 'Target': '/var/www/html/web/wp/wp-content', 'Type': 'volume', 'VolumeOptions': {'DriverConfig': {'Name': 'efs'}}},
-                    {'Target': '/tmp', 'Type': 'tmpfs'}
+                    {'Target': '/tmp', 'Type': 'tmpfs'},
+                    {'Target': '/var/www/html/upgrade', 'Type': 'tmpfs'}
                 ]
             },
             'LogDriver': {
