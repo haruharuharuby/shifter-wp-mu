@@ -103,22 +103,6 @@ def test_lambda_handler():
     assert result == expect
 
     '''
-    action is createNewService, return result of new services
-    '''
-    expect = {
-        'status': 200,
-        'message': 'service 5d5a3d8c-b578-9da9-2126-4bdc13fcaccd started',
-        'docker_url': 'https://5d5a3d8c-b578-9da9-2126-4bdc13fcaccd.appdev.getshifter.io:12345',
-        'serviceName': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
-        'notificationId': 'test_session_id'
-    }
-    DockerCtr.createNewService = Mock(return_value=expect)
-    query = query_base.copy()
-    query['action'] = 'createNewService'
-    result = lambda_handler(query, {})
-    assert result == expect
-
-    '''
     action is syncEfsToS3, return result of creating syncEfsToS3
     '''
     expect = {
@@ -308,23 +292,6 @@ def test_validate_arguments():
         result = validate_arguments(query)
 
     '''
-    action is createNewService, True if siteId provided.
-    '''
-    query = query_base.copy()
-    query['action'] = 'createNewService'
-    result = validate_arguments(query)
-    assert result is True
-
-    '''
-    action is createNewService, raise if siteId does not provided.
-    '''
-    query = query_base.copy()
-    query['action'] = 'createNewService'
-    query.pop('siteId')
-    with pytest.raises(ShifterRequestError):
-        result = validate_arguments(query)
-
-    '''
     action is syncEfsToS3, True if siteId provided.
     '''
     query = query_base.copy()
@@ -400,45 +367,6 @@ def test_validate_arguments():
     query = query_base.copy()
     query['action'] = 'deleteServiceByServiceId'
     query['siteId'] = '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'
-    with pytest.raises(ShifterRequestError):
-        result = validate_arguments(query)
-
-    '''
-    action is deployToNetlify, True if siteId provided.
-    '''
-    query = query_base.copy()
-    query['action'] = 'deployToNetlify'
-    query['nf_siteID'] = '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'
-    query['nf_token'] = '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'
-    result = validate_arguments(query)
-    assert result is True
-
-    '''
-    action is deployToNetlify, raise if siteId does not provided.
-    '''
-    query = query_base.copy()
-    query['action'] = 'deployToNetlify'
-    query['nf_siteID'] = '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'
-    query['nf_token'] = '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'
-    query.pop('siteId')
-    with pytest.raises(ShifterRequestError):
-        result = validate_arguments(query)
-
-    '''
-    action is deployToNetlify, raise if nf_siteID does not provided.
-    '''
-    query = query_base.copy()
-    query['action'] = 'deployToNetlify'
-    query['nf_token'] = '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'
-    with pytest.raises(ShifterRequestError):
-        result = validate_arguments(query)
-
-    '''
-    action is deployToNetlify, raise if nf_token does not provided.
-    '''
-    query = query_base.copy()
-    query['action'] = 'deployToNetlify'
-    query['nf_siteID'] = '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'
     with pytest.raises(ShifterRequestError):
         result = validate_arguments(query)
 
