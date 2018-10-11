@@ -41,7 +41,6 @@ class DockerCtr:
         'syncEfsToS3',
         'deletePublicContents',
         'digSiteDirs',
-        'deployToNetlify',
         'createArtifact',
         'restoreArtifact'
     ]
@@ -270,10 +269,6 @@ class DockerCtr:
             service_spec = builder.buildServiceDef('sync-efs-to-s3')
         elif query["action"] in ['createArtifact', 'restoreArtifact']:
             service_spec = builder.buildServiceDef('sync-s3-to-s3')
-        elif (query["action"] == 'deployToNetlify'):
-            service_spec = builder.buildServiceDef('docker-s3to-netlify')
-        elif (query["action"] == 'createNewService'):
-            service_spec = builder.buildServiceDef('wordpress-worker')
         elif (query["action"] == 'createNewService2'):
             service_spec = builder.buildServiceDef('wordpress-worker2')
         elif (query["action"] == 'digSiteDirs'):
