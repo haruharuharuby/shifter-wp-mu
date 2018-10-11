@@ -167,39 +167,6 @@ class ServiceBuilder:
         logger.info(context)
         return context
 
-    def build_context_docker_s3to_netlify(self):
-        context = {}
-        context['service_name'] = self.query['sessionid']
-        context['service_id'] = self.query['siteId']
-        if 'image_tag' in self.query:
-            tag = self.query['image_tag']
-        else:
-            tag = 'latest'
-
-        context['image_string'] = ':'.join([self.app_config['docker_images']['docker-s3to-netlify'], tag])
-
-        # Build Env
-        env = [
-            "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
-            "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
-            "SITE_ID=" + self.query['siteId'],
-            "SERVICE_NAME=" + self.query['sessionid'],
-            "NF_SITEID=" + self.query['nf_siteID'],
-            "NF_TOKEN=" + self.query['nf_token']
-        ]
-
-        if 'nf_draft' in self.query:
-            env.append('NF_DRAFT=' + str(self.query['nf_draft']))
-
-        if 'artifactId' in self.query:
-            env.append('ARTIFACT_ID=' + str(self.query['artifactId']))
-
-        env.append('SNS_TOPIC_ARN=' + self.app_config['sns_arns']['to_delete'])
-        context['envvars'] = self.__prepare_envs_for_pystache(env)
-
-        logger.info(context)
-        return context
-
     def build_context_sync_s3_to_s3(self):
         context = self.__set_service_context()
         tag = self.__get_image_tag_or_latest()
