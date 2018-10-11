@@ -300,3 +300,21 @@ def test__deleteNetworkIfExist():
     assert not result
 
     xray_recorder.end_segment()
+
+
+import pytest
+
+
+# WorkAround for hangup
+@pytest.yield_fixture('session', autouse=True)
+def fix_xray_threads():
+    # TODO: This should be removed after https://github.com/aws/aws-xray-sdk-python/issues/26 is solved
+    yield
+    import ctypes
+    import threading
+    main_thread = threading.main_thread()
+    for thread in threading.enumerate():
+        if thread.daemon or thread == main_thread:
+            continue
+
+        ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread.ident), ctypes.py_object(SystemExit))
