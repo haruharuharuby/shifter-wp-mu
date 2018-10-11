@@ -30,6 +30,8 @@ default: &default
             Name: efs
       - Target: /tmp
         Type: tmpfs
+      - Target: /var/www/html/upgrade
+        Type: tmpfs
     LogDriver:
       Name: awslogs
       Options:
