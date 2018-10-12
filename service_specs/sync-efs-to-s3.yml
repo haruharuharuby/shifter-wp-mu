@@ -16,8 +16,8 @@ default: &default
         {{/envvars}}
       Image: {{ image_string }}
       Mounts:
-      - Source: {{ efs_point_root }}
-        Target: /opt/efs/
+      - Source: {{ efs_point_web }}
+        Target: /opt/efs/web/
         Type: volume
         VolumeOptions:
           DriverConfig:

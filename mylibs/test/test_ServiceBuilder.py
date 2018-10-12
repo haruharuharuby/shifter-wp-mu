@@ -112,6 +112,7 @@ def test_build_context_sync_efs_to_s3():
         'service_id': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
         'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync:latest',
         'efs_point_root': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'efs_point_web': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd/web',
         'envvars': [
             {'envvar': 'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA'},
             {'envvar': 'AWS_SECRET_ACCESS_KEY=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'},
@@ -146,6 +147,7 @@ def test_build_context_sync_efs_to_s3():
         'service_id': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
         'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync:latest',
         'efs_point_root': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'efs_point_web': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd/web',
         'envvars': [
             {'envvar': 'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA'},
             {'envvar': 'AWS_SECRET_ACCESS_KEY=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'},
@@ -183,6 +185,7 @@ def test_build_context_sync_efs_to_s3():
         'service_id': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
         'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync:develop',
         'efs_point_root': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'efs_point_web': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd/web',
         'envvars': [
             {'envvar': 'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA'},
             {'envvar': 'AWS_SECRET_ACCESS_KEY=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'},
@@ -219,6 +222,7 @@ def test_build_context_sync_efs_to_s3():
         'service_id': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
         'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync:latest',
         'efs_point_root': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'efs_point_web': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd/web',
         'envvars': [
             {'envvar': 'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA'},
             {'envvar': 'AWS_SECRET_ACCESS_KEY=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'},

@@ -115,6 +115,7 @@ class ServiceBuilder:
         context['service_id'] = self.query['siteId']
         context['image_string'] = ':'.join([self.app_config['docker_images']['sync-efs-to-s3'], self.__get_image_tag_or_latest_or_dev()])
         context['efs_point_root'] = self.site_item['efs_id'] + "/" + self.query['siteId']
+        context['efs_point_web'] = self.site_item['efs_id'] + "/" + self.query['siteId'] + "/web"
 
         # Build Env
         env = [
