@@ -34,14 +34,12 @@ AVAIL_ACTIONS = {
     'getTheService': ['siteId'],
     'digSiteDirs': ['fsId'],
     'bulkDelete': ['serviceIds'],
-    'createNewService': ['siteId'],
     'syncEfsToS3': ['siteId'],
     'createArtifact': ['siteId', 'artifactId'],
     'restoreArtifact': ['siteId', 'artifactId'],
     'deletePublicContents': ['siteId'],
     'deleteTheService': ['siteId'],
     'deleteServiceByServiceId': ['siteId', 'serviceId'],
-    'deployToNetlify': ['siteId', 'nf_siteID', 'nf_token'],
     'createNewService2': ['siteId']
 }
 
@@ -80,11 +78,9 @@ def lambda_handler(event, context):
             'getTheService': {'invoke': ctr.getTheService, 'args': lambda: event['siteId']},
             'digSiteDirs': {'invoke': ctr.createNewService},
             'bulkDelete': {'invoke': ctr.bulkDelete},
-            'createNewService': {'invoke': ctr.createNewService},
             'syncEfsToS3': {'invoke': ctr.createNewService},
             'createArtifact': {'invoke': ctr.createNewService},
             'restoreArtifact': {'invoke': ctr.createNewService},
-            'deployToNetlify': {'invoke': ctr.createNewService},
             'deletePublicContents': {'invoke': ctr.createNewService},
             'deleteTheService': {'invoke': ctr.deleteTheService, 'args': lambda: event['siteId']},
             'deleteServiceByServiceId': {'invoke': ctr.deleteServiceByServiceId, 'args': lambda: event},
