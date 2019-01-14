@@ -17,6 +17,7 @@ logger.setLevel(logging.INFO)
 class S3:
     def __init__(self, app_config):
         self.client = boto3.client('s3')
+        self.resource = boto3.resource('s3')
         self.archives_bucket = app_config['s3_settings']['archives_bucket']
         self.notification_bucket = app_config['s3_settings']['notification_bucket']
         return None
@@ -49,6 +50,12 @@ class S3:
     @xray_recorder.capture('S3_createNotificationErrorUrl')
     def createNotificationErrorUrl(self, notificationId):
         result = self.createNotificationUrl(notificationId + '/errors')
+        return result
+
+    @xray_recorder.capture('S3_putLoginToken')
+    def putLoginToken(self, siteId, login_token):
+        obj = self.resource.Object(self.notification_bucket, siteId + '/token')
+        result = obj.put(Body=login_token)
         return result
 
     @xray_recorder.capture('S3_createWpArchiceUrl')

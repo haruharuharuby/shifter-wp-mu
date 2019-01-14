@@ -5,6 +5,7 @@ import base64
 import json
 import logging
 import os
+import hashlib
 import random
 import traceback
 
@@ -236,6 +237,10 @@ class ServiceBuilder:
         ]
 
         if __get_service_type_or_default() == 'edit-wordpress':
+            login_token = hashlib.sha256(os.urandom(32)).hexdigest()
+            self.s3client.putLoginToken(self.query['siteId'], login_token)
+            env.append("SHIFTER_LOGIN_TOKEN=" + login_token)
+
             if self.query.get('refreshToken') and self.query.get('accessToken'):
                 env.append("SHIFTER_ACCESS_TOKEN=" + self.query['accessToken'])
                 env.append("SHIFTER_REFRESH_TOKEN=" + self.query['refreshToken'])
