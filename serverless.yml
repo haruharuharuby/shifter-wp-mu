@@ -89,6 +89,10 @@ custom:
     production:
       V1: ${ssm:shifter-api-url-v1-production}
       V2: ${ssm:shifter-api-url-v2-production}
+  prune:
+    automatic: true
+    number: 5
+
 functions:
   main:
     handler: lambda_function.lambda_handler
