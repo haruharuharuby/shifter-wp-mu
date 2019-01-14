@@ -362,6 +362,8 @@ def test_build_context_wordpress_worker2():
         obj.kms_client.decrypt = Mock(return_value={'Plaintext': b'test_pass'})
         obj.s3client.createNotificationUrl = Mock(return_value='test.notification_url')
         obj.s3client.createNotificationErrorUrl = Mock(return_value='test.notificationerror_url')
+        obj.s3client.putLoginToken = Mock(return_value={})
+        obj.random_login_token = Mock(return_value='test.login_token')
 
     ServiceBuilder._ServiceBuilder__fetchDynamoSiteItem = Mock(return_value=test_site_item)
     query = {
@@ -401,6 +403,7 @@ def test_build_context_wordpress_worker2():
             {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
             {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'SHIFTER_LOGIN_TOKEN=test.login_token'},
             {'envvar': 'SHIFTER_ACCESS_TOKEN=accesstoken'},
             {'envvar': 'SHIFTER_REFRESH_TOKEN=refreshtoken'},
             {'envvar': 'SHIFTER_API_URL_V1=V1'},
@@ -436,6 +439,7 @@ def test_build_context_wordpress_worker2():
             {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
             {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'SHIFTER_LOGIN_TOKEN=test.login_token'},
             {'envvar': 'SHIFTER_ACCESS_TOKEN=accesstoken'},
             {'envvar': 'SHIFTER_REFRESH_TOKEN=refreshtoken'},
             {'envvar': 'SHIFTER_API_URL_V1=V1'},
@@ -474,6 +478,7 @@ def test_build_context_wordpress_worker2():
             {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
             {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'SHIFTER_LOGIN_TOKEN=test.login_token'},
             {'envvar': 'SHIFTER_ACCESS_TOKEN=accesstoken'},
             {'envvar': 'SHIFTER_REFRESH_TOKEN=refreshtoken'},
             {'envvar': 'SHIFTER_API_URL_V1=V1'},
@@ -512,6 +517,7 @@ def test_build_context_wordpress_worker2():
             {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
             {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'SHIFTER_LOGIN_TOKEN=test.login_token'},
             {'envvar': 'SHIFTER_ACCESS_TOKEN=accesstoken'},
             {'envvar': 'SHIFTER_REFRESH_TOKEN=refreshtoken'},
             {'envvar': 'SHIFTER_API_URL_V1=V1'},
@@ -548,6 +554,7 @@ def test_build_context_wordpress_worker2():
             {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
             {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'SHIFTER_LOGIN_TOKEN=test.login_token'},
             {'envvar': 'SHIFTER_ACCESS_TOKEN=accesstoken'},
             {'envvar': 'SHIFTER_REFRESH_TOKEN=refreshtoken'},
             {'envvar': 'SHIFTER_API_URL_V1=V1'},
@@ -585,6 +592,7 @@ def test_build_context_wordpress_worker2():
             {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
             {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'SHIFTER_LOGIN_TOKEN=test.login_token'},
             {'envvar': 'SHIFTER_ACCESS_TOKEN=accesstoken'},
             {'envvar': 'SHIFTER_REFRESH_TOKEN=refreshtoken'},
             {'envvar': 'SHIFTER_API_URL_V1=V1'},

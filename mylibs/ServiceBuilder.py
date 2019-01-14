@@ -237,7 +237,7 @@ class ServiceBuilder:
         ]
 
         if __get_service_type_or_default() == 'edit-wordpress':
-            login_token = hashlib.sha256(os.urandom(32)).hexdigest()
+            login_token = self.random_login_token()
             self.s3client.putLoginToken(self.query['siteId'], login_token)
             env.append("SHIFTER_LOGIN_TOKEN=" + login_token)
 
@@ -283,6 +283,10 @@ class ServiceBuilder:
 
         logger.info(context)
         return context
+
+    def random_login_token(self):
+        # without __ prefix to create mock
+        return hashlib.sha256(os.urandom(32)).hexdigest()
 
     def __get_image_tag_or_latest(self):
         return self.query['image_tag'] if 'image_tag' in self.query else 'latest'
