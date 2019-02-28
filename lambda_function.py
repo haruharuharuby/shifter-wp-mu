@@ -40,7 +40,8 @@ AVAIL_ACTIONS = {
     'deletePublicContents': ['siteId'],
     'deleteTheService': ['siteId'],
     'deleteServiceByServiceId': ['siteId', 'serviceId'],
-    'createNewService2': ['siteId']
+    'createNewService2': ['siteId'],
+    'createTestService2': ['siteId']
 }
 
 
@@ -84,7 +85,8 @@ def lambda_handler(event, context):
             'deletePublicContents': {'invoke': ctr.createNewService},
             'deleteTheService': {'invoke': ctr.deleteTheService, 'args': lambda: event['siteId']},
             'deleteServiceByServiceId': {'invoke': ctr.deleteServiceByServiceId, 'args': lambda: event},
-            'createNewService2': {'invoke': ctr.createNewService}
+            'createNewService2': {'invoke': ctr.createNewService},
+            'createTestService2': {'invoke': ctr.createTestService},
         }
 
         action_name = event['action']

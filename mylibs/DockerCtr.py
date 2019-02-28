@@ -100,6 +100,14 @@ class DockerCtr:
         res = self.__createNewService(self.event)
         return res
 
+    def createTestService(self):
+        if self.event['action'] not in DockerCtr.PORTLESS_ACTIONS:
+            if not (self.__isAvailablePortNum()):
+                raise ShifterNoAvaliPorts(exit_code=400, info='available port not found.')
+
+        res = self.__createTestService(self.event)
+        return res
+
     def __deleteNetworkIfExist(self, svc, trial=3):
         res = None
         if 'DockerUrl' in svc:
@@ -214,6 +222,40 @@ class DockerCtr:
 
         body = self.__getCreateImageBody(query)
         logger.info(body)
+
+        self.docker_session.update_header(self.__getXRegistryAuth())
+        # 混戦を避けるため、専用のoverlayネットワークを作成する
+        if 'pubPort' in query:
+            logger.info('create specific network for service')
+            # とりあえず消す、レスポンスは200か404になる
+            self.docker_session.delete_port(query['pubPort'])
+            # その後作る
+            res = self.docker_session.create_network(self.__buildServiceNetworkfromTemplate(query))
+
+        res = self.docker_session.create(body)
+        res.raise_for_status()
+
+        info = self.__buildInfoByAction(query)
+
+        return ResponseBuilder.buildResponse(
+                status=res.status_code,
+                logs_to=query,
+                **info
+        )
+
+    def __createTestService(self, query):
+        # Run Container on a node which labeled test-worker.
+        dynamodb = DynamoDB(self.app_config)
+
+        if 'siteId' in query:
+            SiteItem = dynamodb.getServiceById(query['siteId'])
+            if query['action'] not in DockerCtr.PORTLESS_ACTIONS:
+                self.__checkStockStatus(SiteItem, query)
+                query['pubPort'] = self.__getPortNum()
+
+        body = self.__getCreateImageBody(query)
+        logger.info(body)
+        body["TaskTemplate"]["Placement"]["Constraints"][0] = 'node.labels.type == test-worker'
 
         self.docker_session.update_header(self.__getXRegistryAuth())
         # 混戦を避けるため、専用のoverlayネットワークを作成する
