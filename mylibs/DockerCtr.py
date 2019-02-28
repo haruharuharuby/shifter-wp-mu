@@ -313,6 +313,8 @@ class DockerCtr:
             service_spec = builder.buildServiceDef('sync-s3-to-s3')
         elif (query["action"] == 'createNewService2'):
             service_spec = builder.buildServiceDef('wordpress-worker2')
+        elif (query["action"] == 'createTestService2'):
+            service_spec = builder.buildServiceDef('wordpress-worker2')
         elif (query["action"] == 'digSiteDirs'):
             service_spec = builder.buildServiceDef('docker-efs-dig-dirs')
         return service_spec
