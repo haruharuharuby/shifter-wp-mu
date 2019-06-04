@@ -655,7 +655,7 @@ def test_build_context_wordpress_worker2():
             {'envvar': 'SHIFTER_S3_UPLOADS=true'},
             {'envvar': 'SHIFTER_S3_UPLOADS_BUCKET=shifter-media-cdn-dev/b1948707c0d43f3656cb7e897a206c85d951e639'},
             {'envvar': 'SHIFTER_S3_UPLOADS_REGION=us-east-1'},
-            {'envvar': 'SHIFTER_S3_UPLOADS_BUCKET_URL=https://d1cry4i2k8842s.cloudfront.net/b1948707c0d43f3656cb7e897a206c85d951e639'},
+            {'envvar': 'SHIFTER_S3_UPLOADS_BUCKET_URL=https://cdndev.getshifter.co/b1948707c0d43f3656cb7e897a206c85d951e639'},
             {'envvar': 'SHIFTER_S3_UPLOADS_KEY=AKIA'},
             {'envvar': 'SHIFTER_S3_UPLOADS_SECRET=foofoobar'},
             {'envvar': 'SHIFTER_S3_UPLOADS_TOKEN=aws_session_token'},
