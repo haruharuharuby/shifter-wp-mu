@@ -36,6 +36,13 @@ provider:
         - "arn:aws:s3:::sawatest-lambda-permission/*"
     - Effect: "Allow"
       Action:
+        - "s3:PutObject"
+        - "s3:PutObjectAcl"
+      Resource:
+        - "arn:aws:s3:::shifter-media-cdn-dev/*"
+        - "arn:aws:s3:::shifter-media-cdn-prod/*"
+    - Effect: "Allow"
+      Action:
         - "dynamodb:DeleteItem"
         - "dynamodb:GetItem"
         - "dynamodb:PutItem"

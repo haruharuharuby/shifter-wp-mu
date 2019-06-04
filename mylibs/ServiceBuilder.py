@@ -316,3 +316,23 @@ class ServiceBuilder:
         for extra_envvar in options:
             env.append(extra_envvar)
         return env
+
+    def __add_mediacdn_access_key_to_envvars(self, env, key='media_cdn', *options):
+        id_hash = hashlib.sha1(self.query['siteId']).hexdigest()
+        uploads_bucket = self.app_config['s3_settings']['mediacdn_bucket'] + '/' + id_hash
+        uploads_bucket_url = self.app_config['s3_settings']['mediacdn_cf'] + '/' + id_hash
+
+        env.append('SHIFTER_S3_UPLOADS=' + 'true')
+        env.append('SHIFTER_S3_UPLOADS_BUCKET=' + uploads_bucket)
+        env.append('SHIFTER_S3_UPLOADS_REGION=' + 'us-east-1')
+        env.append('SHIFTER_S3_UPLOADS_BUCKET_URL=' + uploads_bucket_url)
+
+        token_gen = STSTokenGenerator(self.app_config, self.query)
+        tokens = token_gen.generateToken(key, 'media_cdn')
+        env.append('SHIFTER_S3_UPLOADS_KEY=' + tokens['AccessKeyId'])
+        env.append('SHIFTER_S3_UPLOADS_SECRET=' + tokens['SecretAccessKey'])
+        env.append('SHIFTER_S3_UPLOADS_TOKEN=' + tokens['SessionToken'])
+
+        for extra_envvar in options:
+            env.append(extra_envvar)
+        return env
