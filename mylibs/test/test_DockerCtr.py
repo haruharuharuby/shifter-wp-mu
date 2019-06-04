@@ -13,7 +13,7 @@ from ..ServiceBuilder import ServiceBuilder
 
 boto3.client.decrypt = Mock(return_value='test_pass')
 
-app_config = yaml.load(open('./config/appconfig.yml', 'r'))['development']
+app_config = yaml.safe_load(open('./config/appconfig.yml', 'r'))['development']
 test_event_base = {
     "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
     "sessionid": "5d5a3d8d-b578-9da9-2126-4bdc13fcaccd"
@@ -56,8 +56,8 @@ def test_DockerCtr():
 
 
 def test__getCreateImageBody():
-    from aws_xray_sdk.core import xray_recorder
-    xray_recorder.begin_segment('test__getCreateImageBody')
+    # from aws_xray_sdk.core import xray_recorder
+    # xray_recorder.begin_segment('test__getCreateImageBody')
 
     '''
     Pass to createArtifact, return s3tos3 service_spec
@@ -149,7 +149,7 @@ def test__getCreateImageBody():
         }
     }
     ServiceBuilder.build_context_wordpress_worker2 = org_build_context_wordpress_worker2
-    xray_recorder.end_segment()
+    # xray_recorder.end_segment()
 
 
 def test__buildInfoByAction():
@@ -246,8 +246,8 @@ def test__deleteNetworkIfExist():
     def side_effect_raise_exception():
         raise ValueError('this is test exception')
 
-    from aws_xray_sdk.core import xray_recorder
-    xray_recorder.begin_segment('test__deleteNetworkIfExist')
+    # from aws_xray_sdk.core import xray_recorder
+    # xray_recorder.begin_segment('test__deleteNetworkIfExist')
     ServiceBuilder._ServiceBuilder__loadServiceTemplate = Mock(return_value=(open('./service_specs/sync-s3-to-s3.yml', 'r').read()))
     query = {
         "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
@@ -299,7 +299,7 @@ def test__deleteNetworkIfExist():
     print(result)
     assert not result
 
-    xray_recorder.end_segment()
+    # xray_recorder.end_segment()
 
 
 import pytest

@@ -11,4 +11,5 @@ RUN find . -type f -name "*.py[co]" -delete && \
     find . -type d -name "__pycache__" -delete
 
 ENV AWS_DEFAULT_REGION "us-east-1"
+ENV AWS_XRAY_SDK_ENABLED "false"
 CMD ["./test/run_test.sh"]

@@ -74,7 +74,7 @@ class ServiceBuilder:
 
         service_spec_rendered = pystache.render(template_base, context)
         logger.debug(service_spec_rendered)
-        service_spec_base = yaml.load(service_spec_rendered)
+        service_spec_base = yaml.safe_load(service_spec_rendered)
         logger.debug(service_spec_base)
         if 'SHIFTER_ENV' in os.environ.keys():
             service_spec = service_spec_base[os.environ['SHIFTER_ENV']]
@@ -279,6 +279,10 @@ class ServiceBuilder:
         if self.query.get('opts_emerge_admin'):
             env.append('SHIFTEROPTS_EMERGE_ADMIN=' + str(self.query['opts_emerge_admin']))
 
+        # # media cdn
+        if self.site_item.get('use_media_cdn'):
+            env = self.__add_mediacdn_access_key_to_envvars(env)
+
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
         logger.info(context)
@@ -318,7 +322,7 @@ class ServiceBuilder:
         return env
 
     def __add_mediacdn_access_key_to_envvars(self, env, key='media_cdn', *options):
-        id_hash = hashlib.sha1(self.query['siteId']).hexdigest()
+        id_hash = hashlib.sha1(self.query['siteId'].encode('utf-8')).hexdigest()
         uploads_bucket = self.app_config['s3_settings']['mediacdn_bucket'] + '/' + id_hash
         uploads_bucket_url = self.app_config['s3_settings']['mediacdn_cf'] + '/' + id_hash
 

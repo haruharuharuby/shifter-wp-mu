@@ -15,7 +15,7 @@ import traceback
 from .ShifterExceptions import *
 
 # awscs: https://github.com/cloudtools/awacs
-from awacs.aws import Action, Allow, Policy, Statement, Condition
+from awacs.aws import Action, Allow, Policy, Statement, Condition, StringLike
 
 # logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logger = logging.getLogger()
@@ -107,7 +107,7 @@ class STSTokenGenerator:
         self.DurationSeconds = 21600
 
         bucket = self.app_config['s3_settings']['mediacdn_bucket']
-        id_hash = hashlib.sha1(self.options['siteId']).hexdigest()
+        id_hash = hashlib.sha1(self.options['siteId'].encode('utf-8')).hexdigest()
 
         pd = Policy(
                 Id=name,
