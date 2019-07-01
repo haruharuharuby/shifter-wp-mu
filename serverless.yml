@@ -2,6 +2,7 @@ service: docker-swarm-controller
 
 plugins:
   - serverless-prune-plugin
+  - serverless-plugin-git-variables
 
 provider:
   name: aws
