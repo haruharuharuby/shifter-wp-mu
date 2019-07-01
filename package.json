@@ -1,7 +1,8 @@
 {
   "name": "lambda-docker-remote-api-controller",
   "dependencies": {
-    "serverless": "^1.21.1"
+    "serverless": "^1.21.1",
+    "serverless-plugin-git-variables": "^3.3.2"
   },
   "devDependencies": {
     "serverless-prune-plugin": "^1.3.0"
