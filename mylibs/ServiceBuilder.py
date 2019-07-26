@@ -19,6 +19,7 @@ from .DynamoDB import *
 from .S3 import *
 from .ShifterExceptions import *
 from .STSTokenGenerator import *
+from .CommonHelper import *
 
 # logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logger = logging.getLogger()
@@ -278,6 +279,10 @@ class ServiceBuilder:
         # Emerge mode
         if self.query.get('opts_emerge_admin'):
             env.append('SHIFTEROPTS_EMERGE_ADMIN=' + str(self.query['opts_emerge_admin']))
+
+        # set plan_code
+        if self.site_item.get('plan_id'):
+            env.append('SHIFTER_PLAN_CODE=' + code_by_plan_id(self.site_item['plan_id']))
 
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
