@@ -52,7 +52,7 @@ def lambda_handler(event, context):
     """
 
     # Load Configrations
-    config_base = yaml.load(open('./config/appconfig.yml', 'r'))
+    config_base = yaml.safe_load(open('./config/appconfig.yml', 'r'))
     if 'SHIFTER_ENV' in os.environ.keys():
         app_config = config_base[os.environ['SHIFTER_ENV']]
     else:

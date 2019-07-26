@@ -10,7 +10,7 @@ import yaml
 from ..ServiceBuilder import ServiceBuilder
 from ..ShifterExceptions import *
 
-app_config = yaml.load(open('./config/appconfig.yml', 'r'))['development']
+app_config = yaml.safe_load(open('./config/appconfig.yml', 'r'))['development']
 
 
 def test_ServiceBuilder():

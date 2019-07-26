@@ -74,7 +74,7 @@ class ServiceBuilder:
 
         service_spec_rendered = pystache.render(template_base, context)
         logger.debug(service_spec_rendered)
-        service_spec_base = yaml.load(service_spec_rendered)
+        service_spec_base = yaml.safe_load(service_spec_rendered)
         logger.debug(service_spec_base)
         if 'SHIFTER_ENV' in os.environ.keys():
             service_spec = service_spec_base[os.environ['SHIFTER_ENV']]
