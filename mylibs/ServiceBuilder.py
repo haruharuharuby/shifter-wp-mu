@@ -283,6 +283,9 @@ class ServiceBuilder:
         # set plan_code
         if self.site_item.get('plan_id'):
             env.append('SHIFTER_PLAN_CODE=' + code_by_plan_id(self.site_item['plan_id']))
+        elif self.site_item.get('trial'):
+            # as free plan
+            env.append('SHIFTER_PLAN_CODE=001')
 
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
