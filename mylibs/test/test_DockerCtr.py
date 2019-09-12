@@ -13,7 +13,7 @@ from ..ServiceBuilder import ServiceBuilder
 
 boto3.client.decrypt = Mock(return_value='test_pass')
 
-app_config = yaml.load(open('./config/appconfig.yml', 'r'))['development']
+app_config = yaml.safe_load(open('./config/appconfig.yml', 'r'))['development']
 test_event_base = {
     "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
     "sessionid": "5d5a3d8d-b578-9da9-2126-4bdc13fcaccd"

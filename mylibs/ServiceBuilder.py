@@ -19,6 +19,7 @@ from .DynamoDB import *
 from .S3 import *
 from .ShifterExceptions import *
 from .STSTokenGenerator import *
+from .CommonHelper import *
 
 # logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logger = logging.getLogger()
@@ -74,7 +75,7 @@ class ServiceBuilder:
 
         service_spec_rendered = pystache.render(template_base, context)
         logger.debug(service_spec_rendered)
-        service_spec_base = yaml.load(service_spec_rendered)
+        service_spec_base = yaml.safe_load(service_spec_rendered)
         logger.debug(service_spec_base)
         if 'SHIFTER_ENV' in os.environ.keys():
             service_spec = service_spec_base[os.environ['SHIFTER_ENV']]
@@ -278,6 +279,13 @@ class ServiceBuilder:
         # Emerge mode
         if self.query.get('opts_emerge_admin'):
             env.append('SHIFTEROPTS_EMERGE_ADMIN=' + str(self.query['opts_emerge_admin']))
+
+        # set plan_code
+        if self.site_item.get('plan_id'):
+            env.append('SHIFTER_PLAN_CODE=' + code_by_plan_id(self.site_item['plan_id']))
+        elif self.site_item.get('trial'):
+            # as free plan
+            env.append('SHIFTER_PLAN_CODE=001')
 
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
