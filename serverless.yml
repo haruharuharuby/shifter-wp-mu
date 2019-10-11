@@ -35,6 +35,7 @@ provider:
       Resource:
         - "arn:aws:s3:::sys.status.getshifter/*"
         - "arn:aws:s3:::sawatest-lambda-permission/*"
+        - "arn:aws:s3:::ai1wm.user.getshifter/*"
     - Effect: "Allow"
       Action:
         - "dynamodb:DeleteItem"

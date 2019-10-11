@@ -52,6 +52,32 @@ class S3:
         result = self.createNotificationUrl(notificationId + '/errors')
         return result
 
+    @xray_recorder.capture('S3_createBackupUrl')
+    def createBackupUrl(self, siteId, artifactId):
+        result = self.client.generate_presigned_url(
+            ClientMethod='put_object',
+            Params={
+                'Bucket': self.archives_bucket,
+                'Key': '/'.join([siteId, artifactId]) + '.wpress'
+            },
+            ExpiresIn=7200,
+            HttpMethod='PUT'
+        )
+        return result
+
+    @xray_recorder.capture('S3_createBackupErrorUrl')
+    def createBackupErrorUrl(self, siteId, artifactId):
+        result = self.client.generate_presigned_url(
+            ClientMethod='put_object',
+            Params={
+                'Bucket': self.archives_bucket,
+                'Key': '/'.join([siteId, artifactId]) + '.error'
+            },
+            ExpiresIn=7200,
+            HttpMethod='PUT'
+        )
+        return result
+
     @xray_recorder.capture('S3_putLoginToken')
     def putLoginToken(self, siteId, login_token):
         obj = self.resource.Object(self.notification_bucket, siteId + '/token')

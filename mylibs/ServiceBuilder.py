@@ -264,6 +264,20 @@ class ServiceBuilder:
         else:
             raise ShifterInvalidSiteItem('RDS information could not be found.')
 
+        if context['service_type'] in ['generator']:
+            # ToDo generate archive urls and set
+            # 1. get flag
+            # self.site_item['new_flag_name']
+            # 2. check artifactId
+            # artifact_id = self.query.get('artifactId', 'fallbacked_dummyid')
+            # 3.
+            # archive_url = self.s3client.createBackupUrl(self.query['siteId'], artifact_id)
+            # archive_error_url = self.s3client.createBackupErrorUrl(self.query['notificationId'])
+            # ARCIHVE_URL, ARCIHVE_ERR_URL
+            # "ARCIHVE_URL=" + base64.b64encode(archive_url.encode('utf-8')).decode()
+            # "ARCIHVE_ERR_URL=" + base64.b64encode(archive_error_url.encode('utf-8')).decode()
+            pass
+
         if context['service_type'] in ['create-archive']:
             self.__add_aws_access_key_to_envvars(env, 'create-archive', ('SHIFTER_TOKEN=' + self.query['shifterToken']))
         elif context['service_type'] in ['import-archive']:
