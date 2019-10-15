@@ -771,7 +771,7 @@ def test_build_context_wordpress_worker2():
     test_site_item['serviceType'] = 'edit-wordpress'
     test_site_item['plan_id'] = 'free'
     # test_site_item['plan_id'] = 'tier_01_xxx'
-    test_site_item['enable_a1wm'] = True
+    test_site_item['enable_ai1wm'] = True
     context = instance.build_context_wordpress_worker2()
     assert context
     assert context == {
@@ -808,7 +808,7 @@ def test_build_context_wordpress_worker2():
     test_site_item['serviceType'] = 'edit-wordpress'
     # test_site_item['plan_id'] = 'free'
     test_site_item['plan_id'] = 'tier_01_xxx'
-    test_site_item['enable_a1wm'] = True
+    test_site_item['enable_ai1wm'] = True
     context = instance.build_context_wordpress_worker2()
     assert context
     assert context == {
