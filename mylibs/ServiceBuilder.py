@@ -295,7 +295,7 @@ class ServiceBuilder:
 
             if enable_a1wm and (int(plan_code) >= 100):
                 archive_url = self.s3client.createBackupUrl(self.query['siteId'], artifact_id)
-                archive_error_url = self.s3client.createBackupErrorUrl(self.query['notificationId'])
+                archive_error_url = self.s3client.createBackupErrorUrl(self.query['siteId'], artifact_id)
                 env.append("ARCIHVE_URL=" + base64.b64encode(archive_url.encode('utf-8')).decode())
                 env.append("ARCIHVE_ERR_URL=" + base64.b64encode(archive_error_url.encode('utf-8')).decode())
 
