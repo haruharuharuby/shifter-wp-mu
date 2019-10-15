@@ -282,17 +282,18 @@ class ServiceBuilder:
 
         # set plan_code
         if self.site_item.get('plan_id'):
-            env.append('SHIFTER_PLAN_CODE=' + code_by_plan_id(self.site_item['plan_id']))
+            plan_code = code_by_plan_id(self.site_item['plan_id'])
+            env.append('SHIFTER_PLAN_CODE=' + plan_code)
         elif self.site_item.get('trial'):
             # as free plan
             env.append('SHIFTER_PLAN_CODE=001')
 
-        if context['service_type'] in ['generator']:
+        if context['service_type'] in ['generator'] and ('plan_code' in locals()):
             # ToDo generate archive urls and set
             enable_a1wm = self.site_item.get('enable_a1wm', None)
             artifact_id = self.query.get('artifactId', 'fallbacked_dummyid')
 
-            if enable_a1wm and (int(code_by_plan_id(self.site_item['plan_id'])) >= 100):
+            if enable_a1wm and (int(plan_code) >= 100):
                 archive_url = self.s3client.createBackupUrl(self.query['siteId'], artifact_id)
                 archive_error_url = self.s3client.createBackupErrorUrl(self.query['notificationId'])
                 env.append("ARCIHVE_URL=" + base64.b64encode(archive_url.encode('utf-8')).decode())
