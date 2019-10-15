@@ -18,6 +18,7 @@ default: &default
   s3_settings:
     region: us-east-1
     archives_bucket: wp-archives-files
+    ai1wm_bucket: ai1wm.user.getshifter
     notification_bucket: sys.status.getshifter
     artifacts_bucket: artifact.getshifter.io
     public_bucket: on.getshifter.io
