@@ -290,10 +290,10 @@ class ServiceBuilder:
 
         if context['service_type'] in ['generator'] and ('plan_code' in locals()):
             # ToDo generate archive urls and set
-            enable_ai1wm = self.site_item.get('enable_ai1wm', None)
+            enable_ai1wm_backup = self.site_item.get('enable_ai1wm_backup', None)
             artifact_id = self.query.get('artifactId', 'fallbacked_dummyid')
 
-            if enable_ai1wm and (int(plan_code) >= 100):
+            if enable_ai1wm_backup and (int(plan_code) >= 100):
                 archive_url = self.s3client.createBackupUrl(self.query['siteId'], artifact_id)
                 archive_error_url = self.s3client.createBackupErrorUrl(self.query['siteId'], artifact_id)
                 env.append("ARCIHVE_URL=" + base64.b64encode(archive_url.encode('utf-8')).decode())
