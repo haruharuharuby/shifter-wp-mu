@@ -14,6 +14,8 @@ provider:
   timeout: 60
   stackTags:
     SHIFTER-ENV: ${opt:stage, self:provider.stage}
+  iamManagedPolicies:
+    - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
   iamRoleStatements:
     - Effect: "Allow"
       Action:
@@ -35,6 +37,7 @@ provider:
       Resource:
         - "arn:aws:s3:::sys.status.getshifter/*"
         - "arn:aws:s3:::sawatest-lambda-permission/*"
+        - "arn:aws:s3:::ai1wm.user.getshifter/*"
     - Effect: "Allow"
       Action:
         - "dynamodb:DeleteItem"

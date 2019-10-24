@@ -294,7 +294,7 @@ class DockerCtr:
     def __buildServiceNetworkfromTemplate(self, query):
         net_template_base = open('./network_specs/shifter_net_user.yml', 'r').read()
         net_spec_rendered = pystache.render(net_template_base, {"publish_port1": query['pubPort']})
-        net_spec_base = yaml.load(net_spec_rendered)
+        net_spec_base = yaml.safe_load(net_spec_rendered)
         if 'SHIFTER_ENV' in os.environ.keys():
             net_spec = net_spec_base[os.environ['SHIFTER_ENV']]
         else:
