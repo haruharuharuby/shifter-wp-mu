@@ -1,7 +1,7 @@
 ## Setup
 
 ```
-pip install -r requirement.txt -t vendored
+pip install -r requirements.txt -t vendored
 ```
 
 ### local

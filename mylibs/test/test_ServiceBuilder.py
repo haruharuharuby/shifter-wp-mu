@@ -9,6 +9,7 @@ from unittest.mock import Mock
 import yaml
 from ..ServiceBuilder import ServiceBuilder
 from ..STSTokenGenerator import *
+from ..S3 import *
 from ..ShifterExceptions import *
 
 app_config = yaml.safe_load(open('./config/appconfig.yml', 'r'))['development']
@@ -23,6 +24,8 @@ def test_ServiceBuilder():
     '''
 
     ServiceBuilder._ServiceBuilder__fetchDynamoSiteItem = Mock()
+    S3.createBackupUrl = Mock(return_value="http://foo/bar1")
+    S3.createBackupErrorUrl = Mock(return_value="http://foo/bar2")
 
     '''
     SiteId specified. site_item attribute generates.
@@ -84,7 +87,7 @@ def test_build_context_sync_efs_to_s3():
         "site_name": "null",
         "site_owner": "null",
         "stock_state": "ready",
-        "phpVersion": "7.0",
+        "phpVersion": "7.3",
         "user_database": {
             "role": "test_role",
             "enc_passwd": "test_pass",
@@ -261,7 +264,7 @@ def test_build_context_sync_s3_to_s3():
         "site_name": "null",
         "site_owner": "null",
         "stock_state": "ready",
-        "phpVersion": "7.0",
+        "phpVersion": "7.3",
         "user_database": {
             "role": "test_role",
             "enc_passwd": "test_pass",
@@ -351,7 +354,7 @@ def test_build_context_wordpress_worker2():
         "site_owner": "null",
         "stock_state": "ready",
         "domain": "test.shifterdomain",
-        "phpVersion": "7.0",
+        "phpVersion": "7.3",
         "user_database": {
             "role": "test_role",
             "enc_passwd": "test_pass",
@@ -461,6 +464,126 @@ def test_build_context_wordpress_worker2():
         ]
     }
     del os.environ["SHIFTER_ENV"]
+
+    '''
+    default context with free plan
+    '''
+    os.environ["SHIFTER_ENV"] = "production"
+    test_site_item['plan_id'] = 'free'
+    instance = ServiceBuilder(app_config, query)
+    mock_instance(instance)
+    context = instance.build_context_wordpress_worker2()
+    assert context
+    assert context == {
+        'service_name': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'service_type': 'edit-wordpress',
+        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/shifter-base:latest',
+        'publish_port1': 12345,
+        'efs_point_web': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd/web',
+        'envvars': [
+            {'envvar': 'SERVICE_PORT=12345'},
+            {'envvar': 'SERVICE_TYPE=edit-wordpress'},
+            {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'SERVICE_DOMAIN=appdev.getshifter.io'},
+            {'envvar': 'NOTIFICATION_URL=dGVzdC5ub3RpZmljYXRpb25fdXJs'},
+            {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
+            {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'SHIFTER_LOGIN_TOKEN=test.login_token'},
+            {'envvar': 'SHIFTER_ACCESS_TOKEN=accesstoken'},
+            {'envvar': 'SHIFTER_REFRESH_TOKEN=refreshtoken'},
+            {'envvar': 'SHIFTER_API_URL_V1=V1'},
+            {'envvar': 'SHIFTER_API_URL_V2=V2'},
+            {'envvar': 'SHIFTER_USER_EMAIL=email'},
+            {'envvar': 'SHIFTER_DOMAIN=test.shifterdomain'},
+            {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
+            {'envvar': 'RDB_USER=test_role'},
+            {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='},
+            {'envvar': 'SHIFTER_PLAN_CODE=001'},
+        ]
+    }
+    del os.environ["SHIFTER_ENV"]
+    del test_site_item['plan_id']
+
+    '''
+    trial site as free ppan
+    '''
+    os.environ["SHIFTER_ENV"] = "production"
+    test_site_item['trial'] = 1564657638
+    instance = ServiceBuilder(app_config, query)
+    mock_instance(instance)
+    context = instance.build_context_wordpress_worker2()
+    assert context
+    assert context == {
+        'service_name': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'service_type': 'edit-wordpress',
+        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/shifter-base:latest',
+        'publish_port1': 12345,
+        'efs_point_web': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd/web',
+        'envvars': [
+            {'envvar': 'SERVICE_PORT=12345'},
+            {'envvar': 'SERVICE_TYPE=edit-wordpress'},
+            {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'SERVICE_DOMAIN=appdev.getshifter.io'},
+            {'envvar': 'NOTIFICATION_URL=dGVzdC5ub3RpZmljYXRpb25fdXJs'},
+            {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
+            {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'SHIFTER_LOGIN_TOKEN=test.login_token'},
+            {'envvar': 'SHIFTER_ACCESS_TOKEN=accesstoken'},
+            {'envvar': 'SHIFTER_REFRESH_TOKEN=refreshtoken'},
+            {'envvar': 'SHIFTER_API_URL_V1=V1'},
+            {'envvar': 'SHIFTER_API_URL_V2=V2'},
+            {'envvar': 'SHIFTER_USER_EMAIL=email'},
+            {'envvar': 'SHIFTER_DOMAIN=test.shifterdomain'},
+            {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
+            {'envvar': 'RDB_USER=test_role'},
+            {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='},
+            {'envvar': 'SHIFTER_PLAN_CODE=001'},
+        ]
+    }
+    del os.environ["SHIFTER_ENV"]
+    del test_site_item['trial']
+
+    '''
+    default context with tier_01 plan
+    '''
+    os.environ["SHIFTER_ENV"] = "production"
+    test_site_item['plan_id'] = 'tier_01_month'
+    instance = ServiceBuilder(app_config, query)
+    mock_instance(instance)
+    context = instance.build_context_wordpress_worker2()
+    assert context
+    assert context == {
+        'service_name': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'service_type': 'edit-wordpress',
+        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/shifter-base:latest',
+        'publish_port1': 12345,
+        'efs_point_web': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd/web',
+        'envvars': [
+            {'envvar': 'SERVICE_PORT=12345'},
+            {'envvar': 'SERVICE_TYPE=edit-wordpress'},
+            {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'SERVICE_DOMAIN=appdev.getshifter.io'},
+            {'envvar': 'NOTIFICATION_URL=dGVzdC5ub3RpZmljYXRpb25fdXJs'},
+            {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
+            {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'SHIFTER_LOGIN_TOKEN=test.login_token'},
+            {'envvar': 'SHIFTER_ACCESS_TOKEN=accesstoken'},
+            {'envvar': 'SHIFTER_REFRESH_TOKEN=refreshtoken'},
+            {'envvar': 'SHIFTER_API_URL_V1=V1'},
+            {'envvar': 'SHIFTER_API_URL_V2=V2'},
+            {'envvar': 'SHIFTER_USER_EMAIL=email'},
+            {'envvar': 'SHIFTER_DOMAIN=test.shifterdomain'},
+            {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
+            {'envvar': 'RDB_USER=test_role'},
+            {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='},
+            {'envvar': 'SHIFTER_PLAN_CODE=100'},
+        ]
+    }
+    del os.environ["SHIFTER_ENV"]
+    del test_site_item['plan_id']
 
     '''
     enable safemode.
@@ -692,6 +815,82 @@ def test_build_context_wordpress_worker2():
             {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
             {'envvar': 'RDB_USER=test_role'},
             {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='}
+        ]
+    }
+
+    '''
+    ServiceType specified 'generator'. generator context is published with artifactid free
+    '''
+    q = query.copy()
+    q['serviceType'] = 'generator'
+    q['artifactId'] = 'dummy-artifact-id'
+    instance = ServiceBuilder(app_config, q)
+    mock_instance(instance)
+    test_site_item['domain'] = 'null'
+    test_site_item['serviceType'] = 'edit-wordpress'
+    test_site_item['plan_id'] = 'free'
+    # test_site_item['plan_id'] = 'tier_01_xxx'
+    test_site_item['enable_ai1wm_backup'] = True
+    context = instance.build_context_wordpress_worker2()
+    assert context
+    assert context == {
+        'service_name': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'service_type': 'generator',
+        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/shifter-base:latest_develop',
+        'publish_port1': 12345,
+        'efs_point_web': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd/web',
+        'envvars': [
+            {'envvar': 'SERVICE_PORT=12345'},
+            {'envvar': 'SERVICE_TYPE=generator'},
+            {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'SERVICE_DOMAIN=appdev.getshifter.io'},
+            {'envvar': 'NOTIFICATION_URL=dGVzdC5ub3RpZmljYXRpb25fdXJs'},
+            {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
+            {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
+            {'envvar': 'RDB_USER=test_role'},
+            {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='},
+            {'envvar': 'SHIFTER_PLAN_CODE=001'}
+        ]
+    }
+
+    '''
+    ServiceType specified 'generator'. generator context is published with artifactid tier_01
+    '''
+    q = query.copy()
+    q['serviceType'] = 'generator'
+    q['artifactId'] = 'dummy-artifact-id'
+    instance = ServiceBuilder(app_config, q)
+    mock_instance(instance)
+    test_site_item['domain'] = 'null'
+    test_site_item['serviceType'] = 'edit-wordpress'
+    # test_site_item['plan_id'] = 'free'
+    test_site_item['plan_id'] = 'tier_01_xxx'
+    test_site_item['enable_ai1wm_backup'] = True
+    context = instance.build_context_wordpress_worker2()
+    assert context
+    assert context == {
+        'service_name': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'service_type': 'generator',
+        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/shifter-base:latest_develop',
+        'publish_port1': 12345,
+        'efs_point_web': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd/web',
+        'envvars': [
+            {'envvar': 'SERVICE_PORT=12345'},
+            {'envvar': 'SERVICE_TYPE=generator'},
+            {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'SERVICE_DOMAIN=appdev.getshifter.io'},
+            {'envvar': 'NOTIFICATION_URL=dGVzdC5ub3RpZmljYXRpb25fdXJs'},
+            {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
+            {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
+            {'envvar': 'RDB_USER=test_role'},
+            {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='},
+            {'envvar': 'SHIFTER_PLAN_CODE=100'},
+            {'envvar': 'ARCIHVE_URL=aHR0cDovL2Zvby9iYXIx'},
+            {'envvar': 'ARCIHVE_ERR_URL=aHR0cDovL2Zvby9iYXIy'},
         ]
     }
 
