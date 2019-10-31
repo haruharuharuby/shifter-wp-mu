@@ -744,7 +744,7 @@ def test_build_context_wordpress_worker2():
     '''
 
     q = query.copy()
-    test_site_item['use_media_cdn'] = True
+    test_site_item['enable_media_cdn'] = True
 
     instance = ServiceBuilder(app_config, q)
     mock_instance(instance)
@@ -784,7 +784,7 @@ def test_build_context_wordpress_worker2():
             {'envvar': 'SHIFTER_S3_UPLOADS_TOKEN=aws_session_token'},
         ]
     }
-    del test_site_item['use_media_cdn']
+    del test_site_item['enable_media_cdn']
 
     '''
     ServiceType specified 'generator'. generator context is published

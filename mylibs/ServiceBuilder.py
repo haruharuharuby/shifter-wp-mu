@@ -281,7 +281,7 @@ class ServiceBuilder:
             env.append('SHIFTEROPTS_EMERGE_ADMIN=' + str(self.query['opts_emerge_admin']))
 
         # # media cdn
-        if self.site_item.get('use_media_cdn'):
+        if self.site_item.get('enable_media_cdn'):
             env = self.__add_mediacdn_access_key_to_envvars(env)
 
         # set plan_code
