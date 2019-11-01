@@ -745,6 +745,8 @@ def test_build_context_wordpress_worker2():
 
     q = query.copy()
     test_site_item['enable_media_cdn'] = True
+    # test_site_item['plan_id'] = 'free'
+    test_site_item['plan_id'] = 'tier_01_xxx'
 
     instance = ServiceBuilder(app_config, q)
     mock_instance(instance)
@@ -775,6 +777,7 @@ def test_build_context_wordpress_worker2():
             {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
             {'envvar': 'RDB_USER=test_role'},
             {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='},
+            {'envvar': 'SHIFTER_PLAN_CODE=100'},
             {'envvar': 'SHIFTER_S3_UPLOADS=true'},
             {'envvar': 'SHIFTER_S3_UPLOADS_BUCKET=shifter-media-cdn-dev/b1948707c0d43f3656cb7e897a206c85d951e639'},
             {'envvar': 'SHIFTER_S3_UPLOADS_REGION=us-east-1'},
@@ -785,6 +788,7 @@ def test_build_context_wordpress_worker2():
         ]
     }
     del test_site_item['enable_media_cdn']
+    del test_site_item['plan_id']
 
     '''
     ServiceType specified 'generator'. generator context is published
