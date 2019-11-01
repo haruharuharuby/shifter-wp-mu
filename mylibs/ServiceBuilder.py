@@ -300,7 +300,7 @@ class ServiceBuilder:
                 env.append("ARCIHVE_ERR_URL=" + base64.b64encode(archive_error_url.encode('utf-8')).decode())
 
         # # media cdn
-        if context['service_type'] in ['edit-wordpress'] and ('plan_code' in locals()):
+        if 'plan_code' in locals():
             enable_media_cdn = self.site_item.get('enable_media_cdn', None)
 
             if enable_media_cdn and (int(plan_code) >= 100):
