@@ -205,6 +205,10 @@ class ServiceBuilder:
             return self.query['serviceType'] if 'serviceType' in self.query else 'edit-wordpress'
 
         def __get_php_version_or_latest():
+            # image for test environment
+            if self.site_item.get('dev_docker_image', False):
+                return self.site_item.get('dev_docker_image')
+
             php_var_from_query = self.query['phpVersion'] if 'phpVersion' in self.query else ''
             # return php_var_from_query or self.site_item.get('php_version', False) or 'latest'
             shifter_env = os.getenv("SHIFTER_ENV", 'development')

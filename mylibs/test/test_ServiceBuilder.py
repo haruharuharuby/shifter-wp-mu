@@ -823,6 +823,40 @@ def test_build_context_wordpress_worker2():
     }
 
     '''
+    Image specified returns specific tag
+    '''
+    q = query.copy()
+    q['serviceType'] = 'generator'
+    instance = ServiceBuilder(app_config, q)
+    mock_instance(instance)
+    test_site_item['domain'] = 'null'
+    test_site_item['serviceType'] = 'edit-wordpress'
+    test_site_item['dev_docker_image'] = 'test_test'
+    context = instance.build_context_wordpress_worker2()
+    assert context
+    assert context == {
+        'service_name': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'service_type': 'generator',
+        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/shifter-base:test_test',
+        'publish_port1': 12345,
+        'efs_point_web': 'fs-2308c16a/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd/web',
+        'envvars': [
+            {'envvar': 'SERVICE_PORT=12345'},
+            {'envvar': 'SERVICE_TYPE=generator'},
+            {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'SERVICE_DOMAIN=appdev.getshifter.io'},
+            {'envvar': 'NOTIFICATION_URL=dGVzdC5ub3RpZmljYXRpb25fdXJs'},
+            {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
+            {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
+            {'envvar': 'RDB_USER=test_role'},
+            {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='}
+        ]
+    }
+    del test_site_item['dev_docker_image']
+
+    '''
     ServiceType specified 'generator'. generator context is published with artifactid free
     '''
     q = query.copy()
