@@ -280,10 +280,6 @@ class ServiceBuilder:
         if self.query.get('opts_emerge_admin'):
             env.append('SHIFTEROPTS_EMERGE_ADMIN=' + str(self.query['opts_emerge_admin']))
 
-        # # media cdn
-        if self.site_item.get('enable_media_cdn', None):
-            env = self.__add_mediacdn_access_key_to_envvars(env)
-
         # set plan_code
         if self.site_item.get('plan_id'):
             plan_code = code_by_plan_id(self.site_item['plan_id'])
@@ -302,6 +298,13 @@ class ServiceBuilder:
                 archive_error_url = self.s3client.createBackupErrorUrl(self.query['siteId'], artifact_id)
                 env.append("ARCIHVE_URL=" + base64.b64encode(archive_url.encode('utf-8')).decode())
                 env.append("ARCIHVE_ERR_URL=" + base64.b64encode(archive_error_url.encode('utf-8')).decode())
+
+        # # media cdn
+        if context['service_type'] in ['edit-wordpress'] and ('plan_code' in locals()):
+            enable_media_cdn = self.site_item.get('enable_media_cdn', None)
+
+            if enable_media_cdn and (int(plan_code) >= 100):
+                env = self.__add_mediacdn_access_key_to_envvars(env)
 
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
