@@ -58,3 +58,4 @@ production:
     <<: *s3_settings
     mediacdn_bucket: shifter-media-cdn-prod
     mediacdn_cf: https://cdn.getshifter.co
+    mediacdn_distid: E4GUQOBAR44E2
