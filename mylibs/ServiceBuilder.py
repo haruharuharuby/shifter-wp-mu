@@ -171,7 +171,7 @@ class ServiceBuilder:
 
     def build_context_sync_s3_to_s3(self):
         context = self.__set_service_context()
-        tag = self.__get_image_tag_or_latest()
+        tag = self.__get_image_tag_or_latest_or_dev()
 
         context['image_string'] = ':'.join([self.app_config['docker_images']['sync-s3-to-s3'], tag])
 
@@ -182,6 +182,9 @@ class ServiceBuilder:
             'createArtifact': {'from': public_bucket, 'to': artifact_bucket},
             'restoreArtifact': {'from': artifact_bucket, 'to': public_bucket}
         }
+
+        media_dist_prefix = hashlib.sha1(self.query['siteId'].encode('utf-8')).hexdigest()
+
         env = [
             "AWS_ACCESS_KEY_ID=" + self.app_config['awscreds']['s3sync']['access_key'],
             "AWS_SECRET_ACCESS_KEY=" + self.app_config['awscreds']['s3sync']['secret_access_key'],
@@ -189,7 +192,9 @@ class ServiceBuilder:
             "S3_FROM=" + target_buckets[self.query['action']]['from'],
             "S3_TO=" + target_buckets[self.query['action']]['to'],
             "SERVICE_NAME=" + self.query['sessionid'],
-            "SNS_TOPIC_ARN=" + self.app_config['sns_arns']['to_delete']
+            "SNS_TOPIC_ARN=" + self.app_config['sns_arns']['to_delete'],
+            "MEDIA_DIST_ID=" + self.app_config['s3_settings']['mediacdn_distid'],
+            "MEDIA_DIST_PREFIX=" + media_dist_prefix,
         ]
 
         if self.query['action'] == 'restoreArtifact':
