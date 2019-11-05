@@ -193,12 +193,12 @@ class ServiceBuilder:
             "S3_TO=" + target_buckets[self.query['action']]['to'],
             "SERVICE_NAME=" + self.query['sessionid'],
             "SNS_TOPIC_ARN=" + self.app_config['sns_arns']['to_delete'],
-            "MEDIA_DIST_ID=" + self.app_config['s3_settings']['mediacdn_distid'],
-            "MEDIA_DIST_PREFIX=" + media_dist_prefix,
         ]
 
         if self.query['action'] == 'restoreArtifact':
             env.append("CF_DIST_ID=" + self.site_item['cf_id'])
+            env.append("MEDIA_DIST_ID=" + self.app_config['s3_settings']['mediacdn_distid'])
+            env.append("MEDIA_DIST_PREFIX=" + media_dist_prefix)
 
         context['envvars'] = self.__prepare_envs_for_pystache(env)
 
