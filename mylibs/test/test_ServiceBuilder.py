@@ -328,12 +328,42 @@ def test_build_context_sync_s3_to_s3():
             {'envvar': 'SERVICE_NAME=5d5a3d8cb5789da921264bdc13fcaccd'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
             {'envvar': 'CF_DIST_ID=E2XDOVHUH57BXZ'},
+        ]
+    }
+
+    '''
+    image_tag not specified, it generates context for using latest image with media cdn flag.
+    '''
+    query = {
+        "siteId": "5d5a3d8c-b578-9da9-2126-4bdc13fcaccd",
+        "action": "restoreArtifact",
+        "sessionid": "5d5a3d8cb5789da921264bdc13fcaccd",
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd"
+    }
+
+    test_site_item['enable_media_cdn'] = True
+    instance = ServiceBuilder(app_config, query)
+    context = instance.build_context_sync_s3_to_s3()
+    assert context
+    assert context == {
+        'service_name': '5d5a3d8cb5789da921264bdc13fcaccd',
+        'service_id': '5d5a3d8c-b578-9da9-2126-4bdc13fcaccd',
+        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3tos3:latest',
+        'envvars': [
+            {'envvar': 'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA'},
+            {'envvar': 'AWS_SECRET_ACCESS_KEY=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'},
+            {'envvar': 'S3_REGION=us-east-1'},
+            {'envvar': 'S3_FROM=artifact.getshifter.io/aaaaaaaa-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'S3_TO=on.getshifter.io/5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'SERVICE_NAME=5d5a3d8cb5789da921264bdc13fcaccd'},
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'CF_DIST_ID=E2XDOVHUH57BXZ'},
             {'envvar': 'MEDIA_DIST_ID=E10MBLYODBIWA3'},
             {'envvar': 'MEDIA_DIST_PREFIX=b1948707c0d43f3656cb7e897a206c85d951e639'},
         ]
     }
 
-    # xray_recorder.end_segment()
+    del test_site_item['enable_media_cdn']
 
 
 def test_build_context_wordpress_worker2():
