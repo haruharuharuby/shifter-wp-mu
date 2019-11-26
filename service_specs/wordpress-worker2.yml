@@ -43,7 +43,7 @@ default: &default
         - "node.labels.type == efs-worker"
     Resources:
       Limits:
-        NanoCPUs: {{ cpu_shares }}
+        NanoCPUs: {{ nano_cpus }}
 
 
 development:

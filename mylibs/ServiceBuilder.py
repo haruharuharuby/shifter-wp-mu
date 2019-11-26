@@ -233,7 +233,7 @@ class ServiceBuilder:
         context['image_string'] = ':'.join([self.app_config['docker_images']['wordpress-worker2'], __get_php_version_or_latest()])
         context['publish_port1'] = int(self.query['pubPort'])
         context['efs_point_web'] = self.site_item['efs_id'] + "/" + self.query['siteId'] + "/web"
-        context['cpu_shares'] = 1024
+        context['nano_cpus'] = 2000000000
 
         # Build Env
         notification_url = self.s3client.createNotificationUrl(self.query['notificationId'])
@@ -282,7 +282,7 @@ class ServiceBuilder:
             # ToDo
             self.__add_aws_access_key_to_envvars(env, 'import-archive')
         elif context['service_type'] in ['generator']:
-            context['cpu_shares'] = 768
+            context['nano_cpus'] = 1500000000
 
         # Safemode
         if self.query.get('opts_cleanup_plugins'):
