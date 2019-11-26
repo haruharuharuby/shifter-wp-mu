@@ -43,9 +43,7 @@ default: &default
         - "node.labels.type == efs-worker"
     Resources:
       Limits:
-        NanoCPUs: 2
-      Reservation:
-        NanoCPUs: 0.5
+        NanoCPUs: 2000000000
 
 
 development:
