@@ -145,7 +145,8 @@ def test__getCreateImageBody():
                 'Name': 'awslogs',
                 'Options': {'awslogs-group': 'dockerlog-services-development', 'awslogs-region': 'us-east-1', 'awslogs-stream': None}
             },
-            'Placement': {'Constraints': ['node.labels.type == efs-worker']}
+            'Placement': {'Constraints': ['node.labels.type == efs-worker']},
+            'Resources': {'Limits': {'NanoCPUs': 2000000000}}
         }
     }
     ServiceBuilder.build_context_wordpress_worker2 = org_build_context_wordpress_worker2
