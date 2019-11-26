@@ -41,6 +41,10 @@ default: &default
     Placement:
       Constraints:
         - "node.labels.type == efs-worker"
+    Resources:
+      Limits:
+        NanoCPUs: {{ cpu_shares }}
+
 
 development:
   <<: *default
