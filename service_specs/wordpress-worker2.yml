@@ -45,7 +45,6 @@ default: &default
       Limits:
         NanoCPUs: 2000000000
 
-
 development:
   <<: *default
   TaskTemplate:
