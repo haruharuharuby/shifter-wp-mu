@@ -172,6 +172,44 @@ def test_build_context_sync_efs_to_s3():
     '''
     Action syncEfsToS3.
     if artifact id specified, ARTIFACT_ID will generate in envvars.
+    if pj_version does not spedfied, but exists in site_item version is used from site_item.
+    if siteId is included in isolation, use efs-vagrant-worker for launch
+    '''
+    query = {
+        "siteId": "bad5432a-0a86-11e8-b28d-be1fc107a0c1",
+        "action": "syncEfsToS3",
+        "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
+        "sessionid": "bad5432a-0a86-11e8-b28d-be1fc107a0c1"
+    }
+    test_site_item['version'] = "2"
+    instance = ServiceBuilder(app_config, query)
+    context = instance.build_context_sync_efs_to_s3()
+    print(context)
+    assert context == {
+        'service_name': 'bad5432a-0a86-11e8-b28d-be1fc107a0c1',
+        'service_id': 'bad5432a-0a86-11e8-b28d-be1fc107a0c1',
+        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync:latest',
+        'efs_point_root': 'fs-2308c16a/bad5432a-0a86-11e8-b28d-be1fc107a0c1',
+        'efs_point_web': 'fs-2308c16a/bad5432a-0a86-11e8-b28d-be1fc107a0c1/web',
+        'worker_type': 'efs-vagrant-worker',
+        'envvars': [
+            {'envvar': 'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA'},
+            {'envvar': 'AWS_SECRET_ACCESS_KEY=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'},
+            {'envvar': 'S3_REGION=us-east-1'},
+            {'envvar': 'S3_BUCKET=artifact.getshifter.io'},
+            {'envvar': 'SITE_ID=bad5432a-0a86-11e8-b28d-be1fc107a0c1'},
+            {'envvar': 'SERVICE_NAME=bad5432a-0a86-11e8-b28d-be1fc107a0c1'},
+            {'envvar': 'DYNAMODB_TABLE=Site-development'},
+            {'envvar': 'ARTIFACT_ID=aaaaaaaa-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'PJ_VERSION=2'},
+        ]
+    }
+    test_site_item['version'] = ''
+
+    '''
+    Action syncEfsToS3.
+    if artifact id specified, ARTIFACT_ID will generate in envvars.
     if SHIFTER_ENV==development specified, use develop as tag
     if pj_version does not spedfied, but exists in site_item version is used from site_item.
     '''
@@ -447,6 +485,44 @@ def test_build_context_wordpress_worker2():
             {'envvar': 'SERVICE_PORT=12345'},
             {'envvar': 'SERVICE_TYPE=edit-wordpress'},
             {'envvar': 'SITE_ID=5d5a3d8c-b578-9da9-2126-4bdc13fcaccd'},
+            {'envvar': 'SERVICE_DOMAIN=appdev.getshifter.io'},
+            {'envvar': 'NOTIFICATION_URL=dGVzdC5ub3RpZmljYXRpb25fdXJs'},
+            {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
+            {'envvar': 'CF_DOMAIN=tender-ride7316.on.getshifter.io'},
+            {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
+            {'envvar': 'SHIFTER_LOGIN_TOKEN=test.login_token'},
+            {'envvar': 'SHIFTER_ACCESS_TOKEN=accesstoken'},
+            {'envvar': 'SHIFTER_REFRESH_TOKEN=refreshtoken'},
+            {'envvar': 'SHIFTER_API_URL_V1=V1'},
+            {'envvar': 'SHIFTER_API_URL_V2=V2'},
+            {'envvar': 'SHIFTER_USER_EMAIL=email'},
+            {'envvar': 'SHIFTER_DOMAIN=test.shifterdomain'},
+            {'envvar': 'RDB_ENDPOINT=test.rdbendpoint'},
+            {'envvar': 'RDB_USER=test_role'},
+            {'envvar': 'RDB_PASSWD=U0hBXzFSMUpCVkVWQlIwRkpUZ3Rlc3RfcGFzcw=='}
+        ]
+    }
+
+    '''
+    default context build with isolation target
+    '''
+    q = query.copy()
+    q['siteId'] = 'bad5432a-0a86-11e8-b28d-be1fc107a0c1'
+    instance = ServiceBuilder(app_config, q)
+    mock_instance(instance)
+    context = instance.build_context_wordpress_worker2()
+    assert context
+    assert context == {
+        'service_name': 'bad5432a-0a86-11e8-b28d-be1fc107a0c1',
+        'service_type': 'edit-wordpress',
+        'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/shifter-base:latest_develop',
+        'publish_port1': 12345,
+        'efs_point_web': 'fs-2308c16a/bad5432a-0a86-11e8-b28d-be1fc107a0c1/web',
+        'worker_type': 'efs-vagrant-worker',
+        'envvars': [
+            {'envvar': 'SERVICE_PORT=12345'},
+            {'envvar': 'SERVICE_TYPE=edit-wordpress'},
+            {'envvar': 'SITE_ID=bad5432a-0a86-11e8-b28d-be1fc107a0c1'},
             {'envvar': 'SERVICE_DOMAIN=appdev.getshifter.io'},
             {'envvar': 'NOTIFICATION_URL=dGVzdC5ub3RpZmljYXRpb25fdXJs'},
             {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},

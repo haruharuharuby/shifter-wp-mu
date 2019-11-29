@@ -119,6 +119,8 @@ class ServiceBuilder:
         context['efs_point_root'] = self.site_item['efs_id'] + "/" + self.query['siteId']
         context['efs_point_web'] = self.site_item['efs_id'] + "/" + self.query['siteId'] + "/web"
         context['worker_type'] = 'efs-worker'
+        if self.query['siteId'] in self.app_config['isolation']['targets']:
+            context['worker_type'] = self.app_config['isolation']['label']
 
         # Build Env
         env = [
@@ -235,6 +237,8 @@ class ServiceBuilder:
         context['publish_port1'] = int(self.query['pubPort'])
         context['efs_point_web'] = self.site_item['efs_id'] + "/" + self.query['siteId'] + "/web"
         context['worker_type'] = 'efs-worker'
+        if self.query['siteId'] in self.app_config['isolation']['targets']:
+            context['worker_type'] = self.app_config['isolation']['label']
 
         # Build Env
         notification_url = self.s3client.createNotificationUrl(self.query['notificationId'])

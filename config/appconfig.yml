@@ -37,6 +37,10 @@ default: &default
     docker-efs-dig-dirs: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-efs-dig-dirs
     docker-s3to-netlify: 027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3to-netlify
   mgword: SHA_1R1JBVEVBR0FJTg
+  isolation: &isolation
+    label: efs-vagrant-worker
+    targets: []
+
 
 development:
   <<: *default
@@ -49,6 +53,10 @@ development:
   dynamo_settings:
     site_table: Site-development
     db_table: UserDatabase2-dev
+  isolation:
+    <<: *isolation
+    targets:
+      - bad5432a-0a86-11e8-b28d-be1fc107a0c1
 
 production:
   <<: *default
