@@ -67,3 +67,8 @@ production:
     mediacdn_bucket: shifter-media-cdn
     mediacdn_cf: https://cdn.getshifter.co
     mediacdn_distid: E4GUQOBAR44E2
+  isolation:
+    <<: *isolation
+    targets:
+      - 76c7020c-a84f-11e7-94b6-b64fb4ef4b4d
+      - 33674b8a-22b3-4f3e-8791-3b0bad627219
