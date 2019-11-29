@@ -145,7 +145,7 @@ def test__getCreateImageBody():
                 'Name': 'awslogs',
                 'Options': {'awslogs-group': 'dockerlog-services-development', 'awslogs-region': 'us-east-1', 'awslogs-stream': None}
             },
-            'Placement': {'Constraints': ['node.labels.type == efs-worker']},
+            'Placement': {'Constraints': ['node.labels.type == ']},
             'Resources': {'Limits': {'NanoCPUs': 2000000000}}
         }
     }

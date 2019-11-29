@@ -32,7 +32,7 @@ default: &default
         awslogs-stream: {{ service_id }}-s3sync
     Placement:
       Constraints:
-        - "node.labels.type == efs-worker"
+        - "node.labels.type == {{ worker_type }}"
     RestartPolicy:
       Condition: on-failure
       Delay: 5000

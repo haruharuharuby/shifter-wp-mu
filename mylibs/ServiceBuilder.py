@@ -118,6 +118,7 @@ class ServiceBuilder:
         context['image_string'] = ':'.join([self.app_config['docker_images']['sync-efs-to-s3'], self.__get_image_tag_or_latest_or_dev()])
         context['efs_point_root'] = self.site_item['efs_id'] + "/" + self.query['siteId']
         context['efs_point_web'] = self.site_item['efs_id'] + "/" + self.query['siteId'] + "/web"
+        context['worker_type'] = 'efs-worker'
 
         # Build Env
         env = [
@@ -233,6 +234,7 @@ class ServiceBuilder:
         context['image_string'] = ':'.join([self.app_config['docker_images']['wordpress-worker2'], __get_php_version_or_latest()])
         context['publish_port1'] = int(self.query['pubPort'])
         context['efs_point_web'] = self.site_item['efs_id'] + "/" + self.query['siteId'] + "/web"
+        context['worker_type'] = 'efs-worker'
 
         # Build Env
         notification_url = self.s3client.createNotificationUrl(self.query['notificationId'])

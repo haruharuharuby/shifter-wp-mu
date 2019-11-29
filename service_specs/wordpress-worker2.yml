@@ -40,7 +40,7 @@ default: &default
         awslogs-stream: {{ service_name }}
     Placement:
       Constraints:
-        - "node.labels.type == efs-worker"
+        - "node.labels.type == {{ worker_type }}"
     Resources:
       Limits:
         NanoCPUs: 2000000000
