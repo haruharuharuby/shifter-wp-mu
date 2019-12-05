@@ -4,6 +4,8 @@ preview: package
 
 .PHONY: package
 package: depends
+	rm -rf mylibs/.cache
+	find mylibs -name *.pyc -type f -delete
 	find vendored -name *.pyc -type f -delete
 	sls package
 

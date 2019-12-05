@@ -287,6 +287,11 @@ class ServiceBuilder:
             # ToDo
             self.__add_aws_access_key_to_envvars(env, 'import-archive')
 
+        # subdir
+        if self.site_item.get('subdir', False):
+            if self.site_item['subdir'].strip():
+                env.append('SITE_SUBDIR=' + self.site_item['subdir'].strip())
+
         # Safemode
         if self.query.get('opts_cleanup_plugins'):
             env.append('SHIFTEROPTS_CLEANUP_PLUGINS=TRUE')
