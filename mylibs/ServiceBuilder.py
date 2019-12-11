@@ -135,14 +135,14 @@ class ServiceBuilder:
 
         if self.query['action'] in ['deletePublicContents']:
             env.extend(delete_options)
+        else:
+            # append subdir
+            if self.site_item.get('subdir', False):
+                if self.site_item['subdir'].strip():
+                    env.append('SITE_SUBDIR=' + self.site_item['subdir'].strip())
 
         if 'artifactId' in self.query:
             env.append('ARTIFACT_ID=' + str(self.query['artifactId']))
-
-        # subdir
-        if self.site_item.get('subdir', False):
-            if self.site_item['subdir'].strip():
-                env.append('SITE_SUBDIR=' + self.site_item['subdir'].strip())
 
         env.append('SNS_TOPIC_ARN=' + self.app_config['sns_arns']['to_delete'])
         env.append("PJ_VERSION=" + __get_pj_version())
