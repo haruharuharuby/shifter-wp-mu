@@ -6,7 +6,7 @@ plugins:
 
 provider:
   name: aws
-  runtime: python3.6
+  runtime: python3.7
   stage: development
   region: us-east-1
   deploymentBucket: serverless.${self:provider.region}.shifter.deploys
@@ -68,22 +68,15 @@ provider:
 package:
   include:
     - lambda_function.py
-    - vendored
-    - mylibs
+    - vendored/**
+    - mylibs/**
+    - config/*.yml
+    - network_specs/*.yml
+    - service_specs/*.yml
   exclude:
     - \.*
-    - \.vscode/**
-    - \.ipynb_checkpoints/**
-    - venv/**
-    - localvendored/**
-    - test/**
-    - "*.md"
-    - notebook/**
-    - examples/**
-    - node_modules/**
-    - tmp/**
-    - tools/**
-    - "*.ipynb"
+    - "*"
+    - "**/**"
 
 custom:
   rollbar_token: 458e204f3c6b4b2caf4fa449d3a81077

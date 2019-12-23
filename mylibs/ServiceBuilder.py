@@ -135,6 +135,11 @@ class ServiceBuilder:
 
         if self.query['action'] in ['deletePublicContents']:
             env.extend(delete_options)
+        else:
+            # append subdir
+            if self.site_item.get('subdir', False):
+                if self.site_item['subdir'].strip():
+                    env.append('SITE_SUBDIR=' + self.site_item['subdir'].strip())
 
         if 'artifactId' in self.query:
             env.append('ARTIFACT_ID=' + str(self.query['artifactId']))
@@ -286,6 +291,11 @@ class ServiceBuilder:
         elif context['service_type'] in ['import-archive']:
             # ToDo
             self.__add_aws_access_key_to_envvars(env, 'import-archive')
+
+        # subdir
+        if self.site_item.get('subdir', False):
+            if self.site_item['subdir'].strip():
+                env.append('SITE_SUBDIR=' + self.site_item['subdir'].strip())
 
         # Safemode
         if self.query.get('opts_cleanup_plugins'):
