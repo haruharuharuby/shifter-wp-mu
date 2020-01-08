@@ -56,7 +56,7 @@ development:
   isolation:
     <<: *isolation
     targets:
-      - bad5432a-0a86-11e8-b28d-be1fc107a0c1
+      - bad5432a-0a86-11e8-b28d-be1fc107a0xx
 
 production:
   <<: *default
@@ -69,6 +69,4 @@ production:
     mediacdn_distid: E4GUQOBAR44E2
   isolation:
     <<: *isolation
-    targets:
-      - 76c7020c-a84f-11e7-94b6-b64fb4ef4b4d
-      - 33674b8a-22b3-4f3e-8791-3b0bad627219
+    targets: []

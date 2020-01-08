@@ -217,29 +217,29 @@ def test_build_context_sync_efs_to_s3():
     if siteId is included in isolation, use efs-vagrant-worker for launch
     '''
     query = {
-        "siteId": "bad5432a-0a86-11e8-b28d-be1fc107a0c1",
+        "siteId": "bad5432a-0a86-11e8-b28d-be1fc107a0xx",
         "action": "syncEfsToS3",
         "artifactId": "aaaaaaaa-b578-9da9-2126-4bdc13fcaccd",
-        "sessionid": "bad5432a-0a86-11e8-b28d-be1fc107a0c1"
+        "sessionid": "bad5432a-0a86-11e8-b28d-be1fc107a0xx"
     }
     test_site_item['version'] = "2"
     instance = ServiceBuilder(app_config, query)
     context = instance.build_context_sync_efs_to_s3()
     print(context)
     assert context == {
-        'service_name': 'bad5432a-0a86-11e8-b28d-be1fc107a0c1',
-        'service_id': 'bad5432a-0a86-11e8-b28d-be1fc107a0c1',
+        'service_name': 'bad5432a-0a86-11e8-b28d-be1fc107a0xx',
+        'service_id': 'bad5432a-0a86-11e8-b28d-be1fc107a0xx',
         'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/docker-s3sync:latest',
-        'efs_point_root': 'fs-2308c16a/bad5432a-0a86-11e8-b28d-be1fc107a0c1',
-        'efs_point_web': 'fs-2308c16a/bad5432a-0a86-11e8-b28d-be1fc107a0c1/web',
+        'efs_point_root': 'fs-2308c16a/bad5432a-0a86-11e8-b28d-be1fc107a0xx',
+        'efs_point_web': 'fs-2308c16a/bad5432a-0a86-11e8-b28d-be1fc107a0xx/web',
         'worker_type': 'efs-vagrant-worker',
         'envvars': [
             {'envvar': 'AWS_ACCESS_KEY_ID=AKIAIXELICZZAPYVYELA'},
             {'envvar': 'AWS_SECRET_ACCESS_KEY=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'},
             {'envvar': 'S3_REGION=us-east-1'},
             {'envvar': 'S3_BUCKET=artifact.getshifter.io'},
-            {'envvar': 'SITE_ID=bad5432a-0a86-11e8-b28d-be1fc107a0c1'},
-            {'envvar': 'SERVICE_NAME=bad5432a-0a86-11e8-b28d-be1fc107a0c1'},
+            {'envvar': 'SITE_ID=bad5432a-0a86-11e8-b28d-be1fc107a0xx'},
+            {'envvar': 'SERVICE_NAME=bad5432a-0a86-11e8-b28d-be1fc107a0xx'},
             {'envvar': 'DYNAMODB_TABLE=Site-development'},
             {'envvar': 'ARTIFACT_ID=aaaaaaaa-b578-9da9-2126-4bdc13fcaccd'},
             {'envvar': 'SNS_TOPIC_ARN=arn:aws:sns:us-east-1:027273742350:site-gen-sync-s3-finished-development'},
@@ -588,22 +588,22 @@ def test_build_context_wordpress_worker2():
     default context build with isolation target
     '''
     q = query.copy()
-    q['siteId'] = 'bad5432a-0a86-11e8-b28d-be1fc107a0c1'
+    q['siteId'] = 'bad5432a-0a86-11e8-b28d-be1fc107a0xx'
     instance = ServiceBuilder(app_config, q)
     mock_instance(instance)
     context = instance.build_context_wordpress_worker2()
     assert context
     assert context == {
-        'service_name': 'bad5432a-0a86-11e8-b28d-be1fc107a0c1',
+        'service_name': 'bad5432a-0a86-11e8-b28d-be1fc107a0xx',
         'service_type': 'edit-wordpress',
         'image_string': '027273742350.dkr.ecr.us-east-1.amazonaws.com/shifter-base:latest_develop',
         'publish_port1': 12345,
-        'efs_point_web': 'fs-2308c16a/bad5432a-0a86-11e8-b28d-be1fc107a0c1/web',
+        'efs_point_web': 'fs-2308c16a/bad5432a-0a86-11e8-b28d-be1fc107a0xx/web',
         'worker_type': 'efs-vagrant-worker',
         'envvars': [
             {'envvar': 'SERVICE_PORT=12345'},
             {'envvar': 'SERVICE_TYPE=edit-wordpress'},
-            {'envvar': 'SITE_ID=bad5432a-0a86-11e8-b28d-be1fc107a0c1'},
+            {'envvar': 'SITE_ID=bad5432a-0a86-11e8-b28d-be1fc107a0xx'},
             {'envvar': 'SERVICE_DOMAIN=appdev.getshifter.io'},
             {'envvar': 'NOTIFICATION_URL=dGVzdC5ub3RpZmljYXRpb25fdXJs'},
             {'envvar': 'NOTIFICATION_ERROR_URL=dGVzdC5ub3RpZmljYXRpb25lcnJvcl91cmw='},
